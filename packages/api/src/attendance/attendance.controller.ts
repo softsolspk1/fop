@@ -33,7 +33,7 @@ router.get('/class/:classId', authenticateToken, async (req, res) => {
   try {
     const { classId } = req.params;
     const records = await prisma.attendance.findMany({
-      where: { classId },
+      where: { classId: String(classId) },
       include: { user: { select: { id: true, name: true, email: true, rollNumber: true } } },
     });
     res.json(records);

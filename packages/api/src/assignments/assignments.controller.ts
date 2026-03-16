@@ -27,9 +27,8 @@ router.post('/', authenticateToken, authorizeRoles('TEACHER'), async (req: any, 
 // List assignments for a course
 router.get('/course/:courseId', authenticateToken, async (req, res) => {
   try {
-    const { courseId } = req.params;
     const assignments = await prisma.assignment.findMany({
-      where: { courseId },
+      where: { courseId: String(courseId) },
       include: { submissions: { select: { id: true, status: true, studentId: true } } },
     });
     res.json(assignments);
@@ -95,7 +94,7 @@ router.get('/:assignmentId/submissions', authenticateToken, authorizeRoles('TEAC
   try {
     const { assignmentId } = req.params;
     const submissions = await prisma.submission.findMany({
-      where: { assignmentId },
+      where: { assignmentId: String(assignmentId) },
       include: { student: { select: { name: true, rollNumber: true } }, grade: true },
     });
     res.json(submissions);

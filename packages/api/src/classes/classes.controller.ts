@@ -33,7 +33,7 @@ router.post('/', authenticateToken, authorizeRoles('TEACHER', 'SUPER_ADMIN'), as
 router.get('/:id/join', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
-    const classSession = await prisma.class.findUnique({ where: { id } });
+    const classSession = await prisma.class.findUnique({ where: { id: String(id) } });
 
     if (!classSession || !classSession.agoraChannel) {
       return res.status(404).json({ message: 'Class session not found or channel not initialized' });
@@ -62,7 +62,7 @@ router.post('/:id/recordings', authenticateToken, authorizeRoles('TEACHER'), asy
 
     const recording = await prisma.recording.create({
       data: {
-        classId: id,
+        classId: String(id),
         url,
       }
     });

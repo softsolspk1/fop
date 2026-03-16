@@ -52,7 +52,7 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res: Response) =>
     }
 
     const user = await prisma.user.update({
-      where: { id },
+      where: { id: String(id) },
       data: { name, email },
     });
 
