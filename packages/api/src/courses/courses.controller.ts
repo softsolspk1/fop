@@ -1,6 +1,9 @@
 import { Router, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { authenticateToken, authorizeRoles, AuthRequest } from '../auth/auth.middleware';
+import { upload } from '../middleware/storage.middleware';
+import googleDriveService from '../services/googleDrive.service';
+import fs from 'fs';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -70,6 +73,50 @@ router.get('/:id/students', authenticateToken, authorizeRoles('TEACHER', 'DEPT_A
     res.json(course.students);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching students', error });
+  }
+});
+
+// Upload material for a course (Teacher)
+router.post('/:id/materials', authenticateToken, authorizeRoles('TEACHER'), upload.single('file'), async (req: AuthRequest, res: Response) => {
+  const filePath = req.file?.path;
+  try {
+    const { id: courseId } = req.params;
+    const { title, type } = req.body;
+
+    if (!req.file) {
+      return res.status(400).json({ message: 'No file uploaded' });
+    }
+
+    // Upload to Google Drive
+    const driveFile = await googleDriveService.uploadFile(
+      title || req.file.originalname,
+      req.file.path,
+      req.file.mimetype
+    );
+
+    // Make file public
+    await googleDriveService.makePublic(driveFile.id!);
+
+    const material = await prisma.material.create({
+      data: {
+        title: title || req.file.originalname,
+        url: driveFile.webViewLink!,
+        type: type || 'LECTURE_NOTE',
+        courseId: String(courseId),
+      },
+    });
+
+    // Cleanup local file
+    if (filePath) {
+      fs.unlinkSync(filePath);
+    }
+
+    res.status(201).json(material);
+  } catch (error) {
+    if (filePath && fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+    res.status(500).json({ message: 'Error uploading material', error });
   }
 });
 

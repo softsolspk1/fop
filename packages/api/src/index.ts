@@ -3,6 +3,8 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
+import rateLimit from 'express-rate-limit';
+const xss = require('xss-clean');
 import authRouter from './auth/auth.controller';
 import usersRouter from './users/users.controller';
 import departmentsRouter from './departments/departments.controller';
@@ -20,10 +22,20 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 4000;
 
+// Security Middlewares
 app.use(helmet());
 app.use(cors());
 app.use(morgan('dev'));
-app.use(express.json());
+app.use(express.json({ limit: '10kb' })); // Limit body size
+app.use(xss());
+
+// Rate Limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: 'Too many requests from this IP, please try again after 15 minutes'
+});
+app.use('/auth', limiter); // Apply rate limit specifically to auth routes
 
 app.use('/auth', authRouter);
 app.use('/users', usersRouter);
@@ -37,11 +49,24 @@ app.use('/semesters', semestersRouter);
 app.use('/quizzes', quizzesRouter);
 app.use('/ai', aiRouter);
 
+// Global Error Handler
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  console.error(err.stack);
+  const status = err.status || 500;
+  const message = err.message || 'Internal Server Error';
+  
+  res.status(status).json({
+    status: 'error',
+    message,
+    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+  });
+});
+
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', message: 'KU APP Backend is running' });
 });
 
-if (process.env.NODE_ENV !== 'production' || process.env.VERCEL !== '1') {
+if (process.env.NODE_ENV !== 'test' && (process.env.NODE_ENV !== 'production' || process.env.VERCEL !== '1')) {
   app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
   });

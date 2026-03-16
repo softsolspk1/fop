@@ -2,11 +2,35 @@ import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { PrismaClient } from '@prisma/client';
+import { z } from 'zod';
+import { validate } from '../middleware/validate';
 
 const router = Router();
-const prisma = new PrismaClient(); // In a real setup, this would be a shared instance
+const prisma = new PrismaClient();
 
-router.post('/register', async (req, res) => {
+const registerSchema = z.object({
+  body: z.object({
+    email: z.string().email(),
+    password: z.string().min(8),
+    name: z.string().min(2),
+    role: z.enum(['SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER', 'STUDENT']),
+    departmentId: z.string().optional(),
+    shift: z.enum(['MORNING', 'EVENING']).optional(),
+    year: z.string().optional(),
+    rollNumber: z.string().optional(),
+    enrollmentNumber: z.string().optional(),
+    phoneNumber: z.string().optional(),
+  }),
+});
+
+const loginSchema = z.object({
+  body: z.object({
+    email: z.string().email(),
+    password: z.string(),
+  }),
+});
+
+router.post('/register', validate(registerSchema), async (req, res) => {
   try {
     const { 
       email, 
@@ -48,7 +72,7 @@ router.post('/register', async (req, res) => {
   }
 });
 
-router.post('/login', async (req, res) => {
+router.post('/login', validate(loginSchema), async (req, res) => {
   try {
     const { email, password } = req.body;
 

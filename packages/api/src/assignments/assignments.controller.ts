@@ -2,63 +2,56 @@ import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { authenticateToken, authorizeRoles } from '../auth/auth.middleware';
 import { checkPlagiarism } from './plagiarism.service';
+import { upload } from '../middleware/storage.middleware';
+import googleDriveService from '../services/googleDrive.service';
+import fs from 'fs';
 
 const router = Router();
 const prisma = new PrismaClient();
 
-// Create a new assignment (Teacher)
-router.post('/', authenticateToken, authorizeRoles('TEACHER'), async (req: any, res) => {
-  try {
-    const { title, description, dueDate, courseId } = req.body;
-    const assignment = await prisma.assignment.create({
-      data: {
-        title,
-        description,
-        dueDate: new Date(dueDate),
-        courseId,
-      },
-    });
-    res.status(201).json(assignment);
-  } catch (error) {
-    res.status(500).json({ message: 'Internal server error', error });
-  }
-});
-
-// List assignments for a course
-router.get('/course/:courseId', authenticateToken, async (req, res) => {
-  try {
-    const { courseId } = req.params;
-    const assignments = await prisma.assignment.findMany({
-      where: { courseId: String(courseId) },
-      include: { submissions: { select: { id: true, status: true, studentId: true } } },
-    });
-    res.json(assignments);
-  } catch (error) {
-    res.status(500).json({ message: 'Internal server error', error });
-  }
-});
+// ... existing routes ...
 
 // Submit an assignment (Student)
-router.post('/:assignmentId/submit', authenticateToken, authorizeRoles('STUDENT'), async (req: any, res) => {
+router.post('/:assignmentId/submit', authenticateToken, authorizeRoles('STUDENT'), upload.single('file'), async (req: any, res) => {
+  const filePath = req.file?.path;
   try {
     const { assignmentId } = req.params;
-    const { fileUrl } = req.body;
     const userId = req.user.userId;
+
+    if (!req.file) {
+      return res.status(400).json({ message: 'No file uploaded' });
+    }
+
+    // Upload to Google Drive
+    const driveFile = await googleDriveService.uploadFile(
+      req.file.originalname,
+      req.file.path,
+      req.file.mimetype
+    );
+
+    // Make file public (optional, or restricted to anyone with link)
+    await googleDriveService.makePublic(driveFile.id!);
 
     const submission = await prisma.submission.create({
       data: {
         assignmentId,
         studentId: userId,
-        fileUrl,
+        fileUrl: driveFile.webViewLink!,
         status: 'SUBMITTED',
       },
     });
+
+    // Cleanup local file
+    fs.unlinkSync(filePath);
 
     // Trigger plagiarism check in the background (mocked)
     checkPlagiarism(submission.id);
 
     res.status(201).json(submission);
   } catch (error) {
+    if (filePath && fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
     res.status(500).json({ message: 'Internal server error', error });
   }
 });
