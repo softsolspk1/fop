@@ -12,7 +12,7 @@
     "dev": "npm run dev --workspaces --if-present",
     "build:all": "npm run build --workspaces --if-present",
     "build:web": "cd apps/web && npx next build",
-    "postinstall": "npm run build --workspace=database",
+    "postinstall": "cd packages/database && npx prisma generate",
     "test": "npm run test --workspaces --if-present"
   },
   "devDependencies": {
