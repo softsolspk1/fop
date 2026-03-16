@@ -1,0 +1,66 @@
+import React from 'react';
+import Link from 'next/link';
+import { 
+  LayoutDashboard, 
+  Users, 
+  BookOpen, 
+  FileText, 
+  Video, 
+  Settings, 
+  LogOut,
+  Building2,
+  Calendar,
+  Beaker
+} from 'lucide-react';
+
+const navItems = [
+  { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
+  { icon: Building2, label: 'Departments', href: '/dashboard/departments' },
+  { icon: Users, label: 'Users', href: '/dashboard/users' },
+  { icon: BookOpen, label: 'Courses', href: '/dashboard/courses' },
+  { icon: FileText, label: 'Research Library', href: '/dashboard/library' },
+  { icon: Beaker, label: 'Virtual Labs', href: '/dashboard/labs' },
+  { icon: Calendar, label: 'Calendar', href: '/dashboard/calendar' },
+  { icon: Settings, label: 'Settings', href: '/dashboard/settings' },
+];
+
+export default function Sidebar() {
+  return (
+    <div className="w-64 h-screen bg-white border-r border-slate-200 flex flex-col">
+      <div className="p-6">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center overflow-hidden">
+             <img src="/logo.jpg" alt="Logo" className="w-full h-full object-cover" />
+          </div>
+          <div className="flex flex-col">
+            <span className="text-sm font-bold text-slate-800 leading-tight">Faculty of</span>
+            <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">Pharmacy UOK</span>
+          </div>
+        </div>
+      </div>
+
+      <nav className="flex-1 px-4 py-4">
+        <ul className="space-y-1">
+          {navItems.map((item) => (
+            <li key={item.href}>
+              <Link 
+                href={item.href}
+                className="flex items-center gap-3 px-4 py-3 text-slate-600 rounded-xl hover:bg-slate-50 hover:text-blue-600 transition-all group"
+              >
+                <item.icon className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                <span className="font-medium">{item.label}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </nav>
+
+      <div className="p-4 border-t border-slate-100">
+        <button className="flex items-center gap-3 px-4 py-3 w-full text-slate-600 rounded-xl hover:bg-red-50 hover:text-red-600 transition-all group">
+          <LogOut className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+          <span className="font-medium">Logout</span>
+        </button>
+      </div>
+    </div>
+  );
+}
