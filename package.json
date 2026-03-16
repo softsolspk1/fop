@@ -18,7 +18,7 @@
   "devDependencies": {
     "typescript": "^5.0.0",
     "prisma": "^6.19.2",
-    "next": "15.2.8"
+    "next": "16.1.6"
   },
   "dependencies": {
     "react": "19.0.0",
