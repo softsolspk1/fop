@@ -54,4 +54,23 @@ router.get('/:id', authenticateToken, async (req: AuthRequest, res: Response) =>
   }
 });
 
+// Get students for a specific course
+router.get('/:id/students', authenticateToken, authorizeRoles('TEACHER', 'DEPT_ADMIN', 'SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const course = await prisma.course.findUnique({
+      where: { id: String(id) },
+      include: {
+        students: {
+          select: { id: true, name: true, email: true, rollNumber: true, shift: true }
+        }
+      }
+    });
+    if (!course) return res.status(404).json({ message: 'Course not found' });
+    res.json(course.students);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching students', error });
+  }
+});
+
 export default router;

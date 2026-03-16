@@ -10,14 +10,18 @@ import {
   LogOut,
   Building2,
   Calendar,
-  Beaker
+  Beaker,
+  CheckCircle
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 const navItems = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard', roles: ['SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER', 'STUDENT'] },
   { icon: Building2, label: 'Departments', href: '/dashboard/departments', roles: ['SUPER_ADMIN'] },
-  { icon: Users, label: 'Users', href: '/dashboard/users', roles: ['SUPER_ADMIN', 'DEPT_ADMIN'] },
+  { icon: Users, label: 'Users', href: '/dashboard/users', roles: ['SUPER_ADMIN'] },
+  { icon: Calendar, label: 'Semesters', href: '/dashboard/semesters', roles: ['SUPER_ADMIN'] },
+  { icon: CheckCircle, label: 'Attendance', href: '/dashboard/teacher/attendance', roles: ['TEACHER', 'DEPT_ADMIN', 'SUPER_ADMIN'] },
+  { icon: FileText, label: 'Assignments', href: '/dashboard/teacher/assignments', roles: ['TEACHER', 'DEPT_ADMIN', 'SUPER_ADMIN'] },
   { icon: BookOpen, label: 'Courses', href: '/dashboard/courses', roles: ['SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER', 'STUDENT'] },
   { icon: FileText, label: 'Research Library', href: '/dashboard/library', roles: ['SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER', 'STUDENT'] },
   { icon: Beaker, label: 'Virtual Labs', href: '/dashboard/labs', roles: ['SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER', 'STUDENT'] },

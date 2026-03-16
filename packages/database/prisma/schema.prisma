@@ -30,7 +30,8 @@ model User {
   phoneNumber       String?
   departmentId      String?
   department    Department? @relation(fields: [departmentId], references: [id])
-  courses       Course[]
+  teacherCourses    Course[] @relation("TeacherCourses")
+  studentCourses    Course[] @relation("StudentCourses")
   attendance    Attendance[]
   submissions   Submission[]
   grades        Grade[]
@@ -67,7 +68,8 @@ model Course {
   semesterId   String?
   semester     Semester?  @relation(fields: [semesterId], references: [id])
   teacherId    String
-  teacher      User     @relation(fields: [teacherId], references: [id])
+  teacher      User     @relation("TeacherCourses", fields: [teacherId], references: [id])
+  students     User[]   @relation("StudentCourses")
   materials    Material[]
   assignments  Assignment[]
   quizzes      Quiz[]
