@@ -8,7 +8,18 @@ const prisma = new PrismaClient(); // In a real setup, this would be a shared in
 
 router.post('/register', async (req, res) => {
   try {
-    const { email, password, name, role, departmentId } = req.body;
+    const { 
+      email, 
+      password, 
+      name, 
+      role, 
+      departmentId,
+      shift,
+      year,
+      rollNumber,
+      enrollmentNumber,
+      phoneNumber 
+    } = req.body;
 
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
@@ -23,6 +34,11 @@ router.post('/register', async (req, res) => {
         name,
         role,
         departmentId,
+        shift,
+        year,
+        rollNumber,
+        enrollmentNumber,
+        phoneNumber
       },
     });
 

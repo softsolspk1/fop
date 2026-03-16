@@ -22,8 +22,13 @@ model User {
   email         String   @unique
   password      String
   name          String
-  role          Role     @default(STUDENT)
-  departmentId  String?
+  role              Role     @default(STUDENT)
+  shift             String?  // 'MORNING', 'EVENING'
+  year              String?  // '1st Year', '2nd Year', etc.
+  rollNumber        String?
+  enrollmentNumber  String?
+  phoneNumber       String?
+  departmentId      String?
   department    Department? @relation(fields: [departmentId], references: [id])
   courses       Course[]
   attendance    Attendance[]

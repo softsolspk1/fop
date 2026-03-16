@@ -2,6 +2,7 @@ import { Router, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { authenticateToken, authorizeRoles, AuthRequest } from '../auth/auth.middleware';
 import { generateAgoraToken } from './agora.service';
+import { transcribeAudio } from './ai-transcription.service';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -50,6 +51,28 @@ router.get('/:id/join', authenticateToken, async (req: AuthRequest, res: Respons
     });
   } catch (error) {
     res.status(500).json({ message: 'Error joining class', error });
+  }
+});
+
+// Save a recording and trigger AI transcription
+router.post('/:id/recordings', authenticateToken, authorizeRoles('TEACHER'), async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { url } = req.body;
+
+    const recording = await prisma.recording.create({
+      data: {
+        classId: id,
+        url,
+      }
+    });
+
+    // Trigger AI transcription in the background (mocked)
+    transcribeAudio(recording.id);
+
+    res.status(201).json(recording);
+  } catch (error) {
+    res.status(500).json({ message: 'Error saving recording', error });
   }
 });
 
