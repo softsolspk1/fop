@@ -15,8 +15,8 @@ export default function LandingPage() {
             <span className="text-xl font-bold text-slate-900 tracking-tight">Faculty of Pharmacy <span className="text-blue-600 font-extrabold text-xs align-top ml-0.5">UOK</span></span>
           </div>
         <div className="flex gap-4">
-          <button className="px-5 py-2 text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors">Login</button>
-          <button className="px-5 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors">Portal Access</button>
+          <Link href="/login" className="px-5 py-2 text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors flex items-center">Login</Link>
+          <Link href="/signup" className="px-5 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors flex items-center shadow-md">Portal Access</Link>
         </div>
       </nav>
 

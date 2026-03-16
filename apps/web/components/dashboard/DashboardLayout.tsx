@@ -1,8 +1,10 @@
 import React from 'react';
 import Sidebar from './Sidebar';
 import { Search, Bell, User } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const { user } = useAuth();
   return (
     <div className="flex h-screen bg-slate-50 overflow-hidden">
       <Sidebar />
@@ -28,11 +30,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <div className="h-8 w-px bg-slate-200 mx-2"></div>
             <div className="flex items-center gap-3">
               <div className="text-right hidden sm:block">
-                <p className="text-sm font-semibold text-slate-800">Admin User</p>
-                <p className="text-xs text-slate-500">Super Admin</p>
+                <p className="text-sm font-semibold text-slate-800">{user?.name || 'Loading...'}</p>
+                <p className="text-xs text-slate-500 uppercase tracking-widest font-bold">{user?.role?.replace('_', ' ') || 'Profile'}</p>
               </div>
               <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold border-2 border-white shadow-sm">
-                AU
+                {user?.name?.charAt(0) || <User className="w-5 h-5" />}
               </div>
             </div>
           </div>

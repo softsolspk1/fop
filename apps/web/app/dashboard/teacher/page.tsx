@@ -5,6 +5,7 @@ import DashboardLayout from '../../../components/dashboard/DashboardLayout';
 import { BookOpen, Video, FileText, Users, Clock, Plus, ArrowRight, Play, CheckCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import { useAuth } from '../../../context/AuthContext';
 
 const teacherStats = [
   { label: 'My Courses', value: '4', icon: BookOpen, color: 'text-blue-600', bg: 'bg-blue-100' },
@@ -14,13 +15,15 @@ const teacherStats = [
 ];
 
 export default function TeacherDashboard() {
+  const { user } = useAuth();
+
   return (
     <DashboardLayout>
       <div className="space-y-8">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-bold text-slate-800">Lecturer Dashboard</h2>
-            <p className="text-slate-500">Welcome back, Dr. Sarah. Here's your teaching schedule for today.</p>
+            <p className="text-slate-500">Welcome back, {user?.name || 'Professor'}. Here's your teaching schedule for today.</p>
           </div>
           <button className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-bold rounded-xl shadow-lg hover:bg-blue-700 transition-all hover:-translate-y-0.5">
             <Video className="w-5 h-5" />

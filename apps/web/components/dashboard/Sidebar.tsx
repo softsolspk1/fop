@@ -12,19 +12,25 @@ import {
   Calendar,
   Beaker
 } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 
 const navItems = [
-  { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
-  { icon: Building2, label: 'Departments', href: '/dashboard/departments' },
-  { icon: Users, label: 'Users', href: '/dashboard/users' },
-  { icon: BookOpen, label: 'Courses', href: '/dashboard/courses' },
-  { icon: FileText, label: 'Research Library', href: '/dashboard/library' },
-  { icon: Beaker, label: 'Virtual Labs', href: '/dashboard/labs' },
-  { icon: Calendar, label: 'Calendar', href: '/dashboard/calendar' },
-  { icon: Settings, label: 'Settings', href: '/dashboard/settings' },
+  { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard', roles: ['SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER', 'STUDENT'] },
+  { icon: Building2, label: 'Departments', href: '/dashboard/departments', roles: ['SUPER_ADMIN'] },
+  { icon: Users, label: 'Users', href: '/dashboard/users', roles: ['SUPER_ADMIN', 'DEPT_ADMIN'] },
+  { icon: BookOpen, label: 'Courses', href: '/dashboard/courses', roles: ['SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER', 'STUDENT'] },
+  { icon: FileText, label: 'Research Library', href: '/dashboard/library', roles: ['SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER', 'STUDENT'] },
+  { icon: Beaker, label: 'Virtual Labs', href: '/dashboard/labs', roles: ['SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER', 'STUDENT'] },
+  { icon: Calendar, label: 'Calendar', href: '/dashboard/calendar', roles: ['SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER', 'STUDENT'] },
+  { icon: Settings, label: 'Settings', href: '/dashboard/settings', roles: ['SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER', 'STUDENT'] },
 ];
 
 export default function Sidebar() {
+  const { user, logout } = useAuth();
+  
+  const filteredNavItems = navItems.filter(item => 
+    !item.roles || (user && item.roles.includes(user.role))
+  );
   return (
     <div className="w-64 h-screen bg-white border-r border-slate-200 flex flex-col">
       <div className="p-6">
@@ -41,10 +47,12 @@ export default function Sidebar() {
 
       <nav className="flex-1 px-4 py-4">
         <ul className="space-y-1">
-          {navItems.map((item) => (
+          {filteredNavItems.map((item) => (
             <li key={item.href}>
               <Link 
-                href={item.href}
+                href={item.label === 'Dashboard' && user?.role === 'STUDENT' ? '/dashboard/student' : 
+                      item.label === 'Dashboard' && user?.role === 'TEACHER' ? '/dashboard/teacher' : 
+                      item.href}
                 className="flex items-center gap-3 px-4 py-3 text-slate-600 rounded-xl hover:bg-slate-50 hover:text-blue-600 transition-all group"
               >
                 <item.icon className="w-5 h-5 group-hover:scale-110 transition-transform" />
@@ -56,7 +64,10 @@ export default function Sidebar() {
       </nav>
 
       <div className="p-4 border-t border-slate-100">
-        <button className="flex items-center gap-3 px-4 py-3 w-full text-slate-600 rounded-xl hover:bg-red-50 hover:text-red-600 transition-all group">
+        <button 
+          onClick={logout}
+          className="flex items-center gap-3 px-4 py-3 w-full text-slate-600 rounded-xl hover:bg-red-50 hover:text-red-600 transition-all group"
+        >
           <LogOut className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
           <span className="font-medium">Logout</span>
         </button>

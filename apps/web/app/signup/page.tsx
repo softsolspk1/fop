@@ -2,14 +2,20 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { User, Mail, Lock, Phone, Hash, BookOpen, Clock, ArrowRight } from 'lucide-react';
+import { User, Mail, Lock, Phone, Hash, BookOpen, Clock, ArrowRight, AlertCircle, Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import api from '../../lib/api';
 
 export default function SignupPage() {
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
+    role: 'STUDENT',
     shift: 'MORNING',
     year: '1st Year',
     rollNumber: '',
@@ -17,10 +23,20 @@ export default function SignupPage() {
     phoneNumber: '',
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Registering Student:', formData);
-    // Add registration logic here
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      await api.post('/auth/register', formData);
+      router.push('/login?registered=true');
+    } catch (err: any) {
+      console.error('Registration failed:', err);
+      setError(err.response?.data?.message || 'Registration failed. Please check your details and try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -41,6 +57,16 @@ export default function SignupPage() {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-xl">
         <div className="bg-white py-10 px-8 shadow-2xl shadow-slate-200/50 rounded-3xl border border-slate-100">
+          {error && (
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="mb-8 p-4 bg-red-50 border border-red-100 rounded-2xl flex items-center gap-3 text-red-600 text-sm font-bold"
+            >
+              <AlertCircle className="w-5 h-5 shrink-0" />
+              {error}
+            </motion.div>
+          )}
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Name */}
@@ -194,10 +220,20 @@ export default function SignupPage() {
             <div>
               <button
                 type="submit"
-                className="w-full flex justify-center items-center gap-2 py-4 px-4 border border-transparent rounded-2xl shadow-xl shadow-blue-900/10 text-base font-bold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all transform hover:-translate-y-1"
+                disabled={isLoading}
+                className={`w-full flex justify-center items-center gap-2 py-4 px-4 border border-transparent rounded-2xl shadow-xl shadow-blue-900/10 text-base font-bold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all transform ${isLoading ? 'opacity-70 cursor-not-allowed' : 'hover:-translate-y-1'}`}
               >
-                Register as Student
-                <ArrowRight className="w-5 h-5" />
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    Register as Student
+                    <ArrowRight className="w-5 h-5" />
+                  </>
+                )}
               </button>
             </div>
           </form>

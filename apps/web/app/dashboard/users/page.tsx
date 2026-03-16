@@ -1,17 +1,9 @@
-"use client";
-
 import React from 'react';
 import DashboardLayout from '../../../components/dashboard/DashboardLayout';
-import { Plus, Search, User, Mail, Shield, MoreVertical, Edit2, Trash2 } from 'lucide-react';
+import { Plus, Search, User, Mail, Shield, MoreVertical, Edit2, Trash2, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
-
-const users = [
-  { id: '1', name: 'Dr. Sarah Ahmed', email: 'sarah.ahmed@uok.edu.pk', role: 'TEACHER', department: 'Pharmacology' },
-  { id: '2', name: 'Dr. John Doe', email: 'john.doe@uok.edu.pk', role: 'TEACHER', department: 'Pharmaceutics' },
-  { id: '3', name: 'Admin User', email: 'admin@uok.edu.pk', role: 'SUPER_ADMIN', department: 'Administration' },
-  { id: '4', name: 'Ali Khan', email: 'ali.khan@student.uok.edu.pk', role: 'STUDENT', department: 'Pharmacology' },
-  { id: '5', name: 'Sana Fatima', email: 'sana.fatima@student.uok.edu.pk', role: 'STUDENT', department: 'Pharmaceutics' },
-];
+import { useAuth } from '../../../context/AuthContext';
+import api from '../../../lib/api';
 
 const roleStyles = {
   SUPER_ADMIN: 'bg-red-100 text-red-700',
@@ -21,6 +13,24 @@ const roleStyles = {
 };
 
 export default function UsersPage() {
+  const { user: currentUser } = useAuth();
+  const [users, setUsers] = React.useState<any[]>([]);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const res = await api.get('/users');
+        setUsers(res.data);
+      } catch (error) {
+        console.error('Error fetching users:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUsers();
+  }, []);
   return (
     <DashboardLayout>
       <div className="space-y-8">
@@ -65,45 +75,60 @@ export default function UsersPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
-              {users.map((user, idx) => (
-                <motion.tr 
-                  key={user.id}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: idx * 0.05 }}
-                  className="hover:bg-slate-50/50 transition-colors group"
-                >
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center text-slate-500 font-bold border-2 border-white shadow-sm">
-                        {user.name.charAt(0)}
+              {loading ? (
+                <tr>
+                  <td colSpan={4} className="px-6 py-12 text-center">
+                    <Loader2 className="w-8 h-8 text-blue-600 animate-spin mx-auto mb-2" />
+                    <p className="text-slate-500 font-medium">Fetching User Directory...</p>
+                  </td>
+                </tr>
+              ) : users.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="px-6 py-12 text-center text-slate-500 font-medium">
+                    No users found in the system.
+                  </td>
+                </tr>
+              ) : (
+                users.map((user, idx) => (
+                  <motion.tr 
+                    key={user.id}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: idx * 0.05 }}
+                    className="hover:bg-slate-50/50 transition-colors group"
+                  >
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center text-slate-500 font-bold border-2 border-white shadow-sm">
+                          {user.name.charAt(0)}
+                        </div>
+                        <div>
+                          <p className="font-bold text-slate-800">{user.name}</p>
+                          <p className="text-xs text-slate-500 flex items-center gap-1"><Mail className="w-3 h-3" /> {user.email}</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-bold text-slate-800">{user.name}</p>
-                        <p className="text-xs text-slate-500 flex items-center gap-1"><Mail className="w-3 h-3" /> {user.email}</p>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2">
+                        <Shield className="w-4 h-4 text-slate-400" />
+                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${roleStyles[user.role as keyof typeof roleStyles]}`}>
+                          {user.role.replace('_', ' ')}
+                        </span>
                       </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-2">
-                      <Shield className="w-4 h-4 text-slate-400" />
-                      <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${roleStyles[user.role as keyof typeof roleStyles]}`}>
-                        {user.role.replace('_', ' ')}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="text-slate-600 font-medium">{user.department}</span>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button className="p-2 text-slate-400 hover:text-blue-600 transition-colors"><Edit2 className="w-4 h-4" /></button>
-                      <button className="p-2 text-slate-400 hover:text-red-600 transition-colors"><Trash2 className="w-4 h-4" /></button>
-                      <button className="p-2 text-slate-400 hover:text-slate-800 transition-colors"><MoreVertical className="w-4 h-4" /></button>
-                    </div>
-                  </td>
-                </motion.tr>
-              ))}
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-slate-600 font-medium">{user.department?.name || 'Faculty'}</span>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button className="p-2 text-slate-400 hover:text-blue-600 transition-colors"><Edit2 className="w-4 h-4" /></button>
+                        <button className="p-2 text-slate-400 hover:text-red-600 transition-colors"><Trash2 className="w-4 h-4" /></button>
+                        <button className="p-2 text-slate-400 hover:text-slate-800 transition-colors"><MoreVertical className="w-4 h-4" /></button>
+                      </div>
+                    </td>
+                  </motion.tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

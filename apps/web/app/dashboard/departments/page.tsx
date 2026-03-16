@@ -2,18 +2,28 @@
 
 import React from 'react';
 import DashboardLayout from '../../../components/dashboard/DashboardLayout';
-import { Plus, Search, Building2, MoreVertical, Edit2, Trash2, ArrowUpRight } from 'lucide-react';
+import { Plus, Search, Building2, MoreVertical, Edit2, Trash2, ArrowUpRight, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
-
-const departments = [
-  { id: '1', name: 'Department of Pharmaceutical Chemistry', courses: 22, faculty: 14, status: 'Active' },
-  { id: '2', name: 'Department of Pharmaceutics', courses: 20, faculty: 12, status: 'Active' },
-  { id: '3', name: 'Department of Pharmacognosy', courses: 15, faculty: 8, status: 'Active' },
-  { id: '4', name: 'Department of Pharmacology', courses: 24, faculty: 15, status: 'Active' },
-  { id: '5', name: 'Department of Pharmacy Practice', courses: 18, faculty: 10, status: 'Active' },
-];
+import api from '../../../lib/api';
 
 export default function DepartmentsPage() {
+  const [departments, setDepartments] = React.useState<any[]>([]);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    const fetchDepartments = async () => {
+      try {
+        const res = await api.get('/departments');
+        setDepartments(res.data);
+      } catch (error) {
+        console.error('Error fetching departments:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDepartments();
+  }, []);
   return (
     <DashboardLayout>
       <div className="space-y-8">
@@ -54,42 +64,57 @@ export default function DepartmentsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
-              {departments.map((dept, idx) => (
-                <motion.tr 
-                  key={dept.id}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: idx * 0.05 }}
-                  className="hover:bg-slate-50/50 transition-colors group"
-                >
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-blue-50 text-blue-600 rounded-lg group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                        <Building2 className="w-5 h-5" />
+              {loading ? (
+                <tr>
+                  <td colSpan={5} className="px-6 py-12 text-center">
+                    <Loader2 className="w-8 h-8 text-blue-600 animate-spin mx-auto mb-2" />
+                    <p className="text-slate-500 font-medium">Fetching Departments...</p>
+                  </td>
+                </tr>
+              ) : departments.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="px-6 py-12 text-center text-slate-500 font-medium">
+                    No departments catalogs found.
+                  </td>
+                </tr>
+              ) : (
+                departments.map((dept, idx) => (
+                  <motion.tr 
+                    key={dept.id}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: idx * 0.05 }}
+                    className="hover:bg-slate-50/50 transition-colors group"
+                  >
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-blue-50 text-blue-600 rounded-lg group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                          <Building2 className="w-5 h-5" />
+                        </div>
+                        <span className="font-bold text-slate-800">{dept.name}</span>
                       </div>
-                      <span className="font-bold text-slate-800">{dept.name}</span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="text-slate-600 font-medium">{dept.courses} Courses</span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="text-slate-600 font-medium">{dept.faculty} Instructors</span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">
-                      {dept.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button className="p-2 text-slate-400 hover:text-blue-600 transition-colors"><Edit2 className="w-4 h-4" /></button>
-                      <button className="p-2 text-slate-400 hover:text-red-600 transition-colors"><Trash2 className="w-4 h-4" /></button>
-                      <button className="p-2 text-slate-400 hover:text-slate-800 transition-colors"><MoreVertical className="w-4 h-4" /></button>
-                    </div>
-                  </td>
-                </motion.tr>
-              ))}
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-slate-600 font-medium">{dept._count?.courses || 0} Courses</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-slate-600 font-medium">{dept._count?.users || 0} Instructors</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">
+                        Active
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button className="p-2 text-slate-400 hover:text-blue-600 transition-colors"><Edit2 className="w-4 h-4" /></button>
+                        <button className="p-2 text-slate-400 hover:text-red-600 transition-colors"><Trash2 className="w-4 h-4" /></button>
+                        <button className="p-2 text-slate-400 hover:text-slate-800 transition-colors"><MoreVertical className="w-4 h-4" /></button>
+                      </div>
+                    </td>
+                  </motion.tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
