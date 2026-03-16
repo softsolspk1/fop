@@ -27,6 +27,7 @@ router.post('/', authenticateToken, authorizeRoles('TEACHER'), async (req: any, 
 // List assignments for a course
 router.get('/course/:courseId', authenticateToken, async (req, res) => {
   try {
+    const { courseId } = req.params;
     const assignments = await prisma.assignment.findMany({
       where: { courseId: String(courseId) },
       include: { submissions: { select: { id: true, status: true, studentId: true } } },
