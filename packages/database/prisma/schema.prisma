@@ -1,0 +1,139 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  SUPER_ADMIN
+  DEPT_ADMIN
+  TEACHER
+  STUDENT
+}
+
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  password      String
+  name          String
+  role          Role     @default(STUDENT)
+  departmentId  String?
+  department    Department? @relation(fields: [departmentId], references: [id])
+  courses       Course[]
+  attendance    Attendance[]
+  submissions   Submission[]
+  grades        Grade[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Department {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  users     User[]
+  courses   Course[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Course {
+  id           String   @id @default(uuid())
+  name         String
+  code         String   @unique
+  departmentId String
+  department   Department @relation(fields: [departmentId], references: [id])
+  teacherId    String
+  teacher      User     @relation(fields: [teacherId], references: [id])
+  materials    Material[]
+  assignments  Assignment[]
+  classes      Class[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Material {
+  id        String   @id @default(uuid())
+  title     String
+  url       String   // Google Drive URL
+  type      String   // e.g., 'LECTURE_NOTE', 'VIDEO', 'SLIDE'
+  courseId  String
+  course    Course   @relation(fields: [courseId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Class {
+  id           String   @id @default(uuid())
+  title        String
+  startTime    DateTime
+  endTime      DateTime
+  agoraChannel String?
+  courseId     String
+  course       Course   @relation(fields: [courseId], references: [id])
+  attendance   Attendance[]
+  recordings   Recording[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Attendance {
+  id        String   @id @default(uuid())
+  status    String   // 'PRESENT', 'ABSENT'
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  classId   String
+  class     Class    @relation(fields: [classId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model Assignment {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  dueDate     DateTime
+  courseId    String
+  course      Course   @relation(fields: [courseId], references: [id])
+  submissions Submission[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Submission {
+  id           String   @id @default(uuid())
+  fileUrl      String   // Google Drive URL
+  status       String   // 'SUBMITTED', 'GRADED'
+  plagiarism   Float?   // Plagiarism percentage
+  assignmentId String
+  assignment   Assignment @relation(fields: [assignmentId], references: [id])
+  studentId    String
+  student      User       @relation(fields: [studentId], references: [id])
+  grade        Grade?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Grade {
+  id           String   @id @default(uuid())
+  score        Float
+  feedback     String?
+  submissionId String   @unique
+  submission   Submission @relation(fields: [submissionId], references: [id])
+  teacherId    String
+  teacher      User       @relation(fields: [teacherId], references: [id])
+  createdAt    DateTime @default(now())
+}
+
+model Recording {
+  id        String   @id @default(uuid())
+  url       String   // Agora recording or Google Drive storage URL
+  transcript String? // AI generated transcript
+  classId   String
+  class     Class    @relation(fields: [classId], references: [id])
+  createdAt DateTime @default(now())
+}
