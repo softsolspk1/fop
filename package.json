@@ -3,13 +3,15 @@
   "version": "1.0.0",
   "private": true,
   "workspaces": [
-    "apps/*",
-    "packages/*"
+    "apps/web",
+    "apps/mobile",
+    "packages/api",
+    "packages/database"
   ],
   "scripts": {
     "dev": "npm run dev --workspaces --if-present",
     "build": "npm run build --workspaces --if-present",
-    "build:web": "npm run build --workspace=web",
+    "build:web": "cd apps/web && npm run build",
     "postinstall": "npm run build --workspace=database",
     "test": "npm run test --workspaces --if-present"
   },
