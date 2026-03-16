@@ -17,6 +17,7 @@ router.post('/mark', authenticateToken, authorizeRoles('TEACHER', 'DEPT_ADMIN', 
             classId,
             userId: record.userId,
             status: record.status,
+            remarks: record.remarks,
           },
         })
       )

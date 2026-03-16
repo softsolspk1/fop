@@ -34,6 +34,7 @@ model User {
   attendance    Attendance[]
   submissions   Submission[]
   grades        Grade[]
+  quizzes       QuizResult[]
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }
@@ -47,16 +48,29 @@ model Department {
   updatedAt DateTime @updatedAt
 }
 
+model Semester {
+  id        String   @id @default(uuid())
+  name      String   @unique // e.g., 'Fall 2025', 'Spring 2026'
+  startDate DateTime
+  endDate   DateTime
+  courses   Course[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model Course {
   id           String   @id @default(uuid())
   name         String
   code         String   @unique
   departmentId String
   department   Department @relation(fields: [departmentId], references: [id])
+  semesterId   String?
+  semester     Semester?  @relation(fields: [semesterId], references: [id])
   teacherId    String
   teacher      User     @relation(fields: [teacherId], references: [id])
   materials    Material[]
   assignments  Assignment[]
+  quizzes      Quiz[]
   classes      Class[]
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -89,7 +103,8 @@ model Class {
 
 model Attendance {
   id        String   @id @default(uuid())
-  status    String   // 'PRESENT', 'ABSENT'
+  status    String   // 'PRESENT', 'ABSENT', 'LATE'
+  remarks   String?
   userId    String
   user      User     @relation(fields: [userId], references: [id])
   classId   String
@@ -121,6 +136,38 @@ model Submission {
   grade        Grade?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+}
+
+model Quiz {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  timeLimit   Int      // in minutes
+  courseId    String
+  course      Course   @relation(fields: [courseId], references: [id])
+  questions   Question[]
+  results     QuizResult[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Question {
+  id        String   @id @default(uuid())
+  text      String
+  options   String[] // JSON array of options
+  answer    String
+  quizId    String
+  quiz      Quiz     @relation(fields: [quizId], references: [id])
+}
+
+model QuizResult {
+  id        String   @id @default(uuid())
+  score     Float
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  quizId    String
+  quiz      Quiz     @relation(fields: [quizId], references: [id])
+  createdAt DateTime @default(now())
 }
 
 model Grade {

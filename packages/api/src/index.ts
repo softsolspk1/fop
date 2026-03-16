@@ -3,14 +3,17 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
-import authRoutes from './auth/auth.controller';
-import userRoutes from './users/users.controller';
-import deptRoutes from './departments/departments.controller';
-import courseRoutes from './courses/courses.controller';
-import classRoutes from './classes/classes.controller';
-import attendanceRoutes from './attendance/attendance.controller';
-import assignmentRoutes from './assignments/assignments.controller';
+import authRouter from './auth/auth.controller';
+import usersRouter from './users/users.controller';
+import departmentsRouter from './departments/departments.controller';
+import coursesRouter from './courses/courses.controller';
+import classesRouter from './classes/classes.controller';
+import attendanceRouter from './attendance/attendance.controller';
+import assignmentsRouter from './assignments/assignments.controller';
 import reportRoutes from './users/reporting.controller';
+import semestersRouter from './semesters/semesters.controller';
+import quizzesRouter from './quizzes/quizzes.controller';
+import aiRouter from './ai/ai.controller';
 
 dotenv.config();
 
@@ -22,14 +25,17 @@ app.use(cors());
 app.use(morgan('dev'));
 app.use(express.json());
 
-app.use('/auth', authRoutes);
-app.use('/users', userRoutes);
-app.use('/departments', deptRoutes);
-app.use('/courses', courseRoutes);
-app.use('/classes', classRoutes);
-app.use('/attendance', attendanceRoutes);
-app.use('/assignments', assignmentRoutes);
+app.use('/auth', authRouter);
+app.use('/users', usersRouter);
+app.use('/departments', departmentsRouter);
+app.use('/courses', coursesRouter);
+app.use('/classes', classesRouter);
+app.use('/attendance', attendanceRouter);
+app.use('/assignments', assignmentsRouter);
 app.use('/reports', reportRoutes);
+app.use('/semesters', semestersRouter);
+app.use('/quizzes', quizzesRouter);
+app.use('/ai', aiRouter);
 
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', message: 'KU APP Backend is running' });
