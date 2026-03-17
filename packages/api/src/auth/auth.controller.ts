@@ -30,7 +30,7 @@ const loginSchema = z.object({
   }),
 });
 
-router.post('/register', validate(registerSchema), async (req, res) => {
+router.post('/register', validate(registerSchema), async (req, res, next) => {
   try {
     const { 
       email, 
@@ -62,7 +62,8 @@ router.post('/register', validate(registerSchema), async (req, res) => {
         year,
         rollNumber,
         enrollmentNumber,
-        phoneNumber
+        phoneNumber,
+        status: role === 'STUDENT' ? 'PENDING' : 'APPROVED'
       },
     });
 
@@ -72,13 +73,20 @@ router.post('/register', validate(registerSchema), async (req, res) => {
   }
 });
 
-router.post('/login', validate(loginSchema), async (req, res) => {
+router.post('/login', validate(loginSchema), async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
       return res.status(401).json({ message: 'Invalid credentials' });
+    }
+
+    if (user.status !== 'APPROVED') {
+      const message = user.status === 'PENDING' 
+        ? 'Your registration is pending administrator approval.' 
+        : 'Your registration has been rejected. Please contact support.';
+      return res.status(403).json({ message });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);

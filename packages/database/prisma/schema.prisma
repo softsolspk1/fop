@@ -17,12 +17,19 @@ enum Role {
   STUDENT
 }
 
+enum EnrollmentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 model User {
   id            String   @id @default(uuid())
   email         String   @unique
   password      String
   name          String
   role              Role     @default(STUDENT)
+  status            EnrollmentStatus @default(APPROVED)
   shift             String?  // 'MORNING', 'EVENING'
   year              String?  // '1st Year', '2nd Year', etc.
   rollNumber        String?
@@ -36,8 +43,46 @@ model User {
   submissions   Submission[]
   grades        Grade[]
   quizzes       QuizResult[]
+  fees          Fee[]
+  examResults   ExamResult[]
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+}
+
+
+model Fee {
+  id          String   @id @default(uuid())
+  title       String
+  amount      Float
+  dueDate     DateTime
+  status      String   // 'UNPAID', 'PAID', 'OVERDUE'
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Exam {
+  id          String   @id @default(uuid())
+  title       String
+  date        DateTime
+  location    String?
+  courseId    String
+  course      Course   @relation(fields: [courseId], references: [id])
+  results     ExamResult[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ExamResult {
+  id        String   @id @default(uuid())
+  score     Float
+  grade     String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  examId    String
+  exam      Exam     @relation(fields: [examId], references: [id])
+  createdAt DateTime @default(now())
 }
 
 model Department {
@@ -74,6 +119,7 @@ model Course {
   assignments  Assignment[]
   quizzes      Quiz[]
   classes      Class[]
+  exams        Exam[]
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }

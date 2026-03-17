@@ -1,3 +1,5 @@
+"use client";
+
 import React from 'react';
 import Link from 'next/link';
 import { 
@@ -11,7 +13,11 @@ import {
   Building2,
   Calendar,
   Beaker,
-  CheckCircle
+  CheckCircle,
+  UserPlus,
+  BarChart,
+  CreditCard,
+  ClipboardList
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
@@ -19,12 +25,16 @@ const navItems = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard', roles: ['SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER', 'STUDENT'] },
   { icon: Building2, label: 'Departments', href: '/dashboard/departments', roles: ['SUPER_ADMIN'] },
   { icon: Users, label: 'Users', href: '/dashboard/users', roles: ['SUPER_ADMIN'] },
+  { icon: UserPlus, label: 'Enrollments', href: '/dashboard/enrollments', roles: ['SUPER_ADMIN', 'DEPT_ADMIN'] },
   { icon: Calendar, label: 'Semesters', href: '/dashboard/semesters', roles: ['SUPER_ADMIN'] },
   { icon: CheckCircle, label: 'Attendance', href: '/dashboard/teacher/attendance', roles: ['TEACHER', 'DEPT_ADMIN', 'SUPER_ADMIN'] },
   { icon: FileText, label: 'Assignments', href: '/dashboard/teacher/assignments', roles: ['TEACHER', 'DEPT_ADMIN', 'SUPER_ADMIN'] },
   { icon: BookOpen, label: 'Courses', href: '/dashboard/courses', roles: ['SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER', 'STUDENT'] },
   { icon: FileText, label: 'Research Library', href: '/dashboard/library', roles: ['SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER', 'STUDENT'] },
   { icon: Beaker, label: 'Virtual Labs', href: '/dashboard/labs', roles: ['SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER', 'STUDENT'] },
+  { icon: BarChart, label: 'Academic Reports', href: '/dashboard/reports', roles: ['SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER', 'STUDENT'] },
+  { icon: CreditCard, label: 'Fee Management', href: '/dashboard/fees', roles: ['SUPER_ADMIN', 'DEPT_ADMIN', 'STUDENT'] },
+  { icon: ClipboardList, label: 'Examination', href: '/dashboard/exams', roles: ['SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER', 'STUDENT'] },
   { icon: Calendar, label: 'Calendar', href: '/dashboard/calendar', roles: ['SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER', 'STUDENT'] },
   { icon: Settings, label: 'Settings', href: '/dashboard/settings', roles: ['SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER', 'STUDENT'] },
 ];

@@ -16,6 +16,10 @@ import reportRoutes from './users/reporting.controller';
 import semestersRouter from './semesters/semesters.controller';
 import quizzesRouter from './quizzes/quizzes.controller';
 import aiRouter from './ai/ai.controller';
+import enrollmentRouter from './enrollment/enrollment.controller';
+import reportsRouter from './reports/reports.controller';
+import feesRouter from './fees/fees.controller';
+import examsRouter from './exams/exams.controller';
 
 dotenv.config();
 
@@ -27,7 +31,7 @@ app.use(helmet());
 app.use(cors());
 app.use(morgan('dev'));
 app.use(express.json({ limit: '10kb' })); // Limit body size
-app.use(xss());
+// app.use(xss());
 
 // Rate Limiting
 const limiter = rateLimit({
@@ -48,6 +52,10 @@ app.use('/reports', reportRoutes);
 app.use('/semesters', semestersRouter);
 app.use('/quizzes', quizzesRouter);
 app.use('/ai', aiRouter);
+app.use('/enrollments', enrollmentRouter);
+app.use('/academic-reports', reportsRouter);
+app.use('/fees', feesRouter);
+app.use('/exams', examsRouter);
 
 // Global Error Handler
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {

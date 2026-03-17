@@ -1,3 +1,5 @@
+"use client";
+
 import React from 'react';
 import DashboardLayout from '../../../components/dashboard/DashboardLayout';
 import { Plus, Search, User, Mail, Shield, MoreVertical, Edit2, Trash2, Loader2 } from 'lucide-react';
@@ -16,14 +18,21 @@ export default function UsersPage() {
   const { user: currentUser } = useAuth();
   const [users, setUsers] = React.useState<any[]>([]);
   const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     const fetchUsers = async () => {
       try {
+        setError(null);
         const res = await api.get('/users');
         setUsers(res.data);
-      } catch (error) {
-        console.error('Error fetching users:', error);
+      } catch (err: any) {
+        console.error('Error fetching users:', err);
+        if (err.response?.status === 403) {
+          setError('Access Denied: You do not have permission to view the user directory. Please ensure you are logged in as a Super Admin.');
+        } else {
+          setError('Failed to load user directory. Please check your connection and try again.');
+        }
       } finally {
         setLoading(false);
       }
@@ -44,6 +53,14 @@ export default function UsersPage() {
             Create User
           </button>
         </div>
+
+        {error && (
+          <div className="p-4 bg-red-50 border border-red-100 rounded-2xl text-red-600 font-medium text-sm flex items-center gap-3">
+             <Shield className="w-5 h-5" />
+             {error}
+             <button onClick={() => window.location.reload()} className="ml-auto underline font-bold">Refresh Page</button>
+          </div>
+        )}
 
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
           <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">

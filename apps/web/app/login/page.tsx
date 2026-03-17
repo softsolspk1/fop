@@ -5,8 +5,8 @@ import { motion } from 'framer-motion';
 import { Mail, Lock, ArrowRight, ShieldCheck, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '../context/AuthContext';
-import api from '../lib/api';
+import { useAuth } from '@/context/AuthContext';
+import api from '@/lib/api';
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -64,7 +64,9 @@ export default function LoginPage() {
             <motion.div 
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              className="mb-6 p-4 bg-red-50 border border-red-100 rounded-2xl flex items-center gap-3 text-red-600 text-sm font-bold"
+              className={`mb-6 p-4 border rounded-2xl flex items-center gap-3 text-sm font-bold ${
+                error.includes('pending') ? 'bg-amber-50 border-amber-100 text-amber-600' : 'bg-red-50 border-red-100 text-red-600'
+              }`}
             >
               <AlertCircle className="w-5 h-5 shrink-0" />
               {error}
@@ -135,10 +137,15 @@ export default function LoginPage() {
           </div>
         </motion.div>
 
-        <div className="mt-8 flex justify-center space-x-6 text-xs font-bold text-slate-400 uppercase tracking-widest">
-            <Link href="/" className="hover:text-slate-600 transition-colors">Support</Link>
-            <Link href="/" className="hover:text-slate-600 transition-colors">Privacy</Link>
-            <Link href="/" className="hover:text-slate-600 transition-colors">Terms</Link>
+        <div className="mt-8 flex flex-col items-center gap-4">
+          <div className="flex justify-center space-x-6 text-xs font-bold text-slate-400 uppercase tracking-widest">
+              <Link href="/" className="hover:text-slate-600 transition-colors">Support</Link>
+              <Link href="/" className="hover:text-slate-600 transition-colors">Privacy</Link>
+              <Link href="/" className="hover:text-slate-600 transition-colors">Terms</Link>
+          </div>
+          <p className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">
+            Developed by <span className="text-slate-400">Softsols Pakistan</span>
+          </p>
         </div>
       </div>
     </div>

@@ -1,3 +1,5 @@
+"use client";
+
 import React from 'react';
 import Sidebar from './Sidebar';
 import { Search, Bell, User } from 'lucide-react';
@@ -40,8 +42,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto p-8">
-          {children}
+        <main className="flex-1 overflow-y-auto p-8 flex flex-col">
+          <div className="flex-1">
+            {children}
+          </div>
+          <footer className="mt-12 py-6 border-t border-slate-100 flex justify-between items-center text-slate-400 text-xs font-bold uppercase tracking-widest no-print">
+            <p>© 2026 Faculty of Pharmacy, University of Karachi</p>
+            <p>Developed by <span className="text-blue-600">Softsols Pakistan</span></p>
+          </footer>
         </main>
       </div>
     </div>
