@@ -7,8 +7,8 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
 const xss = require('xss-clean');
-// import authRouter from './auth/auth.controller';
-// import usersRouter from './users/users.controller';
+import authRouter from './auth/auth.controller';
+import usersRouter from './users/users.controller';
 // import departmentsRouter from './departments/departments.controller';
 // import coursesRouter from './courses/courses.controller';
 // import classesRouter from './classes/classes.controller';
@@ -55,8 +55,8 @@ const limiter = rateLimit({
 });
 app.use('/auth', limiter); // Apply rate limit specifically to auth routes
 
-// app.use('/auth', authRouter);
-// app.use('/users', usersRouter);
+app.use('/auth', authRouter);
+app.use('/users', usersRouter);
 // app.use('/departments', departmentsRouter);
 // app.use('/courses', coursesRouter);
 // app.use('/classes', classesRouter);
