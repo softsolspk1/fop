@@ -1,0 +1,37 @@
+Project Name: Faculty of Pharmacy and Pharmaceutical Sciences UOK
+App Name: Faculty of Pharmacy and Pharmaceutical Sciences UOK
+
+Logo is available at /logo.jpg file
+
+
+
+ 
+5 Departments in Faculty of Pharmacy and Pharmaceutical Sciences
+Department of Pharmaceutical Chemistry
+Department of Pharmaceutics
+Department of Pharmacognosy
+Department of Pharmacology
+Department of Pharmacy Practice
+
+
+
+Student Signup:
+
+Student Name:
+Shift: (Monring / Evening) in drop down
+Class: (1st Year, 2nd Year, 3rd Year, 4th Year and 5th Year) in Drop Down
+Roll Number: 
+Enrollment Number:
+Phone Number:
+Email Address:
+Password: 
+
+=================
+
+Super Admin	admin@uok.edu.pk	123456
+Teacher	teacher@uok.edu.pk	123456
+Student	student@uok.edu.pk	123456
+
+
+
+

@@ -1,12 +1,11 @@
 import { Router, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import prisma from '../lib/prisma';
 import { authenticateToken, authorizeRoles, AuthRequest } from '../auth/auth.middleware';
 import { upload } from '../middleware/storage.middleware';
 import googleDriveService from '../services/googleDrive.service';
 import fs from 'fs';
 
 const router = Router();
-const prisma = new PrismaClient();
 
 // Get all courses (Authenticated)
 router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
@@ -117,6 +116,34 @@ router.post('/:id/materials', authenticateToken, authorizeRoles('TEACHER'), uplo
       fs.unlinkSync(filePath);
     }
     res.status(500).json({ message: 'Error uploading material', error });
+  }
+});
+
+// Update course
+router.put('/:id', authenticateToken, authorizeRoles('SUPER_ADMIN', 'DEPT_ADMIN'), async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { name, code, departmentId, teacherId, semesterId } = req.body;
+    const course = await prisma.course.update({
+      where: { id: String(id) },
+      data: { name, code, departmentId, teacherId, semesterId }
+    });
+    res.json(course);
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating course', error });
+  }
+});
+
+// Delete course
+router.delete('/:id', authenticateToken, authorizeRoles('SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    await prisma.course.delete({
+      where: { id: String(id) }
+    });
+    res.status(204).send();
+  } catch (error) {
+    res.status(500).json({ message: 'Error deleting course', error });
   }
 });
 

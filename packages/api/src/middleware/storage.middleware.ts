@@ -1,11 +1,14 @@
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
+import os from 'os';
 
-// Ensure uploads directory exists
-const uploadDir = 'uploads/';
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir);
+// Use /tmp for Vercel compatibility, otherwise fallback to local uploads/
+const isVercel = process.env.VERCEL === '1';
+const uploadDir = isVercel ? '/tmp' : path.join(process.cwd(), 'uploads');
+
+if (!isVercel && !fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
 }
 
 const storage = multer.diskStorage({

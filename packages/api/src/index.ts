@@ -1,3 +1,13 @@
+console.log('[Bootstrap]: Backend is starting at ' + new Date().toISOString());
+
+process.on('uncaughtException', (err) => {
+  console.error('[Critical]: Uncaught Exception:', err);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('[Critical]: Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -6,7 +16,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
-const xss = require('xss-clean');
+// Removed xss-clean due to deprecation and instability
 import authRouter from './auth/auth.controller';
 import usersRouter from './users/users.controller';
 import departmentsRouter from './departments/departments.controller';
@@ -22,6 +32,10 @@ import enrollmentRouter from './enrollment/enrollment.controller';
 import reportsRouter from './reports/reports.controller';
 import feesRouter from './fees/fees.controller';
 import examsRouter from './exams/exams.controller';
+import facultyRouter from './faculty/faculty.controller';
+import labsRouter from './labs/labs.controller';
+import resultsRouter from './results/results.controller';
+import prisma from './lib/prisma';
 
 const app = express();
 const port = process.env.PORT || 4000;
@@ -32,7 +46,8 @@ app.use(cors({
   origin: (origin, callback) => {
     const allowedOrigins = [
       'http://localhost:3000',
-      'https://fop-web.vercel.app'
+      'https://fop-web.vercel.app',
+      'https://fopwebsite.vercel.app'
     ];
     // Allow requests with no origin (like mobile apps or curl)
     if (!origin || allowedOrigins.indexOf(origin) !== -1) {
@@ -70,6 +85,9 @@ app.use('/enrollments', enrollmentRouter);
 app.use('/academic-reports', reportsRouter);
 app.use('/fees', feesRouter);
 app.use('/exams', examsRouter);
+app.use('/faculty', facultyRouter);
+app.use('/labs', labsRouter);
+app.use('/results', resultsRouter);
 
 app.get('/', (req, res) => {
   res.json({ status: 'ok', message: 'KU APP Backend is alive' });
@@ -90,38 +108,38 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 
 app.get('/health', async (req, res) => {
   try {
-    const { PrismaClient } = await import('@prisma/client');
-    const prisma = new PrismaClient();
     await prisma.$queryRaw`SELECT 1`;
     res.json({ 
       status: 'ok', 
       message: 'KU APP Backend is running and database is connected',
-      env: process.env.NODE_ENV
+      env: process.env.NODE_ENV,
+      vercel: process.env.VERCEL
     });
   } catch (error: any) {
     console.error('Health check failed:', error);
     res.status(500).json({ 
       status: 'error', 
       message: 'KU APP Backend is running but database is not connected',
-      error: error.message,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      error: error.message
     });
   }
 });
 
-if (process.env.NODE_ENV !== 'test' && (process.env.NODE_ENV !== 'production' || process.env.VERCEL !== '1')) {
-  const startServer = async () => {
-  try {
-    app.listen(port, () => {
-      console.log(`[Server]: KU APP Backend running on port ${port}`);
-      console.log(`[Env]: ${process.env.NODE_ENV || 'development'}`);
-    });
-  } catch (error) {
-    console.error('[Critical]: Server failed to start:', error);
-  }
-};
+// Conditional server start: Only listen if NOT on Vercel
+const isVercel = process.env.VERCEL === '1';
 
-startServer();
+if (!isVercel && process.env.NODE_ENV !== 'test') {
+  const startServer = async () => {
+    try {
+      app.listen(port, () => {
+        console.log(`[Server]: KU APP Backend running on port ${port}`);
+        console.log(`[Env]: ${process.env.NODE_ENV || 'development'}`);
+      });
+    } catch (error) {
+      console.error('[Critical]: Server failed to start:', error);
+    }
+  };
+  startServer();
 }
 
 export default app;

@@ -25,29 +25,46 @@ enum EnrollmentStatus {
 }
 
 model User {
-  id            String   @id @default(uuid())
-  email         String   @unique
-  password      String
-  name          String
-  role              Role     @default(STUDENT)
-  status            EnrollmentStatus @default(APPROVED)
-  shift             String?  // 'MORNING', 'EVENING'
-  year              String?  // '1st Year', '2nd Year', etc.
-  rollNumber        String?
-  enrollmentNumber  String?
-  phoneNumber       String?
-  departmentId      String?
-  department    Department? @relation(fields: [departmentId], references: [id])
-  teacherCourses    Course[] @relation("TeacherCourses")
-  studentCourses    Course[] @relation("StudentCourses")
-  attendance    Attendance[]
-  submissions   Submission[]
-  grades        Grade[]
-  quizzes       QuizResult[]
-  fees          Fee[]
-  examResults   ExamResult[]
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id               String           @id @default(uuid())
+  email            String           @unique
+  password         String
+  name             String
+  role             Role             @default(STUDENT)
+  status           EnrollmentStatus @default(PENDING)
+  departmentId     String?
+  department       Department?      @relation(fields: [departmentId], references: [id])
+  hodOf            Department[]     @relation("DeptHOD")
+  attendances      Attendance[]
+  submissions      Submission[]
+  grades           Grade[]
+  teacherCourses   Course[]         @relation("TeacherCourses")
+  studentCourses   Course[]         @relation("StudentCourses")
+  resultsPosted    Result[]         @relation("ResultTeacher")
+  studentResults   Result[]         @relation("ResultStudent")
+  rollNumber       String?
+  shift            String?          // MORNING or EVENING
+  year             Int?             // 1, 2, 3, 4, 5
+  fees             Fee[]
+  examResults      ExamResult[]
+  quizzes          QuizResult[]
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+}
+
+model Result {
+  id           String   @id @default(uuid())
+  studentId    String
+  student      User     @relation("ResultStudent", fields: [studentId], references: [id])
+  courseId     String
+  course       Course   @relation(fields: [courseId], references: [id])
+  teacherId    String
+  teacher      User     @relation("ResultTeacher", fields: [teacherId], references: [id])
+  marks        Float
+  grade        String
+  semester     Int
+  academicYear String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
 
@@ -89,8 +106,10 @@ model ExamResult {
 model Department {
   id        String   @id @default(uuid())
   name      String   @unique
-  users     User[]
+  hodId     String?  // Head of Department
+  hod       User?    @relation("DeptHOD", fields: [hodId], references: [id])
   courses   Course[]
+  users     User[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -121,6 +140,7 @@ model Course {
   quizzes      Quiz[]
   classes      Class[]
   exams        Exam[]
+  results      Result[]
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
@@ -237,4 +257,25 @@ model Recording {
   classId   String
   class     Class    @relation(fields: [classId], references: [id])
   createdAt DateTime @default(now())
+}
+
+model Lab {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  department  String
+  provider    String
+  difficulty  String   // 'Beginner', 'Intermediate', 'Advanced'
+  url         String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model FacultyMember {
+  id          String   @id @default(uuid())
+  name        String
+  designation String
+  department  String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }

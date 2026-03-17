@@ -1,123 +1,180 @@
 "use client";
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import DashboardLayout from '../../../components/dashboard/DashboardLayout';
-import { Plus, Search, Building2, MoreVertical, Edit2, Trash2, ArrowUpRight, Loader2 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Building2, User, BookOpen, Plus, Edit2, Shield, X, Loader2, CheckCircle2, MoreVertical, Search, Users } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../../lib/api';
 
 export default function DepartmentsPage() {
-  const [departments, setDepartments] = React.useState<any[]>([]);
-  const [loading, setLoading] = React.useState(true);
+  const [departments, setDepartments] = useState<any[]>([]);
+  const [users, setUsers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingDept, setEditingDept] = useState<any>(null);
 
-  React.useEffect(() => {
-    const fetchDepartments = async () => {
-      try {
-        const res = await api.get('/departments');
-        setDepartments(res.data);
-      } catch (error) {
-        console.error('Error fetching departments:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  // Form State
+  const [formData, setFormData] = useState({
+    name: '',
+    hodId: ''
+  });
 
-    fetchDepartments();
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const [deptsRes, usersRes] = await Promise.all([
+        api.get('/departments'),
+        api.get('/users')
+      ]);
+      setDepartments(deptsRes.data);
+      // Filter for potential HODs (Admins/Teachers)
+      setUsers(usersRes.data.filter((u: any) => u.role !== 'STUDENT'));
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
   }, []);
+
+  const handleOpenModal = (dept: any = null) => {
+    if (dept) {
+      setEditingDept(dept);
+      setFormData({ name: dept.name, hodId: dept.hodId || '' });
+    } else {
+      setEditingDept(null);
+      setFormData({ name: '', hodId: '' });
+    }
+    setIsModalOpen(true);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      if (editingDept) {
+        await api.put(`/departments/${editingDept.id}`, formData);
+      } else {
+        await api.post('/departments', formData);
+      }
+      setIsModalOpen(false);
+      fetchData();
+    } catch (err) {
+      alert('Operation failed');
+    }
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-8">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold text-slate-800">Department Management</h2>
-            <p className="text-slate-500">Manage academic departments, faculty assignments, and course offerings.</p>
+            <h2 className="text-3xl font-black text-slate-800 tracking-tight">Departmental Infrastructure</h2>
+            <p className="text-slate-500 font-medium">Manage academic units and assign Head of Departments (HOD).</p>
           </div>
-          <button className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white font-bold rounded-xl shadow-md hover:bg-blue-700 transition-all">
+          <button 
+            onClick={() => handleOpenModal()}
+            className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-black rounded-2xl shadow-lg border-b-4 border-blue-800 active:border-b-0 active:translate-y-1 transition-all"
+          >
             <Plus className="w-5 h-5" />
-            Add Department
+            Establish Department
           </button>
         </div>
 
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-          <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-            <div className="relative w-96">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <input 
-                type="text" 
-                placeholder="Search departments..." 
-                className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
-              />
-            </div>
-            <div className="flex gap-2">
-              <button className="px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-white rounded-lg transition-colors border border-transparent hover:border-slate-200">Export PDF</button>
-            </div>
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-20 bg-white rounded-[2.5rem] border border-dashed border-slate-200">
+            <Loader2 className="w-10 h-10 text-blue-600 animate-spin mb-4" />
+            <p className="font-black text-slate-400 uppercase tracking-widest text-xs">Architecting Units...</p>
           </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {departments.map((dept, idx) => (
+              <motion.div 
+                key={dept.id}
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: idx * 0.05 }}
+                className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-blue-200/20 transition-all group flex flex-col"
+              >
+                <div className="flex items-start justify-between mb-8">
+                   <div className="p-4 bg-blue-50 text-blue-600 rounded-[1.5rem] group-hover:bg-blue-600 group-hover:text-white transition-all">
+                      <Building2 className="w-6 h-6" />
+                   </div>
+                   <button onClick={() => handleOpenModal(dept)} className="p-2 text-slate-300 hover:text-blue-600 transition-colors">
+                      <Edit2 className="w-5 h-5" />
+                   </button>
+                </div>
+                
+                <div className="mb-8 flex-1">
+                   <h3 className="text-2xl font-black text-slate-800 tracking-tight leading-none mb-2">{dept.name}</h3>
+                   <p className="text-[10px] font-black text-blue-600 uppercase tracking-[0.2em]">Academic Unit</p>
+                </div>
 
-          <table className="w-full text-left">
-            <thead>
-              <tr className="border-b border-slate-100">
-                <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Department Name</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Courses</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Faculty Count</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-50">
-              {loading ? (
-                <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center">
-                    <Loader2 className="w-8 h-8 text-blue-600 animate-spin mx-auto mb-2" />
-                    <p className="text-slate-500 font-medium">Fetching Departments...</p>
-                  </td>
-                </tr>
-              ) : departments.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-slate-500 font-medium">
-                    No departments catalogs found.
-                  </td>
-                </tr>
-              ) : (
-                departments.map((dept, idx) => (
-                  <motion.tr 
-                    key={dept.id}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: idx * 0.05 }}
-                    className="hover:bg-slate-50/50 transition-colors group"
-                  >
-                    <td className="px-6 py-4">
+                <div className="space-y-4 pt-6 border-t border-slate-50">
+                   <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <div className="p-2 bg-blue-50 text-blue-600 rounded-lg group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                          <Building2 className="w-5 h-5" />
-                        </div>
-                        <span className="font-bold text-slate-800">{dept.name}</span>
+                         <div className="w-10 h-10 bg-slate-50 text-slate-400 rounded-xl flex items-center justify-center border border-slate-100">
+                            <Shield className="w-5 h-5" />
+                         </div>
+                         <div>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Head of Dept</p>
+                            <p className="text-sm font-black text-slate-700 italic">{dept.hod?.name || 'Unassigned'}</p>
+                         </div>
                       </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="text-slate-600 font-medium">{dept._count?.courses || 0} Courses</span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="text-slate-600 font-medium">{dept._count?.users || 0} Instructors</span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">
-                        Active
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button className="p-2 text-slate-400 hover:text-blue-600 transition-colors"><Edit2 className="w-4 h-4" /></button>
-                        <button className="p-2 text-slate-400 hover:text-red-600 transition-colors"><Trash2 className="w-4 h-4" /></button>
-                        <button className="p-2 text-slate-400 hover:text-slate-800 transition-colors"><MoreVertical className="w-4 h-4" /></button>
+                   </div>
+                   <div className="flex items-center justify-between text-xs font-bold text-slate-400 italic">
+                      <div className="flex items-center gap-2">
+                         <Users className="w-3.5 h-3.5" />
+                         <span>{dept.users?.length || 0} Members</span>
                       </div>
-                    </td>
-                  </motion.tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                      <div className="flex items-center gap-2">
+                         <BookOpen className="w-3.5 h-3.5" />
+                         <span>{dept.courses?.length || 0} Courses</span>
+                      </div>
+                   </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        )}
+
+        {/* Modal */}
+        <AnimatePresence>
+          {isModalOpen && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsModalOpen(false)} className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" />
+              <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="relative bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden p-10">
+                 <div className="flex items-center justify-between mb-8">
+                   <div>
+                    <h3 className="text-2xl font-black text-slate-800 tracking-tight">{editingDept ? 'Update Unit' : 'Establish Unit'}</h3>
+                    <p className="text-sm text-slate-500 font-medium">Configure department identity and leadership.</p>
+                   </div>
+                   <button onClick={() => setIsModalOpen(false)} className="p-2 text-slate-400"><X className="w-6 h-6" /></button>
+                 </div>
+
+                 <form onSubmit={handleSubmit} className="space-y-6">
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Department Name</label>
+                      <input required value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} placeholder="e.g. Pharmaceutical Chemistry" className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-800 outline-none focus:ring-4 focus:ring-blue-100 transition-all font-black italic" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Appoint HOD</label>
+                      <select value={formData.hodId} onChange={(e) => setFormData({...formData, hodId: e.target.value})} className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-800 outline-none focus:ring-4 focus:ring-blue-100 transition-all">
+                        <option value="">Select a Faculty Member...</option>
+                        {users.map(u => <option key={u.id} value={u.id}>{u.name} ({u.role})</option>)}
+                      </select>
+                    </div>
+                    
+                    <button type="submit" className="w-full py-4 bg-blue-600 text-white font-black rounded-2xl shadow-xl shadow-blue-200 border-b-4 border-blue-800 uppercase text-xs tracking-[0.2em] active:translate-y-1 active:border-b-0 transition-all">
+                      {editingDept ? 'Confirm Reconfiguration' : 'Activate Unit'}
+                    </button>
+                 </form>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
       </div>
     </DashboardLayout>
   );

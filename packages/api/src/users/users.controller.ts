@@ -1,9 +1,8 @@
 import { Router, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import prisma from '../lib/prisma';
 import { authenticateToken, authorizeRoles, AuthRequest } from '../auth/auth.middleware';
 
 const router = Router();
-const prisma = new PrismaClient();
 
 // Get all users (Super Admin only)
 router.get('/', authenticateToken, authorizeRoles('SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
@@ -59,6 +58,33 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res: Response) =>
     res.json({ message: 'User updated', userId: user.id });
   } catch (error) {
     res.status(500).json({ message: 'Error updating user', error });
+  }
+});
+
+// Create user (Super Admin only)
+router.post('/', authenticateToken, authorizeRoles('SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
+  try {
+    const { email, password, name, role, departmentId, shift, year, rollNumber } = req.body;
+    
+    // Hash password
+    const bcrypt = await import('bcryptjs');
+    const hashedPassword = await bcrypt.hash(password || '123456', 10);
+
+    const user = await prisma.user.create({
+      data: {
+        email,
+        password: hashedPassword,
+        name,
+        role: role || 'STUDENT',
+        departmentId,
+        shift,
+        year,
+        rollNumber
+      }
+    });
+    res.status(201).json(user);
+  } catch (error) {
+    res.status(500).json({ message: 'Error creating user', error });
   }
 });
 

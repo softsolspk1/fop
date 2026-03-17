@@ -1,9 +1,8 @@
 import { Router, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import prisma from '../lib/prisma';
 import { authenticateToken, authorizeRoles, AuthRequest } from '../auth/auth.middleware';
 
 const router = Router();
-const prisma = new PrismaClient();
 
 // Get all departments
 router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
@@ -31,6 +30,21 @@ router.post('/', authenticateToken, authorizeRoles('SUPER_ADMIN'), async (req: A
     res.status(201).json(department);
   } catch (error) {
     res.status(500).json({ message: 'Error creating department', error });
+  }
+});
+
+// Update department (Super Admin only for now)
+router.put('/:id', authenticateToken, authorizeRoles('SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { name, hodId } = req.body;
+    const department = await prisma.department.update({
+      where: { id: String(id) },
+      data: { name, hodId }
+    });
+    res.json(department);
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating department', error });
   }
 });
 

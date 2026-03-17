@@ -1,12 +1,11 @@
 import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { PrismaClient } from '@prisma/client';
+import prisma from '../lib/prisma';
 import { z } from 'zod';
 import { validate } from '../middleware/validate';
 
 const router = Router();
-const prisma = new PrismaClient();
 
 const registerSchema = z.object({
   body: z.object({
