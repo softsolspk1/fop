@@ -3,10 +3,7 @@
   "builds": [
     {
       "src": "src/index.ts",
-      "use": "@vercel/node",
-      "config": {
-        "installCommand": "npm install && prisma generate --schema=./prisma/schema.prisma"
-      }
+      "use": "@vercel/node"
     }
   ],
   "routes": [

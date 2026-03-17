@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
-import { authenticateToken, authorizeRoles } from '../auth/auth.middleware';
+import { authenticateToken } from '../auth/auth.middleware';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -15,10 +15,10 @@ router.get('/:userId/report', authenticateToken, async (req: any, res) => {
       return res.status(403).json({ message: 'Forbidden' });
     }
 
-    const user = await prisma.user.findUnique({
+    const user = await (prisma.user.findUnique as any)({
       where: { id: userId },
       include: {
-        courses: {
+        studentCourses: {
           include: {
             assignments: {
               include: {
@@ -44,7 +44,7 @@ router.get('/:userId/report', authenticateToken, async (req: any, res) => {
     if (!user) return res.status(404).json({ message: 'User not found' });
 
     // Calculate stats per course
-    const report = user.courses.map((course: any) => {
+    const report = (user as any).studentCourses.map((course: any) => {
       const grades = course.assignments
         .flatMap((a: any) => a.submissions.map((s: any) => s.grade?.score))
         .filter((score: any) => score !== undefined) as number[];
@@ -68,7 +68,7 @@ router.get('/:userId/report', authenticateToken, async (req: any, res) => {
       student: {
         name: user.name,
         rollNumber: user.rollNumber,
-        department: user.department?.name,
+        department: (user as any).department?.name,
         year: user.year,
         shift: user.shift
       },

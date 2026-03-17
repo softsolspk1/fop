@@ -7,6 +7,6 @@
     "target": "ES2020",
     "types": ["node", "express", "jsonwebtoken", "bcryptjs", "morgan", "multer", "jest"]
   },
-  "include": ["src/**/*", "tests/**/*"],
-  "exclude": ["node_modules", "dist"]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "tests/**/*"]
 }

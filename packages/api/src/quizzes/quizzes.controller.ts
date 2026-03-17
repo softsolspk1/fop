@@ -58,7 +58,7 @@ router.post('/:id/submit', authenticateToken, authorizeRoles('STUDENT'), async (
       data: {
         score,
         userId,
-        quizId: id
+        quizId: String(id)
       }
     });
 
