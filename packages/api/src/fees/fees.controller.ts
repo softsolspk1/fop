@@ -56,7 +56,7 @@ router.patch('/:id/status', authenticateToken, authorizeRoles('SUPER_ADMIN', 'DE
     const { id } = req.params;
     const { status } = req.body;
     const fee = await prisma.fee.update({
-      where: { id },
+      where: { id: String(id) },
       data: { status }
     });
     res.json(fee);

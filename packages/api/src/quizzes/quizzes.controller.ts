@@ -10,7 +10,7 @@ router.get('/course/:courseId', authenticateToken, async (req: AuthRequest, res:
   try {
     const { courseId } = req.params;
     const quizzes = await prisma.quiz.findMany({
-      where: { courseId },
+      where: { courseId: String(courseId) },
       include: { 
         _count: { select: { questions: true } }
       }
