@@ -1,7 +1,6 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-// Triggering rebuild for corrected database configuration
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
