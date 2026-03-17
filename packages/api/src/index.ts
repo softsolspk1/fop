@@ -28,7 +28,13 @@ const port = process.env.PORT || 4000;
 
 // Security Middlewares
 app.use(helmet());
-app.use(cors());
+app.use(cors({
+  origin: [
+    'http://localhost:3000',
+    'https://fop-web.vercel.app',
+  ],
+  credentials: true,
+}));
 app.use(morgan('dev'));
 app.use(express.json({ limit: '10kb' })); // Limit body size
 // app.use(xss());
