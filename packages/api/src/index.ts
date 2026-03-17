@@ -111,9 +111,18 @@ app.get('/health', async (req, res) => {
 });
 
 if (process.env.NODE_ENV !== 'test' && (process.env.NODE_ENV !== 'production' || process.env.VERCEL !== '1')) {
-  app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
-  });
+  const startServer = async () => {
+  try {
+    app.listen(port, () => {
+      console.log(`[Server]: KU APP Backend running on port ${port}`);
+      console.log(`[Env]: ${process.env.NODE_ENV || 'development'}`);
+    });
+  } catch (error) {
+    console.error('[Critical]: Server failed to start:', error);
+  }
+};
+
+startServer();
 }
 
 export default app;
