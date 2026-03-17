@@ -1,8 +1,10 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
-import dotenv from 'dotenv';
 import rateLimit from 'express-rate-limit';
 const xss = require('xss-clean');
 import authRouter from './auth/auth.controller';
@@ -21,18 +23,24 @@ import reportsRouter from './reports/reports.controller';
 import feesRouter from './fees/fees.controller';
 import examsRouter from './exams/exams.controller';
 
-dotenv.config();
-
 const app = express();
 const port = process.env.PORT || 4000;
 
 // Security Middlewares
 app.use(helmet());
 app.use(cors({
-  origin: [
-    'http://localhost:3000',
-    'https://fop-web.vercel.app',
-  ],
+  origin: (origin, callback) => {
+    const allowedOrigins = [
+      'http://localhost:3000',
+      'https://fop-web.vercel.app'
+    ];
+    // Allow requests with no origin (like mobile apps or curl)
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
 }));
 app.use(morgan('dev'));
@@ -76,8 +84,20 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
   });
 });
 
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok', message: 'KU APP Backend is running' });
+app.get('/health', async (req, res) => {
+  try {
+    const { PrismaClient } = await import('@prisma/client');
+    const prisma = new PrismaClient();
+    await prisma.$queryRaw`SELECT 1`;
+    res.json({ status: 'ok', message: 'KU APP Backend is running and database is connected' });
+  } catch (error: any) {
+    console.error('Health check failed:', error);
+    res.status(500).json({ 
+      status: 'error', 
+      message: 'KU APP Backend is running but database is not connected',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined 
+    });
+  }
 });
 
 if (process.env.NODE_ENV !== 'test' && (process.env.NODE_ENV !== 'production' || process.env.VERCEL !== '1')) {
