@@ -71,6 +71,10 @@ app.use('/academic-reports', reportsRouter);
 app.use('/fees', feesRouter);
 app.use('/exams', examsRouter);
 
+app.get('/', (req, res) => {
+  res.json({ status: 'ok', message: 'KU APP Backend is alive' });
+});
+
 // Global Error Handler
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
   console.error(err.stack);
@@ -89,13 +93,18 @@ app.get('/health', async (req, res) => {
     const { PrismaClient } = await import('@prisma/client');
     const prisma = new PrismaClient();
     await prisma.$queryRaw`SELECT 1`;
-    res.json({ status: 'ok', message: 'KU APP Backend is running and database is connected' });
+    res.json({ 
+      status: 'ok', 
+      message: 'KU APP Backend is running and database is connected',
+      env: process.env.NODE_ENV
+    });
   } catch (error: any) {
     console.error('Health check failed:', error);
     res.status(500).json({ 
       status: 'error', 
       message: 'KU APP Backend is running but database is not connected',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined 
+      error: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 });
