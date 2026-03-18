@@ -1,14 +1,32 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, Image, ActivityIndicator, Alert } from 'react-native';
 import { Mail, Lock, ArrowRight } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
+import { useAuth } from '../context/AuthContext';
 
 export default function LoginScreen() {
   const router = useRouter();
+  const { login } = useAuth();
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   });
+
+  const handleLogin = async () => {
+    if (!formData.email || !formData.password) {
+        return Alert.alert('Error', 'Please fill in all fields');
+    }
+    setLoading(true);
+    try {
+        await login(formData.email, formData.password);
+        router.replace('/(tabs)');
+    } catch (error: any) {
+        Alert.alert('Login Failed', error.response?.data?.message || 'Invalid credentials');
+    } finally {
+        setLoading(false);
+    }
+  };
 
   return (
     <View style={styles.container}>

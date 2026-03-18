@@ -1,256 +1,216 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
-import { Video, BookOpen, Clock, Bell } from 'lucide-react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
+import { Calendar, Clock, BookOpen, GraduationCap, Users, FileText, Bell, FlaskConical, Video } from 'lucide-react-native';
+import { useAuth } from '../../context/AuthContext';
+import api from '../../lib/api';
+import { useRouter } from 'expo-router';
 
-export default function HomeScreen() {
+export default function DashboardScreen() {
+  const { user } = useAuth();
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState<any>({});
+  const [refreshing, setRefreshing] = useState(false);
+
+  useEffect(() => {
+    fetchStats();
+  }, [user?.role]);
+
+  const fetchStats = async () => {
+    try {
+      // Fetch dynamic stats based on role
+      // For now, mocking logic but hitting a generic stats endpoint if it existed
+      // Or deriving from individual fetches
+      setStats({
+        attendance: '92%',
+        gpa: '3.8',
+        labs: '4/5',
+        classes: '2',
+        facultyCount: '12',
+        deptStudents: '450'
+      });
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  const renderStudentStats = () => (
+    <View style={styles.statsGrid}>
+      <View style={styles.statCard}>
+        <View style={[styles.statIcon, { backgroundColor: '#eff6ff' }]}>
+          <GraduationCap size={20} color="#2563eb" />
+        </View>
+        <Text style={styles.statLabel}>Current GPA</Text>
+        <Text style={styles.statValue}>{stats.gpa}</Text>
+      </View>
+      <View style={styles.statCard}>
+        <View style={[styles.statIcon, { backgroundColor: '#f0fdf4' }]}>
+          <Users size={20} color="#16a34a" />
+        </View>
+        <Text style={styles.statLabel}>Attendance</Text>
+        <Text style={styles.statValue}>{stats.attendance}</Text>
+      </View>
+      <View style={styles.statCard}>
+        <View style={[styles.statIcon, { backgroundColor: '#fff7ed' }]}>
+          <FlaskConical size={20} color="#ea580c" />
+        </View>
+        <Text style={styles.statLabel}>Labs Done</Text>
+        <Text style={styles.statValue}>{stats.labs}</Text>
+      </View>
+    </View>
+  );
+
+  const renderFacultyStats = () => (
+    <View style={styles.statsGrid}>
+      <View style={styles.statCard}>
+        <View style={[styles.statIcon, { backgroundColor: '#eff6ff' }]}>
+          <BookOpen size={20} color="#2563eb" />
+        </View>
+        <Text style={styles.statLabel}>Active Courses</Text>
+        <Text style={styles.statValue}>4</Text>
+      </View>
+      <View style={styles.statCard}>
+        <View style={[styles.statIcon, { backgroundColor: '#f0fdf4' }]}>
+          <Users size={20} color="#16a34a" />
+        </View>
+        <Text style={styles.statLabel}>My Students</Text>
+        <Text style={styles.statValue}>180</Text>
+      </View>
+    </View>
+  );
+
+  const renderHODStats = () => (
+    <View style={styles.statsGrid}>
+      <View style={styles.statCard}>
+        <View style={[styles.statIcon, { backgroundColor: '#eff6ff' }]}>
+          <Users size={20} color="#2563eb" />
+        </View>
+        <Text style={styles.statLabel}>Faculty</Text>
+        <Text style={styles.statValue}>{stats.facultyCount}</Text>
+      </View>
+      <View style={styles.statCard}>
+        <View style={[styles.statIcon, { backgroundColor: '#f0fdf4' }]}>
+          <Users size={20} color="#16a34a" />
+        </View>
+        <Text style={styles.statLabel}>Students</Text>
+        <Text style={styles.statValue}>{stats.deptStudents}</Text>
+      </View>
+    </View>
+  );
+
   return (
-    <ScrollView style={styles.container}>
-      {/* Header Profile Section */}
+    <ScrollView 
+        style={styles.container}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchStats(); }} />}
+    >
       <View style={styles.header}>
         <View>
-          <Text style={styles.welcomeText}>Welcome back,</Text>
-          <Text style={styles.nameText}>Ali Khan</Text>
+          <Text style={styles.welcome}>Welcome back,</Text>
+          <Text style={styles.userName}>{user?.name || 'User'}</Text>
+          <View style={styles.roleBadge}>
+             <Text style={styles.roleText}>{user?.role?.replace('_', ' ')}</Text>
+          </View>
         </View>
         <TouchableOpacity style={styles.notificationBtn}>
-          <Bell size={24} color="#64748b" />
-          <View style={styles.notificationDot} />
+          <Bell size={24} color="#1e293b" />
         </TouchableOpacity>
       </View>
 
-      {/* Info Card - Official Branding */}
-      <View style={styles.brandCard}>
-        <View style={styles.brandInfo}>
-           <Image 
-             source={require('../../assets/logo.jpg')} 
-             style={styles.logo}
-           />
-           <View style={{ flex: 1 }}>
-             <Text style={styles.brandTitle}>Faculty of Pharmacy</Text>
-             <Text style={styles.brandSubtitle}>University of Karachi</Text>
-           </View>
-        </View>
-      </View>
+      <View style={styles.content}>
+        {user?.role === 'STUDENT' && renderStudentStats()}
+        {user?.role === 'FACULTY' && renderFacultyStats()}
+        {(user?.role === 'HOD' || user?.role === 'DEPT_ADMIN') && renderHODStats()}
 
-      {/* Live Class Banner */}
-      <TouchableOpacity style={styles.liveBanner}>
-        <View style={styles.liveIconContainer}>
-          <Video size={24} color="#fff" />
-        </View>
-        <View style={styles.liveContent}>
-          <Text style={styles.liveTitle}>Live Today: Advanced Pharmacology</Text>
-          <Text style={styles.liveTime}>Starts in 15 minutes • Dr. Sarah</Text>
-        </View>
-      </TouchableOpacity>
-
-      {/* Stats Section */}
-      <View style={styles.statsRow}>
-        <View style={styles.statCard}>
-          <Text style={styles.statValue}>6</Text>
-          <Text style={styles.statLabel}>Courses</Text>
-        </View>
-        <View style={styles.statCard}>
-          <Text style={styles.statValue}>94%</Text>
-          <Text style={styles.statLabel}>Attendance</Text>
-        </View>
-        <View style={styles.statCard}>
-          <Text style={styles.statValue}>3.8</Text>
-          <Text style={styles.statLabel}>GPA</Text>
-        </View>
-      </View>
-
-      {/* Recent Activity */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Upcoming Lectures</Text>
-        {[1, 2].map((i) => (
-          <View key={i} style={styles.lectureCard}>
-            <View style={styles.lectureIcon}>
-              <Clock size={20} color="#3b82f6" />
+        <Text style={styles.sectionTitle}>Quick Actions</Text>
+        <View style={styles.actionGrid}>
+          <TouchableOpacity style={styles.actionItem} onPress={() => router.push('/timetable')}>
+            <View style={[styles.actionIcon, { backgroundColor: '#eff6ff' }]}>
+              <Calendar size={24} color="#2563eb" />
             </View>
-            <View style={styles.lectureInfo}>
-              <Text style={styles.lectureTitle}>Medicinal Chemistry</Text>
-              <Text style={styles.lectureTime}>Tomorrow, 10:00 AM</Text>
+            <Text style={styles.actionLabel}>Time Table</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.actionItem} onPress={() => router.push('/assignments')}>
+            <View style={[styles.actionIcon, { backgroundColor: '#fdf2f8' }]}>
+              <FileText size={24} color="#db2777" />
+            </View>
+            <Text style={styles.actionLabel}>Assignments</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.actionItem} onPress={() => router.push('/(tabs)/labs')}>
+            <View style={[styles.actionIcon, { backgroundColor: '#f0fdf4' }]}>
+              <FlaskConical size={24} color="#16a34a" />
+            </View>
+            <Text style={styles.actionLabel}>Virtual Lab</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity style={styles.actionItem} onPress={() => router.push('/(tabs)/live')}>
+            <View style={[styles.actionIcon, { backgroundColor: '#fff7ed' }]}>
+              <Video size={24} color="#ea580c" />
+            </View>
+            <Text style={styles.actionLabel}>Live Class</Text>
+          </TouchableOpacity>
+        </View>
+
+        <Text style={styles.sectionTitle}>Today's Schedule</Text>
+        <View style={styles.scheduleCard}>
+          <View style={styles.scheduleItem}>
+            <View style={styles.timeCol}>
+              <Text style={styles.time}>09:00</Text>
+              <Text style={styles.ampm}>AM</Text>
+            </View>
+            <View style={styles.divider} />
+            <View style={styles.courseCol}>
+              <Text style={styles.courseName}>Pharmaceutics II</Text>
+              <Text style={styles.room}>Lecture Hall 3</Text>
             </View>
           </View>
-        ))}
+          <View style={styles.scheduleItem}>
+            <View style={styles.timeCol}>
+              <Text style={styles.time}>11:30</Text>
+              <Text style={styles.ampm}>AM</Text>
+            </View>
+            <View style={styles.divider} />
+            <View style={styles.courseCol}>
+              <Text style={styles.courseName}>Pharmacognosy Lab</Text>
+              <Text style={styles.room}>Virtual Lab Session</Text>
+            </View>
+          </View>
+        </View>
       </View>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f8fafc',
-  },
-  header: {
-    padding: 24,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: 20,
-  },
-  welcomeText: {
-    fontSize: 16,
-    color: '#64748b',
-  },
-  nameText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#1e293b',
-  },
-  notificationBtn: {
-    width: 48,
-    height: 48,
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#f1f5f9',
-  },
-  notificationDot: {
-    position: 'absolute',
-    top: 14,
-    right: 14,
-    width: 8,
-    height: 8,
-    backgroundColor: '#ef4444',
-    borderRadius: 4,
-    borderWidth: 2,
-    borderColor: '#fff',
-  },
-  brandCard: {
-    margin: 24,
-    marginTop: 0,
-    padding: 20,
-    backgroundColor: '#fff',
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: '#f1f5f9',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 2,
-  },
-  brandInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
-  },
-  logo: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-  },
-  brandTitle: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: '#1e293b',
-  },
-  brandSubtitle: {
-    fontSize: 12,
-    color: '#64748b',
-    fontWeight: '600',
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-  },
-  liveBanner: {
-    margin: 24,
-    marginTop: 0,
-    backgroundColor: '#2563eb',
-    padding: 20,
-    borderRadius: 24,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
-  },
-  liveIconContainer: {
-    width: 48,
-    height: 48,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  liveContent: {
-    flex: 1,
-  },
-  liveTitle: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-  liveTime: {
-    color: 'rgba(255, 255, 255, 0.8)',
-    fontSize: 12,
-    marginTop: 2,
-  },
-  statsRow: {
-    flexDirection: 'row',
-    paddingHorizontal: 24,
-    gap: 12,
-    marginBottom: 24,
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: '#fff',
-    padding: 16,
-    borderRadius: 20,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#f1f5f9',
-  },
-  statValue: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#1e293b',
-  },
-  statLabel: {
-    fontSize: 12,
-    color: '#64748b',
-    marginTop: 4,
-  },
-  section: {
-    paddingHorizontal: 24,
-    paddingBottom: 40,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1e293b',
-    marginBottom: 16,
-  },
-  lectureCard: {
-    backgroundColor: '#fff',
-    padding: 16,
-    borderRadius: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: '#f1f5f9',
-  },
-  lectureIcon: {
-    width: 40,
-    height: 40,
-    backgroundColor: '#eff6ff',
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  lectureInfo: {
-    flex: 1,
-  },
-  lectureTitle: {
-    fontSize: 15,
-    fontWeight: 'bold',
-    color: '#1e293b',
-  },
-  lectureTime: {
-    fontSize: 12,
-    color: '#64748b',
-    marginTop: 2,
-  },
+  container: { flex: 1, backgroundColor: '#f8fafc' },
+  header: { padding: 24, paddingTop: 60, backgroundColor: '#fff', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  welcome: { fontSize: 14, color: '#64748b' },
+  userName: { fontSize: 24, fontWeight: 'bold', color: '#1e293b' },
+  roleBadge: { backgroundColor: '#eff6ff', alignSelf: 'flex-start', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6, marginTop: 4 },
+  roleText: { fontSize: 10, fontWeight: 'bold', color: '#2563eb', textTransform: 'uppercase' },
+  notificationBtn: { width: 48, height: 48, borderRadius: 12, backgroundColor: '#f1f5f9', alignItems: 'center', justifyContent: 'center' },
+  content: { padding: 24 },
+  sectionTitle: { fontSize: 18, fontWeight: 'bold', color: '#1e293b', marginBottom: 16, marginTop: 8 },
+  statsGrid: { flexDirection: 'row', gap: 12, marginBottom: 24 },
+  statCard: { flex: 1, backgroundColor: '#fff', padding: 16, borderRadius: 20, borderWidth: 1, borderColor: '#f1f5f9' },
+  statIcon: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center', marginBottom: 12 },
+  statLabel: { fontSize: 11, color: '#64748b' },
+  statValue: { fontSize: 18, fontWeight: 'bold', color: '#1e293b', marginTop: 2 },
+  actionGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 24 },
+  actionItem: { width: '48%', backgroundColor: '#fff', padding: 16, borderRadius: 20, alignItems: 'center', borderWidth: 1, borderColor: '#f1f5f9' },
+  actionIcon: { width: 48, height: 48, borderRadius: 16, alignItems: 'center', justifyContent: 'center', marginBottom: 12 },
+  actionLabel: { fontSize: 14, fontWeight: '600', color: '#1e293b' },
+  scheduleCard: { backgroundColor: '#fff', borderRadius: 24, padding: 20, borderWidth: 1, borderColor: '#f1f5f9' },
+  scheduleItem: { flexDirection: 'row', marginBottom: 20, alignItems: 'center' },
+  timeCol: { width: 50, alignItems: 'center' },
+  time: { fontSize: 16, fontWeight: 'bold', color: '#1e293b' },
+  ampm: { fontSize: 10, color: '#64748b' },
+  divider: { width: 2, height: 40, backgroundColor: '#f1f5f9', marginHorizontal: 16 },
+  courseCol: { flex: 1 },
+  courseName: { fontSize: 15, fontWeight: 'bold', color: '#1e293b' },
+  room: { fontSize: 12, color: '#64748b', marginTop: 2 },
 });
