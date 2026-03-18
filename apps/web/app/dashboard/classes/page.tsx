@@ -5,7 +5,7 @@ import DashboardLayout from '../../../components/dashboard/DashboardLayout';
 import { Video, Calendar, Clock, User, AlertCircle, Play, Users, MapPin } from 'lucide-react';
 import api from '../../../lib/api';
 import { useAuth } from '../../../context/AuthContext';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function LiveClassesPage() {
   const { user } = useAuth();
