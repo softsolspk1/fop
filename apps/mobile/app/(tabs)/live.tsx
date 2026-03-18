@@ -57,9 +57,30 @@ export default function LiveScreen() {
                     </View>
                     <Text style={styles.activeTitle}>{cls.title}</Text>
                     <Text style={styles.activeSub}>{cls.course?.name || 'Live Lecture'}</Text>
-                    <View style={styles.joinBtn}>
-                        <Play size={20} color="#fff" fill="#fff" />
-                        <Text style={styles.joinText}>Join Session</Text>
+                    <View style={styles.btnRow}>
+                        <TouchableOpacity 
+                            style={styles.joinBtn}
+                            onPress={() => router.push({
+                                pathname: '/live-session',
+                                params: { id: cls.id, title: cls.title, channel: cls.agoraChannel }
+                            })}
+                        >
+                            <Play size={20} color="#fff" fill="#fff" />
+                            <Text style={styles.joinText}>Join Session</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity 
+                            style={styles.attendanceBtn}
+                            onPress={async () => {
+                                try {
+                                    await api.post(`/classes/${cls.id}/attendance`);
+                                    alert('Attendance Marked!');
+                                } catch (err) {
+                                    alert('Failed to mark attendance');
+                                }
+                            }}
+                        >
+                            <Text style={styles.attendanceBtnText}>Mark Attendance</Text>
+                        </TouchableOpacity>
                     </View>
                 </TouchableOpacity>
             ))
@@ -98,8 +119,11 @@ const styles = StyleSheet.create({
   liveText: { color: '#fff', fontSize: 10, fontWeight: '900' },
   activeTitle: { color: '#fff', fontSize: 22, fontWeight: 'bold', marginBottom: 4 },
   activeSub: { color: '#94a3b8', fontSize: 14, marginBottom: 24 },
-  joinBtn: { backgroundColor: '#2563eb', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', padding: 16, borderRadius: 16, gap: 8 },
+  btnRow: { flexDirection: 'row', gap: 12 },
+  joinBtn: { flex: 1, backgroundColor: '#2563eb', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', padding: 16, borderRadius: 16, gap: 8 },
   joinText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
+  attendanceBtn: { backgroundColor: '#fff', paddingHorizontal: 16, borderRadius: 16, alignItems: 'center', justifyContent: 'center', borderBottomWidth: 4, borderBottomColor: '#e2e8f0' },
+  attendanceBtnText: { color: '#1e293b', fontSize: 12, fontWeight: 'bold', textTransform: 'uppercase' },
   emptyCard: { padding: 40, alignItems: 'center', backgroundColor: '#fff', borderRadius: 24, borderWidth: 1, borderColor: '#f1f5f9' },
   emptyText: { color: '#64748b', fontSize: 14 },
   recordedCard: { backgroundColor: '#fff', padding: 16, borderRadius: 20, flexDirection: 'row', alignItems: 'center', marginBottom: 12, borderWidth: 1, borderColor: '#f1f5f9' },

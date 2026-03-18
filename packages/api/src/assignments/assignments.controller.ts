@@ -1,16 +1,28 @@
-import { Router } from 'express';
-import { PrismaClient } from '@prisma/client';
-import { authenticateToken, authorizeRoles } from '../auth/auth.middleware';
+import { Router, Response } from 'express';
+import prisma from '../lib/prisma';
+import { authenticateToken, authorizeRoles, AuthRequest } from '../auth/auth.middleware';
 import { checkPlagiarism } from './plagiarism.service';
 import { upload } from '../middleware/storage.middleware';
 import googleDriveService from '../services/googleDrive.service';
 import fs from 'fs';
 
 const router = Router();
-const prisma = new PrismaClient();
 
-// ... existing routes ...
-
+// Get all assignments with course details
+router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
+  try {
+    const assignments = await prisma.assignment.findMany({
+      include: {
+        course: {
+          select: { name: true }
+        }
+      }
+    });
+    res.json(assignments);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching assignments', error });
+  }
+});
 // Submit an assignment (Student)
 router.post('/:assignmentId/submit', authenticateToken, authorizeRoles('STUDENT'), upload.single('file'), async (req: any, res) => {
   const filePath = req.file?.path;

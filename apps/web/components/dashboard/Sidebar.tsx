@@ -23,7 +23,9 @@ import {
   Bell,
   ChevronRight,
   Menu,
-  X
+  X,
+  MessageSquare,
+  Sparkles
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { motion } from 'framer-motion';
@@ -34,6 +36,8 @@ const navItems = [
   { icon: Users, label: 'User Management', href: '/dashboard/users', roles: ['SUPER_ADMIN', 'DEPT_ADMIN'] },
   { icon: UserPlus, label: 'Enrollments', href: '/dashboard/enrollments', roles: ['SUPER_ADMIN', 'DEPT_ADMIN'] },
   { icon: BookOpen, label: 'Course Catalog', href: '/dashboard/courses', roles: ['SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER', 'STUDENT'] },
+  { icon: MessageSquare, label: 'Live Chat', href: '/dashboard/chat', roles: ['SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER', 'STUDENT'] },
+  { icon: Sparkles, label: 'AI Pharma-Tutor', href: '/dashboard/tutor', roles: ['SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER', 'STUDENT'] },
   { icon: Video, label: 'Live Classes', href: '/dashboard/classes', roles: ['SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER', 'STUDENT'] },
   { icon: Beaker, label: 'Virtual Lab', href: '/dashboard/labs', roles: ['SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER', 'STUDENT'] },
   { icon: BarChart, label: 'Academic Reports', href: '/dashboard/reports', roles: ['SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER', 'STUDENT'] },
@@ -61,8 +65,8 @@ const Sidebar = () => {
             <span className="text-white font-black text-xl italic">K</span>
           </div>
           <div>
-            <h1 className="font-black text-slate-800 tracking-tight leading-none text-xl uppercase">KU APP</h1>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Faculty of Pharmacy</p>
+            <h1 className="font-black text-slate-800 tracking-tight leading-none text-xl uppercase">FOP UOK</h1>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Faculty of Pharmacy & Pharmaceutical Sciences</p>
           </div>
         </div>
 

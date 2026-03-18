@@ -16,7 +16,7 @@ export default function ChatThreadScreen() {
 
   useEffect(() => {
     fetchMessages();
-    const interval = setInterval(fetchMessages, 3000); // Poll every 3s
+    const interval = setInterval(fetchMessages, 5000); // Poll every 5s
     return () => clearInterval(interval);
   }, []);
 

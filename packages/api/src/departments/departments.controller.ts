@@ -4,6 +4,37 @@ import { authenticateToken, authorizeRoles, AuthRequest } from '../auth/auth.mid
 
 const router = Router();
 
+// Get stats for HOD's department
+router.get('/my-stats', authenticateToken, authorizeRoles('HOD', 'DEPT_ADMIN'), async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.user!.userId;
+    const department = await prisma.department.findFirst({
+      where: { hodId: userId },
+      include: {
+        _count: {
+          select: { users: true, courses: true }
+        }
+      }
+    });
+
+    if (!department) return res.status(404).json({ message: 'Department not found for this HOD' });
+
+    // Faculty members are users with role TEACHER in this dept
+    const facultyCount = await prisma.user.count({
+      where: { departmentId: department.id, role: 'TEACHER' }
+    });
+
+    res.json({
+      departmentName: department.name,
+      studentCount: department._count.users - facultyCount,
+      facultyCount,
+      courseCount: department._count.courses
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching departmental stats', error });
+  }
+});
+
 // Get all departments
 router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {

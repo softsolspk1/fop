@@ -1,23 +1,42 @@
 import { Router, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import prisma from '../lib/prisma';
 import { authenticateToken, authorizeRoles, AuthRequest } from '../auth/auth.middleware';
 import { generateAgoraToken } from './agora.service';
 import { transcribeAudio } from './ai-transcription.service';
 
 const router = Router();
-const prisma = new PrismaClient();
+
+// Get all classes with course details
+router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
+  try {
+    const classes = await prisma.class.findMany({
+      include: {
+        course: {
+          include: {
+            teacher: { select: { name: true } }
+          }
+        }
+      }
+    });
+    res.json(classes);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching classes', error });
+  }
+});
 
 // Create a new class session
 router.post('/', authenticateToken, authorizeRoles('TEACHER', 'SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
   try {
-    const { title, startTime, endTime, courseId } = req.body;
+    const { title, startTime, endTime, courseId, dayOfWeek, location } = req.body;
     const agoraChannel = `class-${courseId}-${Date.now()}`;
 
     const newClass = await prisma.class.create({
       data: {
         title,
+        dayOfWeek: dayOfWeek || 'Monday',
         startTime: new Date(startTime),
         endTime: new Date(endTime),
+        location: location || 'Lecture Hall 1',
         courseId,
         agoraChannel
       }
@@ -73,6 +92,35 @@ router.post('/:id/recordings', authenticateToken, authorizeRoles('TEACHER'), asy
     res.status(201).json(recording);
   } catch (error) {
     res.status(500).json({ message: 'Error saving recording', error });
+  }
+});
+
+// Mark attendance for a class
+router.post('/:id/attendance', authenticateToken, async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user!.userId;
+
+    // Check if attendance already marked
+    const existing = await prisma.attendance.findFirst({
+      where: { classId: String(id), userId }
+    });
+
+    if (existing) {
+      return res.status(200).json(existing);
+    }
+
+    const attendance = await prisma.attendance.create({
+      data: {
+        classId: String(id),
+        userId,
+        status: 'PRESENT'
+      }
+    });
+
+    res.status(201).json(attendance);
+  } catch (error) {
+    res.status(500).json({ message: 'Error marking attendance', error });
   }
 });
 

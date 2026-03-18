@@ -104,6 +104,58 @@ async function main() {
     });
   }
 
+  // 6. Seed Classes (Timetable)
+  const pht301 = await prisma.course.findUnique({ where: { code: 'PHT-301' } });
+  const phc303 = await prisma.course.findUnique({ where: { code: 'PHC-303' } });
+
+  if (pht301 && phc303) {
+    const classes = [
+      {
+        title: 'Fundamental of Pharmacy Lecture',
+        dayOfWeek: 'Monday',
+        startTime: new Date('2026-03-23T09:00:00Z'),
+        endTime: new Date('2026-03-23T10:30:00Z'),
+        location: 'Lecture Hall A',
+        courseId: pht301.id,
+        agoraChannel: 'class-pht301-monday'
+      },
+      {
+        title: 'Organic Chemistry Seminar',
+        dayOfWeek: 'Monday',
+        startTime: new Date('2026-03-23T11:00:00Z'),
+        endTime: new Date('2026-03-23T12:30:00Z'),
+        location: 'Chemistry Lab 1',
+        courseId: phc303.id,
+        agoraChannel: 'class-phc303-monday'
+      },
+      {
+        title: 'Dosage Forms Practical',
+        dayOfWeek: 'Tuesday',
+        startTime: new Date('2026-03-24T09:00:00Z'),
+        endTime: new Date('2026-03-24T12:00:00Z'),
+        location: 'Pharmaceutics Lab 2',
+        courseId: pht301.id,
+        agoraChannel: 'class-pht301-tuesday'
+      }
+    ];
+
+    for (const cls of classes) {
+      await prisma.class.create({ data: cls });
+    }
+  }
+
+  // 7. Seed Assignments
+  if (pht301) {
+    await prisma.assignment.create({
+      data: {
+        title: 'Introduction to Pharmaceutics Essay',
+        description: 'Submit an essay on the history and fundamentals of pharmaceutics.',
+        dueDate: new Date('2026-03-30T23:59:59Z'),
+        courseId: pht301.id
+      }
+    });
+  }
+
   console.log('--- Seeding Completed Successfully ---');
 }
 

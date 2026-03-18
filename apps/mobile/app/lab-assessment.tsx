@@ -65,8 +65,23 @@ export default function LabAssessmentScreen() {
     }
   };
 
-  if (loading) return <View style={styles.center}><ActivityIndicator size="large" color="#2563eb" /></View>;
-  if (!assessment) return <View style={styles.center}><Text>No assessment available for this lab.</Text></View>;
+  if (loading) return (
+    <View style={styles.center}>
+      <ActivityIndicator size="large" color="#2563eb" />
+      <Text style={styles.loadingText}>Loading Assessment...</Text>
+    </View>
+  );
+
+  if (!assessment) return (
+    <View style={styles.center}>
+      <XCircle size={64} color="#94a3b8" />
+      <Text style={styles.emptyTitle}>No Assessment Found</Text>
+      <Text style={styles.emptyText}>This lab experiment doesn't have a linked assessment yet.</Text>
+      <TouchableOpacity style={styles.backBtnLarge} onPress={() => router.back()}>
+        <Text style={styles.backBtnLargeText}>Return to Lab</Text>
+      </TouchableOpacity>
+    </View>
+  );
 
   if (completed) {
     return (
@@ -154,4 +169,9 @@ const styles = StyleSheet.create({
   scoreVal: { fontSize: 64, fontWeight: '900', color: '#2563eb' },
   finishBtn: { backgroundColor: '#1e293b', paddingHorizontal: 32, paddingVertical: 16, borderRadius: 16 },
   finishBtnText: { color: '#fff', fontWeight: 'bold' },
+  loadingText: { marginTop: 16, color: '#64748b', fontWeight: 'bold' },
+  emptyTitle: { fontSize: 20, fontWeight: 'bold', color: '#1e293b', marginTop: 16 },
+  emptyText: { fontSize: 14, color: '#64748b', textAlign: 'center', marginTop: 8, paddingHorizontal: 40 },
+  backBtnLarge: { marginTop: 24, backgroundColor: '#f1f5f9', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 12 },
+  backBtnLargeText: { color: '#1e293b', fontWeight: 'bold' },
 });

@@ -31,6 +31,19 @@ router.post('/', authenticateToken, authorizeRoles('SUPER_ADMIN', 'DEPT_ADMIN'),
     const course = await prisma.course.create({
       data: { name, code, departmentId, teacherId }
     });
+
+    // Automatically create a ChatGroup for this course
+    await prisma.chatGroup.create({
+      data: {
+        name: `${code} - ${name} Group`,
+        description: `Official chat group for ${name}`,
+        courseId: course.id,
+        members: {
+          connect: [{ id: teacherId }]
+        }
+      }
+    });
+
     res.status(201).json(course);
   } catch (error) {
     res.status(500).json({ message: 'Error creating course', error });
@@ -46,7 +59,8 @@ router.get('/:id', authenticateToken, async (req: AuthRequest, res: Response) =>
       include: {
         materials: true,
         assignments: true,
-        classes: true
+        classes: true,
+        labs: true
       }
     });
     if (!course) return res.status(404).json({ message: 'Course not found' });

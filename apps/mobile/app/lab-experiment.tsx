@@ -9,16 +9,25 @@ export default function LabExperimentScreen() {
   const router = useRouter();
   const { id, title } = useLocalSearchParams();
   const [loading, setLoading] = useState(false);
-  const [inputs, setInputs] = useState<any>({ rpm: 50, tabletType: 'Standard', binder: 5, oilRatio: 0.5 });
+  const [inputs, setInputs] = useState<any>({ 
+    rpm: 100, 
+    tabletType: 'Immediate Release', 
+    binder: 5, 
+    ratio: '4:2:1',
+    concentration: 50,
+    temp: 37
+  });
   const [result, setResult] = useState<any>(null);
 
   const runSimulation = async () => {
     setLoading(true);
     try {
-      const { data } = await api.post(`/labs/${id}/experiment`, { inputs });
-      setResult(data.resultData);
+      // Use the simulation endpoint which handles the math
+      const { data } = await api.post(`/labs/${id}/simulate`, inputs);
+      setResult(data.results || data.resultData);
     } catch (error) {
       console.error(error);
+      Alert.alert('Error', 'Simulation failed. Check parameters.');
     } finally {
       setLoading(false);
     }
@@ -36,22 +45,29 @@ export default function LabExperimentScreen() {
         
         {String(title).includes('Dissolution') && (
           <View>
-            <Text style={styles.label}>RPM (30-150)</Text>
+            <Text style={styles.label}>Stirring Speed (RPM - {inputs.rpm})</Text>
             <TextInput 
               style={styles.input} 
               keyboardType="numeric" 
               value={String(inputs.rpm)}
               onChangeText={(t) => setInputs({...inputs, rpm: parseInt(t) || 0})}
             />
+            <Text style={styles.label}>Temperature (°C - {inputs.temp})</Text>
+            <TextInput 
+              style={styles.input} 
+              keyboardType="numeric" 
+              value={String(inputs.temp)}
+              onChangeText={(t) => setInputs({...inputs, temp: parseInt(t) || 0})}
+            />
             <Text style={styles.label}>Tablet Type</Text>
             <View style={styles.row}>
-              {['Standard', 'Sustained'].map(type => (
+              {['Immediate Release', 'Modified Release', 'Enteric Coated'].map(type => (
                 <TouchableOpacity 
                   key={type}
                   style={[styles.chip, inputs.tabletType === type && styles.activeChip]}
                   onPress={() => setInputs({...inputs, tabletType: type})}
                 >
-                  <Text style={[styles.chipText, inputs.tabletType === type && styles.activeChipText]}>{type}</Text>
+                  <Text style={[styles.chipText, inputs.tabletType === type && styles.activeChipText]}>{type.split(' ')[0]}</Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -65,8 +81,25 @@ export default function LabExperimentScreen() {
               style={styles.input} 
               keyboardType="numeric" 
               value={String(inputs.binder)}
-              onChangeText={(t) => setInputs({...inputs, binder: parseInt(t) || 0})}
+              onChangeText={(t) => setInputs({...inputs, binder: parseFloat(t) || 0})}
             />
+          </View>
+        )}
+
+        {String(title).includes('Emulsion') && (
+          <View>
+            <Text style={styles.label}>Oil:Water Ratio</Text>
+            <View style={styles.row}>
+              {['4:2:1', '3:2:1', '2:2:1'].map(ratio => (
+                <TouchableOpacity 
+                  key={ratio}
+                  style={[styles.chip, inputs.ratio === ratio && styles.activeChip]}
+                  onPress={() => setInputs({...inputs, ratio})}
+                >
+                  <Text style={[styles.chipText, inputs.ratio === ratio && styles.activeChipText]}>{ratio}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
           </View>
         )}
 

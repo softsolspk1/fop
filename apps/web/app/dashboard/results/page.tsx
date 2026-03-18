@@ -14,6 +14,7 @@ export default function ResultsPage() {
   const [students, setStudents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState('');
   
   // Form State
   const [formData, setFormData] = useState({
@@ -39,10 +40,8 @@ export default function ResultsPage() {
         setCourses(coursesRes.data);
         setStudents(studentsRes.data.filter((u: any) => u.role === 'STUDENT'));
         
-        // Default to first course results if available
-        if (coursesRes.data.length > 0) {
-          const res = await api.get(`/results/course/${coursesRes.data[0].id}`);
-          setResults(res.data);
+        if (coursesRes.data.length > 0 && !selectedCourse) {
+          setSelectedCourse(coursesRes.data[0].id);
         }
       }
     } catch (err) {
@@ -52,9 +51,23 @@ export default function ResultsPage() {
     }
   };
 
+  const fetchCourseResults = async (courseId: string) => {
+    if (!courseId || user?.role === 'STUDENT') return;
+    try {
+      const res = await api.get(`/results/course/${courseId}`);
+      setResults(res.data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   useEffect(() => {
     if (user) fetchData();
   }, [user]);
+
+  useEffect(() => {
+    if (selectedCourse) fetchCourseResults(selectedCourse);
+  }, [selectedCourse]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,7 +75,11 @@ export default function ResultsPage() {
       await api.post('/results', formData);
       setIsModalOpen(false);
       setFormData({ ...formData, studentId: '', marks: '', grade: '' });
-      fetchData();
+      if (formData.courseId === selectedCourse) {
+        fetchCourseResults(selectedCourse);
+      } else {
+        setSelectedCourse(formData.courseId);
+      }
     } catch (err) {
       alert('Failed to post result');
     }
@@ -104,7 +121,7 @@ export default function ResultsPage() {
           <div className="grid grid-cols-1 gap-6">
              <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/50 overflow-hidden">
                 <div className="p-8 border-b border-slate-50 flex items-center justify-between bg-slate-50/30">
-                   <div className="flex gap-4">
+                   <div className="flex gap-4 items-center">
                       <div className="p-3 bg-blue-50 text-blue-600 rounded-2xl">
                         <FileText className="w-6 h-6" />
                       </div>
@@ -112,6 +129,18 @@ export default function ResultsPage() {
                         <h3 className="text-xl font-black text-slate-800 tracking-tight">Examination Summary</h3>
                         <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Session: 2024-2025</p>
                       </div>
+                      {user?.role !== 'STUDENT' && (
+                        <div className="ml-8">
+                          <select 
+                            value={selectedCourse} 
+                            onChange={(e) => setSelectedCourse(e.target.value)}
+                            className="px-4 py-2 bg-white border border-slate-200 rounded-xl font-bold text-slate-600 outline-none focus:ring-4 focus:ring-blue-100 transition-all text-sm"
+                          >
+                            <option value="">Select Course...</option>
+                            {courses.map(c => <option key={c.id} value={c.id}>{c.code} - {c.name}</option>)}
+                          </select>
+                        </div>
+                      )}
                    </div>
                    <button className="flex items-center gap-2 px-5 py-2.5 bg-white border border-slate-200 rounded-xl font-bold text-slate-600 hover:bg-slate-50 transition-all text-sm shadow-sm">
                       <Download className="w-4 h-4" />
@@ -164,7 +193,7 @@ export default function ResultsPage() {
                                   </div>
                                   <div>
                                     <p className="text-sm font-bold text-slate-700">{user?.role === 'STUDENT' ? res.teacher?.name : res.student?.name}</p>
-                                    {!user?.role === 'STUDENT' && <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">{res.student?.rollNumber}</p>}
+                                    {user?.role !== 'STUDENT' && <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">{res.student?.rollNumber}</p>}
                                   </div>
                                </div>
                             </td>

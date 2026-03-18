@@ -41,7 +41,14 @@ model User {
   studentCourses   Course[]         @relation("StudentCourses")
   resultsPosted    Result[]         @relation("ResultTeacher")
   studentResults   Result[]         @relation("ResultStudent")
+  sentMessages     Message[]        @relation("SentMessages")
+  receivedMessages Message[]        @relation("ReceivedMessages")
+  groups           ChatGroup[]      @relation("GroupMembers")
+  experiments      Experiment[]
+  assessmentResults AssessmentResult[]
   rollNumber       String?
+  enrollmentNumber String?
+  phoneNumber      String?
   shift            String?          // MORNING or EVENING
   year             Int?             // 1, 2, 3, 4, 5
   fees             Fee[]
@@ -141,6 +148,8 @@ model Course {
   classes      Class[]
   exams        Exam[]
   results      Result[]
+  labs         Lab[]
+  chatGroup    ChatGroup?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
@@ -159,8 +168,10 @@ model Material {
 model Class {
   id           String   @id @default(uuid())
   title        String
+  dayOfWeek    String   @default("Monday")
   startTime    DateTime
   endTime      DateTime
+  location     String   @default("Lecture Hall 1")
   agoraChannel String?
   courseId     String
   course       Course   @relation(fields: [courseId], references: [id])
@@ -266,9 +277,63 @@ model Lab {
   department  String
   provider    String
   difficulty  String   // 'Beginner', 'Intermediate', 'Advanced'
-  url         String?
+  url         String?  // External simulator URL
+  year        Int?     // 1, 2, 3, 4, 5 (for Classwise)
+  courseId    String?
+  course      Course?  @relation(fields: [courseId], references: [id])
+  theory      String?  @db.Text
+  objectives  String?  @db.Text
+  safety      String?  @db.Text
+  experiments Experiment[]
+  assessments Assessment[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model Experiment {
+  id           String   @id @default(uuid())
+  labId        String
+  lab          Lab      @relation(fields: [labId], references: [id])
+  studentId    String
+  student      User     @relation(fields: [studentId], references: [id])
+  status       String   // 'IN_PROGRESS', 'COMPLETED'
+  inputs       Json?    // Stores simulation inputs (RPM, Temp, Ingredients)
+  observations Observation[]
+  resultData   Json?    // Stores calculated results for graphs
+  grade        Float?
+  feedback     String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Observation {
+  id           String   @id @default(uuid())
+  experimentId String
+  experiment   Experiment @relation(fields: [experimentId], references: [id])
+  timeStep     Float?
+  reading      Float
+  notes        String?
+  createdAt    DateTime @default(now())
+}
+
+model Assessment {
+  id        String   @id @default(uuid())
+  labId     String
+  lab       Lab      @relation(fields: [labId], references: [id])
+  questions Json     // Array of MCQs, Scenario-based, etc.
+  results   AssessmentResult[]
+  createdAt DateTime @default(now())
+}
+
+model AssessmentResult {
+  id           String   @id @default(uuid())
+  assessmentId String
+  assessment   Assessment @relation(fields: [assessmentId], references: [id])
+  studentId    String
+  student      User       @relation(fields: [studentId], references: [id])
+  score        Float
+  answers      Json       // Student's submitted answers
+  createdAt    DateTime @default(now())
 }
 
 model FacultyMember {
@@ -276,6 +341,30 @@ model FacultyMember {
   name        String
   designation String
   department  String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Message {
+  id        String   @id @default(uuid())
+  content   String
+  senderId  String
+  sender    User     @relation("SentMessages", fields: [senderId], references: [id])
+  receiverId String?
+  receiver   User?    @relation("ReceivedMessages", fields: [receiverId], references: [id])
+  groupId    String?
+  group      ChatGroup? @relation(fields: [groupId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model ChatGroup {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  courseId    String?  @unique
+  course      Course?  @relation(fields: [courseId], references: [id])
+  members     User[]   @relation("GroupMembers")
+  messages    Message[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }

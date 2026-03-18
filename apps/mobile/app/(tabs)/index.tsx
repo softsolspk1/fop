@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
-import { Calendar, Clock, BookOpen, GraduationCap, Users, FileText, Bell, FlaskConical, Video } from 'lucide-react-native';
+import { Calendar, Clock, BookOpen, GraduationCap, Users, FileText, Bell, FlaskConical, Video, Sparkles } from 'lucide-react-native';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../lib/api';
 import { useRouter } from 'expo-router';
@@ -18,19 +18,30 @@ export default function DashboardScreen() {
 
   const fetchStats = async () => {
     try {
-      // Fetch dynamic stats based on role
-      // For now, mocking logic but hitting a generic stats endpoint if it existed
-      // Or deriving from individual fetches
-      setStats({
-        attendance: '92%',
-        gpa: '3.8',
-        labs: '4/5',
-        classes: '2',
-        facultyCount: '12',
-        deptStudents: '450'
-      });
+      if (user?.role === 'HOD' || user?.role === 'DEPT_ADMIN') {
+        const { data } = await api.get('/departments/my-stats');
+        setStats({
+          facultyCount: data.facultyCount.toString(),
+          deptStudents: data.studentCount.toString(),
+          courses: data.courseCount.toString()
+        });
+      } else if (user?.role === 'FACULTY' || user?.role === 'TEACHER') {
+        // Fetch teacher classes to count active ones
+        const { data } = await api.get('/classes');
+        setStats({
+          activeCourses: data.length.toString(), // Simplified for now
+          myStudents: '120' // This would ideally come from another endpoint
+        });
+      } else {
+        // Mocked student stats for now (placeholder for future student APIs)
+        setStats({
+          attendance: '92%',
+          gpa: '3.8',
+          labs: '4/5'
+        });
+      }
     } catch (error) {
-      console.error(error);
+      console.error('Error fetching stats:', error);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -126,32 +137,80 @@ export default function DashboardScreen() {
 
         <Text style={styles.sectionTitle}>Quick Actions</Text>
         <View style={styles.actionGrid}>
-          <TouchableOpacity style={styles.actionItem} onPress={() => router.push('/timetable')}>
-            <View style={[styles.actionIcon, { backgroundColor: '#eff6ff' }]}>
-              <Calendar size={24} color="#2563eb" />
-            </View>
-            <Text style={styles.actionLabel}>Time Table</Text>
-          </TouchableOpacity>
+          {user?.role === 'STUDENT' && (
+            <>
+              <TouchableOpacity style={styles.actionItem} onPress={() => router.push('/timetable')}>
+                <View style={[styles.actionIcon, { backgroundColor: '#eff6ff' }]}>
+                  <Calendar size={24} color="#2563eb" />
+                </View>
+                <Text style={styles.actionLabel}>Time Table</Text>
+              </TouchableOpacity>
 
-          <TouchableOpacity style={styles.actionItem} onPress={() => router.push('/assignments')}>
-            <View style={[styles.actionIcon, { backgroundColor: '#fdf2f8' }]}>
-              <FileText size={24} color="#db2777" />
-            </View>
-            <Text style={styles.actionLabel}>Assignments</Text>
-          </TouchableOpacity>
+              <TouchableOpacity style={styles.actionItem} onPress={() => router.push('/assignments')}>
+                <View style={[styles.actionIcon, { backgroundColor: '#fdf2f8' }]}>
+                  <FileText size={24} color="#db2777" />
+                </View>
+                <Text style={styles.actionLabel}>Assignments</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.actionItem} onPress={() => router.push('/(tabs)/live')}>
+                <View style={[styles.actionIcon, { backgroundColor: '#fff7ed' }]}>
+                  <Video size={24} color="#ea580c" />
+                </View>
+                <Text style={styles.actionLabel}>Live Class</Text>
+              </TouchableOpacity>
+
+            </>
+          )}
+
+          {(user?.role === 'FACULTY' || user?.role === 'TEACHER') && (
+            <>
+              <TouchableOpacity style={styles.actionItem} onPress={() => router.push('/timetable')}>
+                <View style={[styles.actionIcon, { backgroundColor: '#eff6ff' }]}>
+                  <Calendar size={24} color="#2563eb" />
+                </View>
+                <Text style={styles.actionLabel}>My Schedule</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.actionItem} onPress={() => router.push('/attendance-logs')}>
+                <View style={[styles.actionIcon, { backgroundColor: '#f0fdf4' }]}>
+                  <Users size={24} color="#16a34a" />
+                </View>
+                <Text style={styles.actionLabel}>Attendance</Text>
+              </TouchableOpacity>
+            </>
+          )}
+
+          {(user?.role === 'HOD' || user?.role === 'DEPT_ADMIN') && (
+            <>
+              <TouchableOpacity style={styles.actionItem} onPress={() => router.push('/faculty-directory')}>
+                <View style={[styles.actionIcon, { backgroundColor: '#eff6ff' }]}>
+                  <Users size={24} color="#2563eb" />
+                </View>
+                <Text style={styles.actionLabel}>Faculty</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.actionItem} onPress={() => router.push('/timetable')}>
+                <View style={[styles.actionIcon, { backgroundColor: '#f0fdf4' }]}>
+                  <Calendar size={24} color="#16a34a" />
+                </View>
+                <Text style={styles.actionLabel}>Dept Schedule</Text>
+              </TouchableOpacity>
+            </>
+          )}
 
           <TouchableOpacity style={styles.actionItem} onPress={() => router.push('/(tabs)/labs')}>
-            <View style={[styles.actionIcon, { backgroundColor: '#f0fdf4' }]}>
-              <FlaskConical size={24} color="#16a34a" />
+            <View style={[styles.actionIcon, { backgroundColor: '#f5f3ff' }]}>
+              <FlaskConical size={24} color="#7c3aed" />
             </View>
             <Text style={styles.actionLabel}>Virtual Lab</Text>
           </TouchableOpacity>
           
-          <TouchableOpacity style={styles.actionItem} onPress={() => router.push('/(tabs)/live')}>
+          <TouchableOpacity style={styles.actionItem} onPress={() => router.push('/tutor')}>
             <View style={[styles.actionIcon, { backgroundColor: '#fff7ed' }]}>
-              <Video size={24} color="#ea580c" />
+              <Sparkles size={24} color="#ea580c" />
             </View>
-            <Text style={styles.actionLabel}>Live Class</Text>
+            <Text style={styles.actionLabel}>AI Tutor</Text>
           </TouchableOpacity>
         </View>
 

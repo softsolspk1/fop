@@ -4,54 +4,109 @@ import { authenticateToken, authorizeRoles, AuthRequest } from '../auth/auth.mid
 
 const router = Router();
 
-// Get all labs
+// Get all labs grouped by department
 router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
-    const labs = await prisma.lab.findMany();
+    const labs = await prisma.lab.findMany({
+      include: {
+        experiments: {
+          where: { studentId: req.user?.userId }
+        }
+      }
+    });
     res.json(labs);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching labs', error });
   }
 });
 
-// Create lab (Super Admin only)
-router.post('/', authenticateToken, authorizeRoles('SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
-  try {
-    const { title, description, department, provider, difficulty, url } = req.body;
-    const lab = await prisma.lab.create({
-      data: { title, description, department, provider, difficulty, url }
-    });
-    res.status(201).json(lab);
-  } catch (error) {
-    res.status(500).json({ message: 'Error creating lab', error });
-  }
-});
-
-// Update lab
-router.put('/:id', authenticateToken, authorizeRoles('SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
+// Get a specific lab with theory and experiments
+router.get('/:id', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
-    const { title, description, department, provider, difficulty, url } = req.body;
-    const lab = await prisma.lab.update({
-      where: { id: String(id) },
-      data: { title, description, department, provider, difficulty, url }
+    const lab = await prisma.lab.findUnique({
+      where: { id },
+      include: {
+        experiments: {
+          where: { studentId: req.user?.userId },
+          include: { observations: true }
+        },
+        assessments: true
+      }
     });
+    if (!lab) return res.status(404).json({ message: 'Lab not found' });
     res.json(lab);
   } catch (error) {
-    res.status(500).json({ message: 'Error updating lab', error });
+    res.status(500).json({ message: 'Error fetching lab details', error });
   }
 });
 
-// Delete lab
-router.delete('/:id', authenticateToken, authorizeRoles('SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
+// Start a new experiment
+router.post('/:id/experiment', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
-    await prisma.lab.delete({
-      where: { id: String(id) }
+    const { inputs } = req.body; // e.g., { tabletType: 'Paracetamol', rpm: 50, temp: 37 }
+    
+    // Logic for Simulation based on Lab Type
+    const lab = await prisma.lab.findUnique({ where: { id } });
+    if (!lab) return res.status(404).json({ message: 'Lab not found' });
+
+    let resultData = {};
+    
+    // Simulation Logic
+    if (lab.title.includes('Dissolution')) {
+      // Release (%) = k * sqrt(time) * (RPM/50)
+      const timePoints = [0, 5, 10, 15, 30, 45, 60];
+      const rpmFactor = (inputs.rpm || 50) / 50;
+      const k = inputs.tabletType === 'Sustained' ? 5 : 12;
+      
+      resultData = timePoints.map(t => ({
+        time: t,
+        release: Math.min(100, parseFloat((k * Math.sqrt(t) * rpmFactor).toFixed(2)))
+      }));
+    } else if (lab.title.includes('Tablet')) {
+      const binder = inputs.binder || 5;
+      const hardness = (binder * 2).toFixed(2);
+      const disintegration = (20 / binder).toFixed(2);
+      resultData = { hardness, disintegration, status: 'Success' };
+    } else if (lab.title.includes('Emulsion')) {
+      const isStable = inputs.oilRatio > 0.3 && inputs.oilRatio < 0.7;
+      resultData = { stability: isStable ? 'Stable' : 'Unstable', score: isStable ? 85 : 30 };
+    }
+
+    const experiment = await prisma.experiment.create({
+      data: {
+        labId: id,
+        studentId: req.user!.userId,
+        status: 'COMPLETED',
+        inputs,
+        resultData
+      }
     });
-    res.status(204).send();
+
+    res.status(201).json(experiment);
   } catch (error) {
-    res.status(500).json({ message: 'Error deleting lab', error });
+    res.status(500).json({ message: 'Error starting simulation', error });
+  }
+});
+
+// Submit Assessment
+router.post('/:id/assessment/:assessmentId', authenticateToken, async (req: AuthRequest, res: Response) => {
+  try {
+    const { assessmentId } = req.params;
+    const { answers, score } = req.body;
+    
+    const result = await prisma.assessmentResult.create({
+      data: {
+        assessmentId,
+        studentId: req.user!.userId,
+        score,
+        answers
+      }
+    });
+    res.status(201).json(result);
+  } catch (error) {
+    res.status(500).json({ message: 'Error submitting assessment', error });
   }
 });
 

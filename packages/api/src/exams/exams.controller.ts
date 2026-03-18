@@ -1,12 +1,11 @@
-import { Router } from 'express';
-import { PrismaClient } from '@prisma/client';
-import { authenticateToken, authorizeRoles } from '../auth/auth.middleware';
+import { Router, Response } from 'express';
+import prisma from '../lib/prisma';
+import { authenticateToken, authorizeRoles, AuthRequest } from '../auth/auth.middleware';
 
 const router = Router();
-const prisma = new PrismaClient();
 
 // Get exam schedule (Authenticated)
-router.get('/schedule', authenticateToken, async (req: any, res) => {
+router.get('/schedule', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     const exams = await prisma.exam.findMany({
       include: { course: true },
@@ -19,10 +18,11 @@ router.get('/schedule', authenticateToken, async (req: any, res) => {
 });
 
 // Get my exam results (Student only)
-router.get('/my-results', authenticateToken, authorizeRoles('STUDENT'), async (req: any, res) => {
+router.get('/my-results', authenticateToken, authorizeRoles('STUDENT'), async (req: AuthRequest, res: Response) => {
   try {
+    const userId = req.user!.userId;
     const results = await prisma.examResult.findMany({
-      where: { userId: req.user.userId },
+      where: { userId },
       include: { exam: { include: { course: true } } }
     });
     res.json(results);
@@ -32,7 +32,7 @@ router.get('/my-results', authenticateToken, authorizeRoles('STUDENT'), async (r
 });
 
 // Create an exam (Admin/Teacher only)
-router.post('/', authenticateToken, authorizeRoles('SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER'), async (req, res) => {
+router.post('/', authenticateToken, authorizeRoles('SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER'), async (req: AuthRequest, res: Response) => {
   try {
     const { title, date, location, courseId } = req.body;
     const exam = await prisma.exam.create({
@@ -50,7 +50,7 @@ router.post('/', authenticateToken, authorizeRoles('SUPER_ADMIN', 'DEPT_ADMIN', 
 });
 
 // Post exam result (Admin/Teacher only)
-router.post('/results', authenticateToken, authorizeRoles('SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER'), async (req, res) => {
+router.post('/results', authenticateToken, authorizeRoles('SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER'), async (req: AuthRequest, res: Response) => {
   try {
     const { score, grade, userId, examId } = req.body;
     const result = await prisma.examResult.create({

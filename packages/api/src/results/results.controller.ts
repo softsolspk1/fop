@@ -8,7 +8,7 @@ const router = Router();
 router.post('/', authenticateToken, authorizeRoles('SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER'), async (req: AuthRequest, res: Response) => {
   try {
     const { studentId, courseId, marks, grade, semester, academicYear } = req.body;
-    const teacherId = req.user!.id;
+    const teacherId = req.user!.userId;
 
     const result = await prisma.result.create({
       data: {
@@ -31,10 +31,10 @@ router.post('/', authenticateToken, authorizeRoles('SUPER_ADMIN', 'DEPT_ADMIN', 
 // Get results for a student (Self, Teacher, HOD, Admin)
 router.get('/student/:studentId', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
-    const { studentId } = req.params;
+    const studentId = req.params.studentId as string;
     
     // Authorization check: Student can only see their own results
-    if (req.user!.role === 'STUDENT' && req.user!.id !== studentId) {
+    if (req.user!.role === 'STUDENT' && req.user!.userId !== studentId) {
       return res.status(403).json({ message: 'Forbidden' });
     }
 
@@ -56,7 +56,7 @@ router.get('/student/:studentId', authenticateToken, async (req: AuthRequest, re
 // Get results for a course (Teacher, HOD, Admin)
 router.get('/course/:courseId', authenticateToken, authorizeRoles('SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER'), async (req: AuthRequest, res: Response) => {
   try {
-    const { courseId } = req.params;
+    const courseId = req.params.courseId as string;
 
     const results = await prisma.result.findMany({
       where: { courseId },

@@ -12,6 +12,39 @@ export default function VirtualLabsPage() {
   const [activeLab, setActiveLab] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingLab, setEditingLab] = useState<any>(null);
+  const [simParams, setSimParams] = useState<any>({});
+  const [simulating, setSimulating] = useState(false);
+  const [simResult, setSimResult] = useState<any>(null);
+  const [selectedDept, setSelectedDept] = useState('All');
+  const [selectedYear, setSelectedYear] = useState('All');
+  const [courses, setCourses] = useState<any[]>([]);
+
+  const runSimulation = async () => {
+    if (!activeLab) return;
+    setSimulating(true);
+    setSimResult(null);
+    try {
+      const { data } = await api.post(`/labs/${activeLab.id}/simulate`, simParams);
+      await new Promise(r => setTimeout(r, 1500));
+      setSimResult(data.results || data.resultData);
+    } catch (err) {
+      console.error(err);
+      alert('Simulation error. Please check parameters.');
+    } finally {
+      setSimulating(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this simulation?')) return;
+    try {
+      await api.delete(`/labs/${id}`);
+      fetchData();
+    } catch (err) {
+      console.error('Error deleting lab:', err);
+      alert('Failed to delete simulation');
+    }
+  };
 
   // Form State
   const [formData, setFormData] = useState({
@@ -20,14 +53,20 @@ export default function VirtualLabsPage() {
     department: '',
     provider: '',
     difficulty: 'Beginner',
-    url: ''
+    url: '',
+    year: '1',
+    courseId: ''
   });
 
   const fetchData = async () => {
     try {
       setLoading(true);
-      const res = await api.get('/labs');
-      setLabs(res.data);
+      const [labsRes, coursesRes] = await Promise.all([
+        api.get('/labs'),
+        api.get('/courses')
+      ]);
+      setLabs(labsRes.data);
+      setCourses(coursesRes.data);
     } catch (err) {
       console.error('Error fetching labs:', err);
     } finally {
@@ -48,7 +87,9 @@ export default function VirtualLabsPage() {
         department: lab.department,
         provider: lab.provider,
         difficulty: lab.difficulty,
-        url: lab.url || ''
+        url: lab.url || '',
+        year: String(lab.year || '1'),
+        courseId: lab.courseId || ''
       });
     } else {
       setEditingLab(null);
@@ -58,36 +99,37 @@ export default function VirtualLabsPage() {
         department: '',
         provider: '',
         difficulty: 'Beginner',
-        url: ''
+        url: '',
+        year: '1',
+        courseId: ''
       });
     }
     setIsModalOpen(true);
   };
 
+  const filteredLabs = labs.filter(lab => {
+    const deptMatch = selectedDept === 'All' || lab.department === selectedDept;
+    const yearMatch = selectedYear === 'All' || String(lab.year) === selectedYear;
+    return deptMatch && yearMatch;
+  });
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      const dataToSave = {
+        ...formData,
+        year: parseInt(formData.year)
+      };
       if (editingLab) {
-        await api.put(`/labs/${editingLab.id}`, formData);
+        await api.put(`/labs/${editingLab.id}`, dataToSave);
       } else {
-        await api.post('/labs', formData);
+        await api.post('/labs', dataToSave);
       }
       setIsModalOpen(false);
       fetchData();
     } catch (err) {
       console.error('Error saving lab:', err);
       alert('Failed to save simulation');
-    }
-  };
-
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this simulation?')) return;
-    try {
-      await api.delete(`/labs/${id}`);
-      fetchData();
-    } catch (err) {
-      console.error('Error deleting lab:', err);
-      alert('Failed to delete simulation');
     }
   };
 
@@ -102,14 +144,29 @@ export default function VirtualLabsPage() {
                 <p className="text-slate-500 font-medium">Interactive 3D simulations for pharmacy students.</p>
               </div>
               <div className="flex items-center gap-3">
-                  <div className="relative group">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                    <input 
-                        type="text"
-                        placeholder="Search simulations..."
-                        className="pl-12 pr-6 py-4 bg-white border border-slate-200 rounded-2xl text-sm focus:outline-none focus:ring-4 focus:ring-blue-50 shadow-sm w-full md:w-80 transition-all font-medium"
-                    />
-                  </div>
+                  <select 
+                    value={selectedDept}
+                    onChange={(e) => setSelectedDept(e.target.value)}
+                    className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 outline-none focus:ring-4 focus:ring-blue-50 transition-all shadow-sm"
+                  >
+                    <option value="All">All Departments</option>
+                    <option value="Pharmaceutics">Pharmaceutics</option>
+                    <option value="Pharmacology">Pharmacology</option>
+                    <option value="Pharmaceutical Chemistry">Pharmaceutical Chemistry</option>
+                    <option value="Pharmacognosy">Pharmacognosy</option>
+                  </select>
+                  <select 
+                    value={selectedYear}
+                    onChange={(e) => setSelectedYear(e.target.value)}
+                    className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 outline-none focus:ring-4 focus:ring-blue-50 transition-all shadow-sm"
+                  >
+                    <option value="All">All Years</option>
+                    <option value="1">1st Year</option>
+                    <option value="2">2nd Year</option>
+                    <option value="3">3rd Year</option>
+                    <option value="4">4th Year</option>
+                    <option value="5">5th Year</option>
+                  </select>
                   <button 
                     onClick={() => handleOpenModal()}
                     className="p-4 bg-blue-600 text-white rounded-2xl shadow-lg border-b-4 border-blue-800 hover:bg-blue-700 transition-all active:border-b-0 active:translate-y-1"
@@ -126,7 +183,7 @@ export default function VirtualLabsPage() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {labs.map((lab, idx) => (
+                {filteredLabs.map((lab, idx) => (
                   <motion.div 
                     key={lab.id}
                     initial={{ opacity: 0, scale: 0.95 }}
@@ -187,17 +244,139 @@ export default function VirtualLabsPage() {
                 </div>
             </div>
 
-            <div className="bg-slate-900 aspect-video rounded-[3.5rem] shadow-2xl overflow-hidden border-[12px] border-slate-800 flex items-center justify-center relative group">
-                <div className="text-center space-y-6">
-                    <div className="w-24 h-24 bg-blue-600 rounded-full flex items-center justify-center mx-auto animate-pulse shadow-2xl shadow-blue-500">
-                        <Play className="w-10 h-10 text-white fill-current ml-1" />
-                    </div>
-                    <div>
-                      <p className="text-blue-200 font-black uppercase tracking-[0.4em] text-sm">Initializing Simulation...</p>
-                      <p className="text-slate-500 text-xs mt-2 uppercase tracking-widest">Connect VR Headset for Immersive Experience</p>
-                    </div>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {/* Controls Column */}
+              <div className="bg-white p-8 rounded-[3rem] border border-slate-100 shadow-sm space-y-8">
+                <div>
+                  <h3 className="text-xl font-black text-slate-800 mb-2 uppercase tracking-tight">Experiment Parameters</h3>
+                  <p className="text-sm text-slate-500 font-medium italic">Adjust variables to run the simulation.</p>
                 </div>
-                <div className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity bg-gradient-to-t from-blue-500 via-transparent to-transparent pointer-events-none" />
+
+                {activeLab.title.includes('Dissolution') && (
+                  <div className="space-y-6">
+                    <div className="space-y-2">
+                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Stirring Speed (RPM)</label>
+                       <input 
+                         type="range" min="50" max="150" step="10" 
+                         value={simParams.rpm || 100} 
+                         onChange={(e) => setSimParams({...simParams, rpm: parseInt(e.target.value)})}
+                         className="w-full h-2 bg-blue-100 rounded-lg appearance-none cursor-pointer accent-blue-600" 
+                       />
+                       <div className="flex justify-between text-[10px] font-bold text-slate-400 uppercase">
+                          <span>50 RPM</span>
+                          <span className="text-blue-600">{simParams.rpm || 100} RPM</span>
+                          <span>150 RPM</span>
+                       </div>
+                    </div>
+                    <div className="space-y-2">
+                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Tablet Type</label>
+                       <select 
+                        value={simParams.type || 'Immediate'}
+                        onChange={(e) => setSimParams({...simParams, type: e.target.value})}
+                        className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-800 outline-none focus:ring-4 focus:ring-blue-50 transition-all"
+                       >
+                          <option>Immediate Release</option>
+                          <option>Modified Release</option>
+                          <option>Enteric Coated</option>
+                       </select>
+                    </div>
+                  </div>
+                )}
+
+                {activeLab.title.includes('Tablet') && (
+                  <div className="space-y-6">
+                    <div className="space-y-2">
+                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Binder Percentage (%)</label>
+                       <input 
+                         type="range" min="1" max="10" step="0.5" 
+                         value={simParams.binder || 5} 
+                         onChange={(e) => setSimParams({...simParams, binder: parseFloat(e.target.value)})}
+                         className="w-full h-2 bg-blue-100 rounded-lg appearance-none cursor-pointer accent-blue-600" 
+                       />
+                       <div className="flex justify-between text-[10px] font-bold text-slate-400 uppercase">
+                          <span>1%</span>
+                          <span className="text-blue-600">{simParams.binder || 5}%</span>
+                          <span>10%</span>
+                       </div>
+                    </div>
+                  </div>
+                )}
+
+                {activeLab.title.includes('Emulsion') && (
+                  <div className="space-y-6">
+                    <div className="space-y-2">
+                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Oil:Water Ratio</label>
+                       <select 
+                        value={simParams.ratio || '4:2:1'}
+                        onChange={(e) => setSimParams({...simParams, ratio: e.target.value})}
+                        className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-800 outline-none focus:ring-4 focus:ring-blue-50 transition-all"
+                       >
+                          <option>4:2:1 (Primary)</option>
+                          <option>3:2:1</option>
+                          <option>2:2:1</option>
+                       </select>
+                    </div>
+                  </div>
+                )}
+
+                <button 
+                  onClick={runSimulation}
+                  disabled={simulating}
+                  className="w-full py-5 bg-blue-600 text-white font-black rounded-2xl shadow-xl shadow-blue-200 hover:bg-blue-700 active:scale-95 transition-all flex items-center justify-center gap-3 border-b-4 border-blue-800 uppercase text-xs tracking-[0.2em] disabled:opacity-50"
+                >
+                  {simulating ? <Loader2 className="w-5 h-5 animate-spin" /> : <Play className="w-5 h-5 fill-current" />}
+                  {simulating ? 'Processing...' : 'Run Simulation'}
+                </button>
+              </div>
+
+              {/* Visualization Column */}
+              <div className="lg:col-span-2 space-y-8">
+                <div className="bg-slate-900 aspect-video rounded-[3.5rem] shadow-2xl overflow-hidden border-[12px] border-slate-800 flex items-center justify-center relative group">
+                    {!simResult ? (
+                      <div className="text-center space-y-6">
+                          <div className="w-24 h-24 bg-blue-600 rounded-full flex items-center justify-center mx-auto animate-pulse shadow-2xl shadow-blue-500">
+                              <Play className="w-10 h-10 text-white fill-current ml-1" />
+                          </div>
+                          <div>
+                            <p className="text-blue-200 font-black uppercase tracking-[0.4em] text-sm">Ready to Simulate</p>
+                            <p className="text-slate-500 text-xs mt-2 uppercase tracking-widest">Connect VR Headset for Immersive Experience</p>
+                          </div>
+                      </div>
+                    ) : (
+                      <div className="w-full h-full p-12 flex flex-col items-center justify-center text-white bg-slate-900/50 backdrop-blur-3xl">
+                        <motion.div 
+                          initial={{ opacity: 0, scale: 0.9 }} 
+                          animate={{ opacity: 1, scale: 1 }}
+                          className="w-full max-w-2xl bg-white/10 p-10 rounded-[2.5rem] border border-white/5 backdrop-blur-md"
+                        >
+                           <h4 className="text-3xl font-black mb-8 uppercase tracking-tight text-blue-400">Simulation Output</h4>
+                           <div className="grid grid-cols-2 gap-10">
+                              {Object.entries(simResult).map(([k, v]: [string, any]) => (
+                                <div key={k} className="p-6 bg-white/5 rounded-3xl border border-white/5">
+                                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{k.replace(/([A-Z])/g, ' $1')}</p>
+                                   <p className="text-2xl font-black text-white">{typeof v === 'number' ? v.toFixed(2) : v}</p>
+                                </div>
+                              ))}
+                           </div>
+                           <div className="mt-10 pt-10 border-t border-white/5 flex gap-4">
+                              <button 
+                                onClick={() => alert('Observation Saved to Notebook!')}
+                                className="flex-1 py-4 bg-white text-slate-900 font-black rounded-2xl hover:bg-slate-100 transition-all uppercase text-xs tracking-widest"
+                              >
+                                Record Observation
+                              </button>
+                               <button 
+                                onClick={() => alert('Quiz Loading...')}
+                                className="flex-1 py-4 bg-blue-600 text-white font-black rounded-2xl hover:bg-blue-700 transition-all uppercase text-xs tracking-widest border-b-4 border-blue-800 shadow-xl shadow-blue-500/20"
+                              >
+                                Take Assessment
+                              </button>
+                           </div>
+                        </motion.div>
+                      </div>
+                    )}
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -234,6 +413,23 @@ export default function VirtualLabsPage() {
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Provider</label>
                     <input required value={formData.provider} onChange={(e) => setFormData({...formData, provider: e.target.value})} placeholder="e.g. Labster" className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-800 outline-none focus:ring-4 focus:ring-blue-50 transition-all" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Class Year</label>
+                    <select value={formData.year} onChange={(e) => setFormData({...formData, year: e.target.value})} className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-800 outline-none focus:ring-4 focus:ring-blue-50 transition-all">
+                      <option value="1">1st Year</option>
+                      <option value="2">2nd Year</option>
+                      <option value="3">3rd Year</option>
+                      <option value="4">4th Year</option>
+                      <option value="5">5th Year</option>
+                    </select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Related Course</label>
+                    <select value={formData.courseId} onChange={(e) => setFormData({...formData, courseId: e.target.value})} className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-800 outline-none focus:ring-4 focus:ring-blue-50 transition-all">
+                      <option value="">None / General</option>
+                      {courses.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                    </select>
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Difficulty</label>

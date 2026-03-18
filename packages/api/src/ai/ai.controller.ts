@@ -1,9 +1,46 @@
 import { Router, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { authenticateToken, authorizeRoles, AuthRequest } from '../auth/auth.middleware';
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const router = Router();
 const prisma = new PrismaClient();
+
+// Gemini Setup
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "YOUR_FALLBACK_KEY_OR_EMPTY");
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+// AI Tutor Chat
+router.post('/tutor', authenticateToken, async (req: AuthRequest, res: Response) => {
+  try {
+    const { prompt } = req.body;
+    if (!prompt) return res.status(400).json({ message: 'Prompt is required' });
+
+    const systemContext = `
+      You are the official AI Pharma-Tutor for the Faculty of Pharmacy & Pharmaceutical Sciences, University of Karachi (UOK).
+      Your role is to assist students with:
+      1. Pharmaceutics calculations (Dosage, Allegation, Isotonicity).
+      2. Virtual Lab experiments (Dissolution, Tablet Formulation, Emulsion).
+      3. Pharmacology and Pharmacognosy concepts.
+      4. Clarifying lecture notes and exam preparation.
+
+      Guidelines:
+      - Always provide accurate, evidence-based pharmaceutical information.
+      - Use professional, academic, yet encouraging language.
+      - If you are unsure about a specific UOK policy, advise the student to consult their Department Head.
+      - Support formatting with markdown for clear steps and equations.
+    `;
+
+    const result = await model.generateContent([systemContext, prompt]);
+    const response = await result.response;
+    const text = response.text();
+
+    res.json({ response: text });
+  } catch (error) {
+    console.error('AI Tutor Error:', error);
+    res.status(500).json({ message: 'Pharma-Tutor is temporarily offline', error });
+  }
+});
 
 // Transcription Mock (Whisper API Integration entry point)
 router.post('/transcribe', authenticateToken, authorizeRoles('TEACHER', 'DEPT_ADMIN'), async (req: AuthRequest, res: Response) => {

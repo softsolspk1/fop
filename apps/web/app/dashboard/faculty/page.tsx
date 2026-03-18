@@ -8,10 +8,28 @@ import api from '../../../lib/api';
 
 export default function FacultyPage() {
   const [faculty, setFaculty] = useState<any[]>([]);
+  const [departments, setDepartments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filterDept, setFilterDept] = useState('');
   const [filterDesignation, setFilterDesignation] = useState('');
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const [facRes, deptRes] = await Promise.all([
+        api.get('/faculty'),
+        api.get('/departments')
+      ]);
+      setFaculty(facRes.data);
+      setDepartments(deptRes.data);
+    } catch (err) {
+      console.error(err);
+      setError('Failed to fetch data');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     fetchData();
@@ -22,7 +40,7 @@ export default function FacultyPage() {
            (filterDesignation === '' || f.designation === filterDesignation);
   });
 
-  const deptNames = Array.from(new Set(departments.map(d => d.name)));
+  const deptNames = departments.map(d => d.name);
   const designations = Array.from(new Set(faculty.map(f => f.designation)));
 
   const [isModalOpen, setIsModalOpen] = useState(false);

@@ -9,6 +9,8 @@ export default function LabsScreen() {
   const [labs, setLabs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [selectedDept, setSelectedDept] = useState('All');
+  const [selectedYear, setSelectedYear] = useState('All');
 
   useEffect(() => {
     fetchLabs();
@@ -25,10 +27,13 @@ export default function LabsScreen() {
     }
   };
 
-  const filteredLabs = labs.filter(l => 
-    l.title.toLowerCase().includes(search.toLowerCase()) ||
-    l.department.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredLabs = labs.filter(l => {
+    const searchMatch = l.title.toLowerCase().includes(search.toLowerCase()) ||
+                        l.department.toLowerCase().includes(search.toLowerCase());
+    const deptMatch = selectedDept === 'All' || l.department === selectedDept;
+    const yearMatch = selectedYear === 'All' || String(l.year) === selectedYear;
+    return searchMatch && deptMatch && yearMatch;
+  });
 
   if (loading) {
     return (
@@ -53,6 +58,32 @@ export default function LabsScreen() {
             onChangeText={setSearch}
           />
         </View>
+
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterRow}>
+            {['All', 'Pharmaceutics', 'Pharmacology', 'Pharmaceutical Chemistry', 'Pharmacognosy'].map(dept => (
+                <TouchableOpacity 
+                    key={dept} 
+                    onPress={() => setSelectedDept(dept)}
+                    style={[styles.filterChip, selectedDept === dept && styles.activeFilterChip]}
+                >
+                    <Text style={[styles.filterText, selectedDept === dept && styles.activeFilterText]}>{dept}</Text>
+                </TouchableOpacity>
+            ))}
+        </ScrollView>
+
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={[styles.filterRow, { marginTop: 8 }]}>
+            {['All', '1', '2', '3', '4', '5'].map(year => (
+                <TouchableOpacity 
+                    key={year} 
+                    onPress={() => setSelectedYear(year)}
+                    style={[styles.filterChip, selectedYear === year && styles.activeFilterChip]}
+                >
+                    <Text style={[styles.filterText, selectedYear === year && styles.activeFilterText]}>
+                        {year === 'All' ? 'All Years' : `Year ${year}`}
+                    </Text>
+                </TouchableOpacity>
+            ))}
+        </ScrollView>
       </View>
 
       <FlatList
@@ -106,6 +137,11 @@ const styles = StyleSheet.create({
   subtitle: { fontSize: 14, color: '#64748b', marginTop: 4 },
   searchBar: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f1f5f9', borderRadius: 16, paddingHorizontal: 16, marginTop: 20, height: 48 },
   searchInput: { flex: 1, marginLeft: 12, fontSize: 16, color: '#1e293b' },
+  filterRow: { flexDirection: 'row', marginTop: 16 },
+  filterChip: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 12, backgroundColor: '#f1f5f9', marginRight: 8, borderWidth: 1, borderColor: '#e2e8f0' },
+  activeFilterChip: { backgroundColor: '#eff6ff', borderColor: '#2563eb' },
+  filterText: { fontSize: 12, fontWeight: 'bold', color: '#64748b' },
+  activeFilterText: { color: '#2563eb' },
   list: { padding: 24 },
   card: { backgroundColor: '#fff', borderRadius: 24, padding: 16, flexDirection: 'row', alignItems: 'center', marginBottom: 16, borderWidth: 1, borderColor: '#f1f5f9', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 10, elevation: 2 },
   iconContainer: { width: 56, height: 56, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },

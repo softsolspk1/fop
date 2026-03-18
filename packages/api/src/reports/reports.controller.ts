@@ -8,7 +8,7 @@ const prisma = new PrismaClient();
 // Get academic report/transcript for a student
 router.get('/:userId', authenticateToken, async (req: any, res) => {
   try {
-    const { userId } = req.params;
+    const userId = req.params.userId as string;
     
     // Check if the requester is the student or an admin/teacher
     if (req.user.userId !== userId && !['SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER'].includes(req.user.role)) {
@@ -38,7 +38,7 @@ router.get('/:userId', authenticateToken, async (req: any, res) => {
             }
           }
         },
-        attendance: {
+        attendances: {
           include: {
             class: {
               include: { course: true }
@@ -65,7 +65,7 @@ router.get('/:userId', authenticateToken, async (req: any, res) => {
       const avgQuiz = quizScores.length > 0 ? (quizScores.reduce((a, b) => a + b, 0) / quizScores.length) : null;
 
       // Calculate Attendance for this course
-      const courseAttendance = user.attendance.filter(a => a.class.courseId === course.id);
+      const courseAttendance = user.attendances.filter(a => a.class.courseId === course.id);
       const presentCount = courseAttendance.filter(a => a.status === 'PRESENT' || a.status === 'LATE').length;
       const attendancePercentage = courseAttendance.length > 0 ? (presentCount / courseAttendance.length) * 100 : null;
 

@@ -52,20 +52,23 @@ export default function TimeTableScreen() {
         <ActivityIndicator size="large" color="#2563eb" style={{ marginTop: 40 }} />
       ) : (
         <FlatList
-          data={schedule}
+          data={schedule.filter(item => item.dayOfWeek === activeDay)}
           contentContainerStyle={styles.list}
           renderItem={({ item }) => (
             <View style={styles.card}>
               <View style={styles.timeTag}>
                 <Clock size={14} color="#2563eb" />
-                <Text style={styles.timeText}>09:00 - 10:30</Text>
+                <Text style={styles.timeText}>
+                  {new Date(item.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - 
+                  {new Date(item.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </Text>
               </View>
               <Text style={styles.courseTitle}>{item.title}</Text>
-              <Text style={styles.faculty}>{item.faculty?.user?.name || 'Faculty Member'}</Text>
+              <Text style={styles.faculty}>{item.course?.teacher?.name || 'Faculty Member'}</Text>
               <View style={styles.footer}>
                 <View style={styles.info}>
                   <MapPin size={14} color="#64748b" />
-                  <Text style={styles.infoText}>Room 302</Text>
+                  <Text style={styles.infoText}>{item.location}</Text>
                 </View>
               </View>
             </View>
@@ -74,7 +77,7 @@ export default function TimeTableScreen() {
           ListEmptyComponent={
             <View style={styles.empty}>
               <CalendarIcon size={48} color="#cbd5e1" />
-              <Text style={styles.emptyText}>No classes scheduled for today</Text>
+              <Text style={styles.emptyText}>No classes scheduled for {activeDay}</Text>
             </View>
           }
         />
