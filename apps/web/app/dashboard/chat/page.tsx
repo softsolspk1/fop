@@ -37,20 +37,31 @@ export default function ChatPage() {
 
   const fetchChannels = async () => {
     try {
-      const { data } = await api.get('/chat/groups');
-      const { data: users } = await api.get('/users');
+      setLoading(true);
+      const { data: groupsData } = await api.get('/chat/groups');
       
-      const dmChannels = users.filter((u: any) => u.id !== user?.id).map((u: any) => ({
-        id: u.id,
-        name: u.name,
-        type: 'DM',
-        role: u.role,
-        avatar: u.avatar
-      }));
+      let dmChannels: any[] = [];
+      try {
+        const { data: usersData } = await api.get('/users');
+        if (Array.isArray(usersData)) {
+          dmChannels = usersData
+            .filter((u: any) => u.id !== user?.id)
+            .map((u: any) => ({
+              id: u.id,
+              name: u.name,
+              type: 'DM',
+              role: u.role,
+              avatar: u.avatar
+            }));
+        }
+      } catch (userErr) {
+        console.warn('Failed to fetch users for DMs:', userErr);
+      }
 
-      setChannels([...data.map((g: any) => ({ ...g, type: 'GROUP' })), ...dmChannels]);
+      const groups = Array.isArray(groupsData) ? groupsData.map((g: any) => ({ ...g, type: 'GROUP' })) : [];
+      setChannels([...groups, ...dmChannels]);
     } catch (err) {
-      console.error(err);
+      console.error('Error fetching chat channels:', err);
     } finally {
       setLoading(false);
     }

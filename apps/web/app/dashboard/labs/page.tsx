@@ -181,7 +181,7 @@ export default function VirtualLabsPage() {
                 <Loader2 className="w-12 h-12 text-blue-600 animate-spin mb-4" />
                 <p className="font-black text-slate-400 uppercase tracking-[0.3em] text-xs">Calibrating Lab Equipment...</p>
               </div>
-            ) : (
+            ) : filteredLabs.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {filteredLabs.map((lab, idx) => (
                   <motion.div 
@@ -198,8 +198,12 @@ export default function VirtualLabsPage() {
                                lab.department === 'Pharmaceutical Chemistry' ? <FlaskConical className="w-8 h-8" /> : <Microscope className="w-8 h-8" />}
                           </div>
                           <div className="flex gap-2">
-                            <button onClick={() => handleOpenModal(lab)} className="p-2 text-slate-300 hover:text-blue-600 transition-colors bg-slate-50 rounded-xl"><Edit2 className="w-4 h-4" /></button>
-                            <button onClick={() => handleDelete(lab.id)} className="p-2 text-slate-300 hover:text-red-600 transition-colors bg-slate-50 rounded-xl"><Trash2 className="w-4 h-4" /></button>
+                            {(api as any).user?.role === 'SUPER_ADMIN' && (
+                              <>
+                                <button onClick={() => handleOpenModal(lab)} className="p-2 text-slate-300 hover:text-blue-600 transition-colors bg-slate-50 rounded-xl"><Edit2 className="w-4 h-4" /></button>
+                                <button onClick={() => handleDelete(lab.id)} className="p-2 text-slate-300 hover:text-red-600 transition-colors bg-slate-50 rounded-xl"><Trash2 className="w-4 h-4" /></button>
+                              </>
+                            )}
                             <span className="px-4 py-1.5 bg-slate-900 text-white rounded-full text-[10px] font-black uppercase tracking-widest flex items-center h-fit">
                                 {lab.difficulty}
                             </span>
@@ -226,6 +230,16 @@ export default function VirtualLabsPage() {
                     </div>
                   </motion.div>
                 ))}
+              </div>
+            ) : (
+              <div className="bg-white p-20 rounded-[4rem] text-center border-2 border-dashed border-slate-100 flex flex-col items-center">
+                 <div className="w-32 h-32 bg-slate-50 text-slate-300 rounded-[3rem] flex items-center justify-center mb-10">
+                    <FlaskConical className="w-16 h-16" />
+                 </div>
+                 <h3 className="text-3xl font-black text-slate-800 mb-4 uppercase tracking-tight">No Labs Configured</h3>
+                 <p className="text-slate-500 font-medium italic max-w-sm mx-auto">
+                   There are no virtual simulations available for the selected filters. Please check back later or contact your department admin.
+                 </p>
               </div>
             )}
           </>

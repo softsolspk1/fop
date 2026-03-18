@@ -11,6 +11,16 @@ export default function LiveClassesPage() {
   const { user } = useAuth();
   const [classes, setClasses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [courses, setCourses] = useState<any[]>([]);
+  const [formData, setFormData] = useState({
+    title: '',
+    courseId: '',
+    startTime: '',
+    endTime: '',
+    dayOfWeek: 'Monday',
+    location: 'Lecture Hall 1'
+  });
 
   useEffect(() => {
     fetchClasses();
@@ -18,12 +28,36 @@ export default function LiveClassesPage() {
 
   const fetchClasses = async () => {
     try {
-      const { data } = await api.get('/classes');
-      setClasses(data);
+      const [classesRes, coursesRes] = await Promise.all([
+        api.get('/classes'),
+        api.get('/courses')
+      ]);
+      setClasses(classesRes.data);
+      setCourses(coursesRes.data);
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await api.post('/classes', formData);
+      setIsModalOpen(false);
+      fetchClasses();
+      setFormData({
+        title: '',
+        courseId: '',
+        startTime: '',
+        endTime: '',
+        dayOfWeek: 'Monday',
+        location: 'Lecture Hall 1'
+      });
+    } catch (err) {
+      console.error(err);
+      alert('Failed to create class session');
     }
   };
 
@@ -35,9 +69,19 @@ export default function LiveClassesPage() {
             <h2 className="text-3xl font-black text-slate-800 tracking-tight uppercase">Live Academic Sessions</h2>
             <p className="text-slate-500 font-medium">Join real-time lectures and mark your attendance automatically.</p>
           </div>
-          <div className="flex items-center gap-4 bg-white p-4 rounded-3xl border border-slate-100 shadow-sm">
-             <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse" />
-             <span className="text-xs font-black text-slate-400 uppercase tracking-widest">System Status: Optimal</span>
+          <div className="flex items-center gap-4">
+            {(user?.role === 'SUPER_ADMIN' || user?.role === 'TEACHER') && (
+              <button 
+                onClick={() => setIsModalOpen(true)}
+                className="px-6 py-3 bg-blue-600 text-white rounded-2xl shadow-lg border-b-4 border-blue-800 hover:bg-blue-700 transition-all active:border-b-0 active:translate-y-1 font-black uppercase text-xs tracking-widest"
+              >
+                Create New Session
+              </button>
+            )}
+            <div className="flex items-center gap-4 bg-white p-4 rounded-3xl border border-slate-100 shadow-sm">
+               <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse" />
+               <span className="text-xs font-black text-slate-400 uppercase tracking-widest">System Status: Optimal</span>
+            </div>
           </div>
         </div>
 
@@ -137,6 +181,48 @@ export default function LiveClassesPage() {
           </div>
         )}
       </div>
+      <AnimatePresence>
+        {isModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsModalOpen(false)} className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" />
+            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="relative bg-white w-full max-w-lg rounded-[3.5rem] shadow-2xl overflow-hidden p-10">
+              <h3 className="text-2xl font-black text-slate-800 tracking-tight mb-8 uppercase">Direct Session Broadcast</h3>
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Session Title</label>
+                  <input required value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} placeholder="e.g. Advanced Pharmaceutics Lecture" className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-800 outline-none focus:ring-4 focus:ring-blue-50 transition-all text-slate-900" />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Related Course</label>
+                    <select required value={formData.courseId} onChange={(e) => setFormData({...formData, courseId: e.target.value})} className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-50 transition-all">
+                      <option value="">Select Course</option>
+                      {courses.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                    </select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Location</label>
+                    <input required value={formData.location} onChange={(e) => setFormData({...formData, location: e.target.value})} className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-50 transition-all" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Start Time</label>
+                    <input required type="datetime-local" value={formData.startTime} onChange={(e) => setFormData({...formData, startTime: e.target.value})} className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-50 transition-all" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">End Time</label>
+                    <input required type="datetime-local" value={formData.endTime} onChange={(e) => setFormData({...formData, endTime: e.target.value})} className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-50 transition-all" />
+                  </div>
+                </div>
+                <button type="submit" className="w-full py-5 bg-blue-600 text-white font-black rounded-2xl shadow-xl shadow-blue-500 hover:bg-blue-700 active:scale-95 transition-all uppercase text-xs tracking-[0.2em] border-b-4 border-blue-800">
+                  Launch Session
+                </button>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </DashboardLayout>
   );
 }
