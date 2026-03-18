@@ -147,25 +147,25 @@ export default function VirtualLabsPage() {
                   <select 
                     value={selectedDept}
                     onChange={(e) => setSelectedDept(e.target.value)}
-                    className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 outline-none focus:ring-4 focus:ring-blue-50 transition-all shadow-sm"
+                    className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-50 transition-all shadow-sm"
                   >
-                    <option value="All">All Departments</option>
-                    <option value="Pharmaceutics">Pharmaceutics</option>
-                    <option value="Pharmacology">Pharmacology</option>
-                    <option value="Pharmaceutical Chemistry">Pharmaceutical Chemistry</option>
-                    <option value="Pharmacognosy">Pharmacognosy</option>
+                    <option value="All" className="text-slate-900">All Departments</option>
+                    <option value="Pharmaceutics" className="text-slate-900">Pharmaceutics</option>
+                    <option value="Pharmacology" className="text-slate-900">Pharmacology</option>
+                    <option value="Pharmaceutical Chemistry" className="text-slate-900">Pharmaceutical Chemistry</option>
+                    <option value="Pharmacognosy" className="text-slate-900">Pharmacognosy</option>
                   </select>
                   <select 
                     value={selectedYear}
                     onChange={(e) => setSelectedYear(e.target.value)}
-                    className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 outline-none focus:ring-4 focus:ring-blue-50 transition-all shadow-sm"
+                    className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-50 transition-all shadow-sm"
                   >
-                    <option value="All">All Years</option>
-                    <option value="1">1st Year</option>
-                    <option value="2">2nd Year</option>
-                    <option value="3">3rd Year</option>
-                    <option value="4">4th Year</option>
-                    <option value="5">5th Year</option>
+                    <option value="All" className="text-slate-900">All Years</option>
+                    <option value="1" className="text-slate-900">1st Year</option>
+                    <option value="2" className="text-slate-900">2nd Year</option>
+                    <option value="3" className="text-slate-900">3rd Year</option>
+                    <option value="4" className="text-slate-900">4th Year</option>
+                    <option value="5" className="text-slate-900">5th Year</option>
                   </select>
                   <button 
                     onClick={() => handleOpenModal()}
@@ -273,11 +273,11 @@ export default function VirtualLabsPage() {
                        <select 
                         value={simParams.type || 'Immediate'}
                         onChange={(e) => setSimParams({...simParams, type: e.target.value})}
-                        className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-800 outline-none focus:ring-4 focus:ring-blue-50 transition-all"
+                        className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-50 transition-all"
                        >
-                          <option>Immediate Release</option>
-                          <option>Modified Release</option>
-                          <option>Enteric Coated</option>
+                          <option className="text-slate-900">Immediate Release</option>
+                          <option className="text-slate-900">Modified Release</option>
+                          <option className="text-slate-900">Enteric Coated</option>
                        </select>
                     </div>
                   </div>
@@ -309,11 +309,11 @@ export default function VirtualLabsPage() {
                        <select 
                         value={simParams.ratio || '4:2:1'}
                         onChange={(e) => setSimParams({...simParams, ratio: e.target.value})}
-                        className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-800 outline-none focus:ring-4 focus:ring-blue-50 transition-all"
+                        className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-50 transition-all"
                        >
-                          <option>4:2:1 (Primary)</option>
-                          <option>3:2:1</option>
-                          <option>2:2:1</option>
+                          <option className="text-slate-900">4:2:1 (Primary)</option>
+                          <option className="text-slate-900">3:2:1</option>
+                          <option className="text-slate-900">2:2:1</option>
                        </select>
                     </div>
                   </div>
@@ -433,10 +433,10 @@ export default function VirtualLabsPage() {
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Difficulty</label>
-                    <select value={formData.difficulty} onChange={(e) => setFormData({...formData, difficulty: e.target.value})} className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-800 outline-none focus:ring-4 focus:ring-blue-50 transition-all">
-                      <option>Beginner</option>
-                      <option>Intermediate</option>
-                      <option>Advanced</option>
+                    <select value={formData.difficulty} onChange={(e) => setFormData({...formData, difficulty: e.target.value})} className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-50 transition-all">
+                      <option className="text-slate-900">Beginner</option>
+                      <option className="text-slate-900">Intermediate</option>
+                      <option className="text-slate-900">Advanced</option>
                     </select>
                   </div>
                   <div className="space-y-1.5">

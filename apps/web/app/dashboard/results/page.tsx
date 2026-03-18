@@ -134,10 +134,10 @@ export default function ResultsPage() {
                           <select 
                             value={selectedCourse} 
                             onChange={(e) => setSelectedCourse(e.target.value)}
-                            className="px-4 py-2 bg-white border border-slate-200 rounded-xl font-bold text-slate-600 outline-none focus:ring-4 focus:ring-blue-100 transition-all text-sm"
+                            className="px-4 py-2 bg-white border border-slate-200 rounded-xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 transition-all text-sm"
                           >
-                            <option value="">Select Course...</option>
-                            {courses.map(c => <option key={c.id} value={c.id}>{c.code} - {c.name}</option>)}
+                            <option value="" className="text-slate-900">Select Course...</option>
+                            {courses.map(c => <option key={c.id} value={c.id} className="text-slate-900">{c.code} - {c.name}</option>)}
                           </select>
                         </div>
                       )}
@@ -239,16 +239,16 @@ export default function ResultsPage() {
                  <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="space-y-1.5">
                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Select Course</label>
-                      <select required value={formData.courseId} onChange={(e) => setFormData({...formData, courseId: e.target.value})} className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-800 outline-none focus:ring-4 focus:ring-blue-100 transition-all">
-                        <option value="">Select a course...</option>
-                        {courses.map(c => <option key={c.id} value={c.id}>{c.code} - {c.name}</option>)}
+                      <select required value={formData.courseId} onChange={(e) => setFormData({...formData, courseId: e.target.value})} className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 transition-all">
+                        <option value="" className="text-slate-900">Select a course...</option>
+                        {courses.map(c => <option key={c.id} value={c.id} className="text-slate-900">{c.code} - {c.name}</option>)}
                       </select>
                     </div>
                     <div className="space-y-1.5">
                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Select Student</label>
-                      <select required value={formData.studentId} onChange={(e) => setFormData({...formData, studentId: e.target.value})} className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-800 outline-none focus:ring-4 focus:ring-blue-100 transition-all">
-                        <option value="">Select a student...</option>
-                        {students.map(s => <option key={s.id} value={s.id}>{s.name} ({s.rollNumber})</option>)}
+                      <select required value={formData.studentId} onChange={(e) => setFormData({...formData, studentId: e.target.value})} className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 transition-all">
+                        <option value="" className="text-slate-900">Select a student...</option>
+                        {students.map(s => <option key={s.id} value={s.id} className="text-slate-900">{s.name} ({s.rollNumber})</option>)}
                       </select>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
@@ -264,7 +264,7 @@ export default function ResultsPage() {
                             setFormData({...formData, marks: val, grade: calculateGrade(Number(val))});
                           }} 
                           placeholder="0-100" 
-                          className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-800 outline-none focus:ring-4 focus:ring-blue-100 transition-all" 
+                          className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 transition-all" 
                         />
                       </div>
                       <div className="space-y-1.5">
@@ -275,15 +275,15 @@ export default function ResultsPage() {
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-1.5">
                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Semester</label>
-                        <select value={formData.semester} onChange={(e) => setFormData({...formData, semester: e.target.value})} className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-800 outline-none focus:ring-4 focus:ring-blue-100 transition-all">
-                          {[1,2,3,4,5,6,7,8,9,10].map(n => <option key={n} value={n}>Semester {n}</option>)}
+                        <select value={formData.semester} onChange={(e) => setFormData({...formData, semester: e.target.value})} className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 transition-all">
+                          {[1,2,3,4,5,6,7,8,9,10].map(n => <option key={n} value={n} className="text-slate-900">Semester {n}</option>)}
                         </select>
                       </div>
                       <div className="space-y-1.5">
                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Academic Year</label>
-                        <select value={formData.academicYear} onChange={(e) => setFormData({...formData, academicYear: e.target.value})} className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-800 outline-none focus:ring-4 focus:ring-blue-100 transition-all">
-                          <option>2024-2025</option>
-                          <option>2025-2026</option>
+                        <select value={formData.academicYear} onChange={(e) => setFormData({...formData, academicYear: e.target.value})} className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 transition-all">
+                          <option className="text-slate-900">2024-2025</option>
+                          <option className="text-slate-900">2025-2026</option>
                         </select>
                       </div>
                     </div>

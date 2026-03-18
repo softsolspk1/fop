@@ -137,11 +137,11 @@ export default function UsersPage() {
               />
             </div>
             <div className="flex gap-2">
-              <select className="px-4 py-2.5 text-sm font-bold bg-white border border-slate-200 rounded-xl outline-none focus:ring-4 focus:ring-blue-50 transition-all text-slate-600">
-                <option value="">All Roles</option>
-                <option value="TEACHER">Teachers</option>
-                <option value="STUDENT">Students</option>
-                <option value="SUPER_ADMIN">Admins</option>
+              <select className="px-4 py-2.5 text-sm font-bold bg-white border border-slate-200 rounded-xl outline-none focus:ring-4 focus:ring-blue-50 transition-all text-slate-900">
+                <option value="" className="text-slate-900">All Roles</option>
+                <option value="TEACHER" className="text-slate-900">Teachers</option>
+                <option value="STUDENT" className="text-slate-900">Students</option>
+                <option value="SUPER_ADMIN" className="text-slate-900">Admins</option>
               </select>
             </div>
           </div>
@@ -263,7 +263,7 @@ export default function UsersPage() {
                       value={formData.name}
                       onChange={(e) => setFormData({...formData, name: e.target.value})}
                       placeholder="e.g. Uzair Ahmed"
-                      className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-800 outline-none focus:ring-4 focus:ring-blue-100 transition-all"
+                      className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 transition-all"
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -274,7 +274,7 @@ export default function UsersPage() {
                       value={formData.email}
                       onChange={(e) => setFormData({...formData, email: e.target.value})}
                       placeholder="uzair@uok.edu.pk"
-                      className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-800 outline-none focus:ring-4 focus:ring-blue-100 transition-all"
+                      className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 transition-all"
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -285,7 +285,7 @@ export default function UsersPage() {
                       value={formData.password}
                       onChange={(e) => setFormData({...formData, password: e.target.value})}
                       placeholder="••••••••"
-                      className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-800 outline-none focus:ring-4 focus:ring-blue-100 transition-all"
+                      className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 transition-all"
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -294,12 +294,12 @@ export default function UsersPage() {
                       required
                       value={formData.role}
                       onChange={(e) => setFormData({...formData, role: e.target.value})}
-                      className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-800 outline-none focus:ring-4 focus:ring-blue-100 transition-all"
+                      className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 transition-all"
                     >
-                      <option value="STUDENT">Student</option>
-                      <option value="TEACHER">Teacher</option>
-                      <option value="DEPT_ADMIN">Department Admin</option>
-                      <option value="SUPER_ADMIN">Super Admin</option>
+                      <option value="STUDENT" className="text-slate-900">Student</option>
+                      <option value="TEACHER" className="text-slate-900">Teacher</option>
+                      <option value="DEPT_ADMIN" className="text-slate-900">Department Admin</option>
+                      <option value="SUPER_ADMIN" className="text-slate-900">Super Admin</option>
                     </select>
                   </div>
                   <div className="space-y-1.5">
@@ -307,11 +307,11 @@ export default function UsersPage() {
                     <select 
                       value={formData.departmentId}
                       onChange={(e) => setFormData({...formData, departmentId: e.target.value})}
-                      className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-800 outline-none focus:ring-4 focus:ring-blue-100 transition-all"
+                      className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 transition-all"
                     >
-                      <option value="">Select Department</option>
+                      <option value="" className="text-slate-900">Select Department</option>
                       {departments.map((dept: any) => (
-                        <option key={dept.id} value={dept.id}>{dept.name}</option>
+                        <option key={dept.id} value={dept.id} className="text-slate-900">{dept.name}</option>
                       ))}
                     </select>
                   </div>
@@ -324,7 +324,7 @@ export default function UsersPage() {
                           value={formData.rollNumber}
                           onChange={(e) => setFormData({...formData, rollNumber: e.target.value})}
                           placeholder="e.g. 21B-45"
-                          className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-800 outline-none focus:ring-4 focus:ring-blue-100 transition-all"
+                          className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 transition-all"
                         />
                       </div>
                       <div className="space-y-1.5">
@@ -332,10 +332,10 @@ export default function UsersPage() {
                         <select 
                           value={formData.shift}
                           onChange={(e) => setFormData({...formData, shift: e.target.value})}
-                          className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-800 outline-none focus:ring-4 focus:ring-blue-100 transition-all"
+                          className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 transition-all"
                         >
-                          <option value="MORNING">Morning</option>
-                          <option value="EVENING">Evening</option>
+                          <option value="MORNING" className="text-slate-900">Morning</option>
+                          <option value="EVENING" className="text-slate-900">Evening</option>
                         </select>
                       </div>
                     </>

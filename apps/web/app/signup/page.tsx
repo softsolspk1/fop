@@ -79,7 +79,7 @@ export default function SignupPage() {
                   <input
                     type="text"
                     required
-                    className="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    className="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                     placeholder="Enter your full name"
                     value={formData.name}
                     onChange={(e) => setFormData({...formData, name: e.target.value})}
@@ -95,12 +95,12 @@ export default function SignupPage() {
                     <Clock className="h-5 w-5 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
                   </div>
                   <select
-                    className="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none bg-white transition-all"
+                    className="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none bg-white transition-all"
                     value={formData.shift}
                     onChange={(e) => setFormData({...formData, shift: e.target.value})}
                   >
-                    <option value="MORNING">Morning</option>
-                    <option value="EVENING">Evening</option>
+                    <option value="MORNING" className="text-slate-900">Morning</option>
+                    <option value="EVENING" className="text-slate-900">Evening</option>
                   </select>
                 </div>
               </div>
@@ -113,15 +113,15 @@ export default function SignupPage() {
                     <BookOpen className="h-5 w-5 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
                   </div>
                   <select
-                    className="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none bg-white transition-all"
+                    className="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none bg-white transition-all"
                     value={formData.year}
                     onChange={(e) => setFormData({...formData, year: e.target.value})}
                   >
-                    <option value="1st Year">1st Year</option>
-                    <option value="2nd Year">2nd Year</option>
-                    <option value="3rd Year">3rd Year</option>
-                    <option value="4th Year">4th Year</option>
-                    <option value="5th Year">5th Year</option>
+                    <option value="1st Year" className="text-slate-900">1st Year</option>
+                    <option value="2nd Year" className="text-slate-900">2nd Year</option>
+                    <option value="3rd Year" className="text-slate-900">3rd Year</option>
+                    <option value="4th Year" className="text-slate-900">4th Year</option>
+                    <option value="5th Year" className="text-slate-900">5th Year</option>
                   </select>
                 </div>
               </div>
@@ -136,7 +136,7 @@ export default function SignupPage() {
                   <input
                     type="text"
                     required
-                    className="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                    className="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all placeholder-slate-400"
                     placeholder="e.g. 23-PHA-124"
                     value={formData.rollNumber}
                     onChange={(e) => setFormData({...formData, rollNumber: e.target.value})}
@@ -154,7 +154,7 @@ export default function SignupPage() {
                   <input
                     type="text"
                     required
-                    className="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                    className="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all placeholder-slate-400"
                     placeholder="e.g. UOK-EN-2023-144"
                     value={formData.enrollmentNumber}
                     onChange={(e) => setFormData({...formData, enrollmentNumber: e.target.value})}
@@ -172,7 +172,7 @@ export default function SignupPage() {
                   <input
                     type="tel"
                     required
-                    className="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                    className="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all placeholder-slate-400"
                     placeholder="+92 XXX XXXXXXX"
                     value={formData.phoneNumber}
                     onChange={(e) => setFormData({...formData, phoneNumber: e.target.value})}
@@ -190,7 +190,7 @@ export default function SignupPage() {
                   <input
                     type="email"
                     required
-                    className="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                    className="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all placeholder-slate-400"
                     placeholder="ali@student.uok.edu.pk"
                     value={formData.email}
                     onChange={(e) => setFormData({...formData, email: e.target.value})}
@@ -208,7 +208,7 @@ export default function SignupPage() {
                   <input
                     type="password"
                     required
-                    className="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                    className="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all placeholder-slate-400"
                     placeholder="••••••••"
                     value={formData.password}
                     onChange={(e) => setFormData({...formData, password: e.target.value})}

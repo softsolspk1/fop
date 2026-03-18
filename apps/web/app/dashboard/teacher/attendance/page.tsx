@@ -127,11 +127,11 @@ export default function TeacherAttendance() {
               <select 
                 value={selectedCourse}
                 onChange={(e) => setSelectedCourse(e.target.value)}
-                className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-bold"
               >
-                <option value="">Choose a course...</option>
+                <option value="" className="text-slate-900">Choose a course...</option>
                 {courses.map(course => (
-                  <option key={course.id} value={course.id}>{course.name} ({course.code})</option>
+                  <option key={course.id} value={course.id} className="text-slate-900">{course.name} ({course.code})</option>
                 ))}
               </select>
               {courses.length === 0 && !loading && (
@@ -225,7 +225,7 @@ export default function TeacherAttendance() {
                             placeholder="Optional remarks..."
                             value={attendance[student.id]?.remarks || ''}
                             onChange={(e) => handleRemarksChange(student.id, e.target.value)}
-                            className="w-full bg-transparent text-sm border-b border-transparent hover:border-slate-200 focus:border-blue-500 focus:outline-none py-1 transition-all"
+                            className="w-full bg-transparent text-sm border-b border-transparent hover:border-slate-200 focus:border-blue-500 focus:outline-none py-1 transition-all text-slate-900 font-medium"
                           />
                         </td>
                       </tr>

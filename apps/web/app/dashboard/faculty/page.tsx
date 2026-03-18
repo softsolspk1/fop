@@ -96,11 +96,11 @@ export default function FacultyPage() {
                  <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="space-y-1.5">
                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Full Name</label>
-                      <input required value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} placeholder="e.g. Dr. Uzair" className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-800 outline-none focus:ring-4 focus:ring-blue-100 transition-all" />
+                      <input required value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} placeholder="e.g. Dr. Uzair" className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 transition-all" />
                     </div>
                     <div className="space-y-1.5">
                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Designation</label>
-                      <input required value={formData.designation} onChange={(e) => setFormData({...formData, designation: e.target.value})} placeholder="e.g. Associate Professor" className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-800 outline-none focus:ring-4 focus:ring-blue-100 transition-all" />
+                      <input required value={formData.designation} onChange={(e) => setFormData({...formData, designation: e.target.value})} placeholder="e.g. Associate Professor" className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 transition-all" />
                     </div>
                     <div className="space-y-1.5">
                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Department</label>
@@ -108,11 +108,11 @@ export default function FacultyPage() {
                         required 
                         value={formData.departmentId} 
                         onChange={(e) => setFormData({...formData, departmentId: e.target.value})} 
-                        className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-800 outline-none focus:ring-4 focus:ring-blue-100 transition-all"
+                        className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 transition-all"
                       >
-                        <option value="">Select Department</option>
+                        <option value="" className="text-slate-900">Select Department</option>
                         {departments.map((dept: any) => (
-                          <option key={dept.id} value={dept.id}>{dept.name}</option>
+                          <option key={dept.id} value={dept.id} className="text-slate-900">{dept.name}</option>
                         ))}
                       </select>
                     </div>
@@ -136,18 +136,18 @@ export default function FacultyPage() {
             <select 
               value={filterDept}
               onChange={(e) => setFilterDept(e.target.value)}
-              className="px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 outline-none focus:ring-4 focus:ring-blue-50 transition-all shadow-sm"
+              className="px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-50 transition-all shadow-sm"
             >
-              <option value="">All Departments</option>
-              {departments.map(dept => <option key={dept} value={dept}>{dept}</option>)}
+              <option value="" className="text-slate-900">All Departments</option>
+              {departments.map(dept => <option key={dept.id} value={dept.name} className="text-slate-900">{dept.name}</option>)}
             </select>
             <select 
               value={filterDesignation}
               onChange={(e) => setFilterDesignation(e.target.value)}
-              className="px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 outline-none focus:ring-4 focus:ring-blue-50 transition-all shadow-sm"
+              className="px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-50 transition-all shadow-sm"
             >
-              <option value="">All Designations</option>
-              {designations.map(des => <option key={des} value={des}>{des}</option>)}
+              <option value="" className="text-slate-900">All Designations</option>
+              {designations.map(des => <option key={des as string} value={des as string} className="text-slate-900">{des as string}</option>)}
             </select>
           </div>
         </div>

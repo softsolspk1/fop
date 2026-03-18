@@ -108,7 +108,7 @@ export default function FeesPage() {
                 <input 
                   type="text" 
                   placeholder="Search by student name or roll number..."
-                  className="w-full pl-12 pr-6 py-4 bg-white border border-slate-200 rounded-2xl text-sm font-medium focus:ring-2 focus:ring-blue-500 transition-all"
+                  className="w-full pl-12 pr-6 py-4 bg-white border border-slate-200 rounded-2xl text-sm text-slate-900 font-medium focus:ring-2 focus:ring-blue-500 transition-all font-medium"
                 />
              </div>
              <div className="flex items-center gap-2">

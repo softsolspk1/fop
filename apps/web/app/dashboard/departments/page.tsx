@@ -157,13 +157,13 @@ export default function DepartmentsPage() {
                  <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="space-y-1.5">
                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Department Name</label>
-                      <input required value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} placeholder="e.g. Pharmaceutical Chemistry" className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-800 outline-none focus:ring-4 focus:ring-blue-100 transition-all font-black italic" />
+                      <input required value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} placeholder="e.g. Pharmaceutical Chemistry" className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 transition-all font-black italic" />
                     </div>
                     <div className="space-y-1.5">
                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Appoint HOD</label>
-                      <select value={formData.hodId} onChange={(e) => setFormData({...formData, hodId: e.target.value})} className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-800 outline-none focus:ring-4 focus:ring-blue-100 transition-all">
-                        <option value="">Select a Faculty Member...</option>
-                        {users.map(u => <option key={u.id} value={u.id}>{u.name} ({u.role})</option>)}
+                      <select value={formData.hodId} onChange={(e) => setFormData({...formData, hodId: e.target.value})} className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 transition-all">
+                        <option value="" className="text-slate-900">Select a Faculty Member...</option>
+                        {users.map(u => <option key={u.id} value={u.id} className="text-slate-900">{u.name} ({u.role})</option>)}
                       </select>
                     </div>
                     

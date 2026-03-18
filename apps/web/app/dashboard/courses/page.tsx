@@ -120,7 +120,7 @@ export default function CoursesPage() {
                 <input 
                   type="text" 
                   placeholder="Search courses by name or code..." 
-                  className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-sm outline-none focus:ring-4 focus:ring-blue-50 focus:border-blue-500 transition-all shadow-sm font-medium"
+                  className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-sm text-slate-900 outline-none focus:ring-4 focus:ring-blue-50 focus:border-blue-500 transition-all shadow-sm font-medium"
                 />
               </div>
               <button className="px-6 py-3 bg-white border border-slate-200 rounded-xl flex items-center gap-2 font-bold text-slate-600 hover:bg-slate-50 transition-colors shadow-sm">
@@ -218,7 +218,7 @@ export default function CoursesPage() {
                       value={formData.name}
                       onChange={(e) => setFormData({...formData, name: e.target.value})}
                       placeholder="e.g. Advanced Pharmacology I"
-                      className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-800 outline-none focus:ring-4 focus:ring-blue-100 transition-all"
+                      className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 transition-all"
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -229,7 +229,7 @@ export default function CoursesPage() {
                       value={formData.code}
                       onChange={(e) => setFormData({...formData, code: e.target.value})}
                       placeholder="e.g. PHA-501"
-                      className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-800 outline-none focus:ring-4 focus:ring-blue-100 transition-all"
+                      className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 transition-all"
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -238,11 +238,11 @@ export default function CoursesPage() {
                       required
                       value={formData.departmentId}
                       onChange={(e) => setFormData({...formData, departmentId: e.target.value})}
-                      className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-800 outline-none focus:ring-4 focus:ring-blue-100 transition-all"
+                      className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 transition-all"
                     >
-                      <option value="">Select Department</option>
+                      <option value="" className="text-slate-900">Select Department</option>
                       {departments.map((dept: any) => (
-                        <option key={dept.id} value={dept.id}>{dept.name}</option>
+                        <option key={dept.id} value={dept.id} className="text-slate-900">{dept.name}</option>
                       ))}
                     </select>
                   </div>
@@ -252,7 +252,7 @@ export default function CoursesPage() {
                       required
                       value={formData.teacherId}
                       onChange={(e) => setFormData({...formData, teacherId: e.target.value})}
-                      className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-800 outline-none focus:ring-4 focus:ring-blue-100 transition-all"
+                      className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 transition-all"
                     >
                       <option value="">Select Teacher</option>
                       {teachers.map((teacher: any) => (
