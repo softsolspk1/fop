@@ -25,7 +25,7 @@ router.get('/:id', authenticateToken, async (req: AuthRequest, res: Response) =>
   try {
     const { id } = req.params;
     const lab = await prisma.lab.findUnique({
-      where: { id },
+      where: { id: String(id) },
       include: {
         experiments: {
           where: { studentId: req.user?.userId },
@@ -48,7 +48,7 @@ router.post('/:id/experiment', authenticateToken, async (req: AuthRequest, res: 
     const { inputs } = req.body; // e.g., { tabletType: 'Paracetamol', rpm: 50, temp: 37 }
     
     // Logic for Simulation based on Lab Type
-    const lab = await prisma.lab.findUnique({ where: { id } });
+    const lab = await prisma.lab.findUnique({ where: { id: String(id) } });
     if (!lab) return res.status(404).json({ message: 'Lab not found' });
 
     let resultData = {};
@@ -76,7 +76,7 @@ router.post('/:id/experiment', authenticateToken, async (req: AuthRequest, res: 
 
     const experiment = await prisma.experiment.create({
       data: {
-        labId: id,
+        labId: String(id),
         studentId: req.user!.userId,
         status: 'COMPLETED',
         inputs,
@@ -98,7 +98,7 @@ router.post('/:id/assessment/:assessmentId', authenticateToken, async (req: Auth
     
     const result = await prisma.assessmentResult.create({
       data: {
-        assessmentId,
+        assessmentId: String(assessmentId),
         studentId: req.user!.userId,
         score,
         answers

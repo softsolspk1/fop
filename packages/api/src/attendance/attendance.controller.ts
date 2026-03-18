@@ -7,7 +7,7 @@ const router = Router();
 // Mark attendance for a class (Teacher/Admin)
 router.post('/mark', authenticateToken, authorizeRoles('TEACHER', 'DEPT_ADMIN', 'SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
   try {
-    const { classId, records } = req.body; // records: { userId: string, status: 'PRESENT' | 'ABSENT' }[]
+    const { classId, records } = req.body; // records: { userId: string, status: 'PRESENT' | 'ABSENT' | 'LATE', remarks: string }[]
 
     const attendanceRecords = await Promise.all(
       records.map((record: any) =>
@@ -51,7 +51,9 @@ router.get('/student/:courseId', authenticateToken, authorizeRoles('STUDENT'), a
     const attendance = await prisma.attendance.findMany({
       where: {
         userId,
-        class: { courseId },
+        class: {
+          courseId: String(courseId)
+        },
       },
       include: { class: true },
     });
