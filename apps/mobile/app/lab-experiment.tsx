@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, ActivityIndicator, Alert } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { Play, RotateCcw, Save, CheckCircle2 } from 'lucide-react-native';
+import { Play, RotateCcw, Save, CheckCircle2, FileText } from 'lucide-react-native';
 import LabChart from '../components/LabChart';
 import api from '../lib/api';
 
