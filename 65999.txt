@@ -1,0 +1,33 @@
+
+Email: kashiffareed@softsols.pk
+Username: softsols12345
+Password: ???Aakay@12345
+
+---------------------------------------------
+
+No updation on Vercel deployment
+
+https://fop-backend.vercel.app/ 
+https://fopwebsite.vercel.app/
+
+Both Vercel not trigerred to update
+
+
+fop website https://vercel.com/softsolspk1s-projects/fop_website
+fop backend https://vercel.com/softsolspk1s-projects/fop-backend
+
+===========
+
+I have manually triggered production deployments for both the backend and the website. Both are now live and fully updated with the latest code (including the Metro build fix and Delete functionality).
+
+Why automatic updates weren't triggering: Your Vercel projects appear to be linked to separate, older repositories (like fop-web) instead of the current monorepo (fop).
+
+To fix automatic updates, please follow these steps for BOTH projects in the Vercel Dashboard:
+
+Go to Settings > Git.
+Disconnect the current repository.
+Connect the new monorepo: https://github.com/softsolspk1/fop.
+Set the Root Directory pointing to your sub-project:
+For fop-backend: Set Root Directory to packages/api.
+For fopwebsite: Set Root Directory to apps/web.
+
