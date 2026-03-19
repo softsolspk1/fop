@@ -54,13 +54,22 @@ potentialMetroPaths.forEach(p => {
       if (pkg.name === 'metro') {
         const bundleJsPath = path.join(path.dirname(p), 'src/shared/output/bundle.js');
         if (fs.existsSync(bundleJsPath)) {
-          let content = fs.readFileSync(bundleJsPath, 'utf8');
-          if (!content.includes('module.exports.default = module.exports')) {
-            console.log(`[Patch] Injecting .default export into ${bundleJsPath}`);
-            content += '\nmodule.exports.default = module.exports;';
-            fs.writeFileSync(bundleJsPath, content);
-            console.log(`[Patch] Successfully patched ${bundleJsPath}`);
-          }
+          console.log(`[Patch] Injecting safety logger and .default export into ${bundleJsPath}`);
+          const newContent = `"use strict";
+const originalBundle = require("./bundle.flow");
+module.exports = {
+  ...originalBundle,
+  save: async (bundle, options, log) => {
+    const safeLog = (...args) => {
+      try { if (typeof log === 'function') log(...args); } catch (e) {}
+    };
+    return originalBundle.save(bundle, options, safeLog);
+  }
+};
+module.exports.default = module.exports;
+`;
+          fs.writeFileSync(bundleJsPath, newContent);
+          console.log(`[Patch] Successfully patched ${bundleJsPath}`);
         }
       }
       
