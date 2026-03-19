@@ -48,7 +48,23 @@ potentialMetroPaths.forEach(p => {
       if (modified) {
         fs.writeFileSync(p, JSON.stringify(pkg, null, 2));
         console.log(`[Patch] Successfully updated ${p}`);
-      } else {
+      }
+
+      // Physical patch for bundle.js interop issue
+      if (pkg.name === 'metro') {
+        const bundleJsPath = path.join(path.dirname(p), 'src/shared/output/bundle.js');
+        if (fs.existsSync(bundleJsPath)) {
+          let content = fs.readFileSync(bundleJsPath, 'utf8');
+          if (!content.includes('module.exports.default = module.exports')) {
+            console.log(`[Patch] Injecting .default export into ${bundleJsPath}`);
+            content += '\nmodule.exports.default = module.exports;';
+            fs.writeFileSync(bundleJsPath, content);
+            console.log(`[Patch] Successfully patched ${bundleJsPath}`);
+          }
+        }
+      }
+      
+      if (!modified) { // This else block should only run if no package.json modification happened
         console.log(`[Patch] No changes needed for ${p}`);
       }
     } catch (err) {
