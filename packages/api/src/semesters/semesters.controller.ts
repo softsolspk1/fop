@@ -31,4 +31,17 @@ router.post('/', authenticateToken, authorizeRoles('SUPER_ADMIN'), async (req: A
   }
 });
 
+// Delete semester (Super Admin only)
+router.delete('/:id', authenticateToken, authorizeRoles('SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    await prisma.semester.delete({
+      where: { id: String(id) }
+    });
+    res.status(204).send();
+  } catch (error) {
+    res.status(500).json({ message: 'Error deleting semester', error });
+  }
+});
+
 export default router;

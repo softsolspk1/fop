@@ -72,4 +72,17 @@ router.get('/course/:courseId', authenticateToken, authorizeRoles('SUPER_ADMIN',
   }
 });
 
+// Delete result (Super Admin only)
+router.delete('/:id', authenticateToken, authorizeRoles('SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    await prisma.result.delete({
+      where: { id: String(id) }
+    });
+    res.status(204).send();
+  } catch (error) {
+    res.status(500).json({ message: 'Error deleting result', error });
+  }
+});
+
 export default router;

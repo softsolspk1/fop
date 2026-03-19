@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import DashboardLayout from '../../../components/dashboard/DashboardLayout';
-import { Building2, User, BookOpen, Plus, Edit2, Shield, X, Loader2, CheckCircle2, MoreVertical, Search, Users } from 'lucide-react';
+import { Building2, User, BookOpen, Plus, Edit2, Shield, X, Loader2, CheckCircle2, MoreVertical, Search, Users, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../../lib/api';
 
@@ -66,6 +66,16 @@ export default function DepartmentsPage() {
     }
   };
 
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this department?')) return;
+    try {
+      await api.delete(`/departments/${id}`);
+      fetchData();
+    } catch (err) {
+      alert('Delete failed');
+    }
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-8">
@@ -102,9 +112,14 @@ export default function DepartmentsPage() {
                    <div className="p-4 bg-blue-50 text-blue-600 rounded-[1.5rem] group-hover:bg-blue-600 group-hover:text-white transition-all">
                       <Building2 className="w-6 h-6" />
                    </div>
-                   <button onClick={() => handleOpenModal(dept)} className="p-2 text-slate-300 hover:text-blue-600 transition-colors">
-                      <Edit2 className="w-5 h-5" />
-                   </button>
+                    <div className="flex gap-2">
+                       <button onClick={() => handleOpenModal(dept)} className="p-2 text-slate-300 hover:text-blue-600 transition-colors">
+                          <Edit2 className="w-5 h-5" />
+                       </button>
+                       <button onClick={() => handleDelete(dept.id)} className="p-2 text-slate-300 hover:text-red-600 transition-colors">
+                          <Trash2 className="w-5 h-5" />
+                       </button>
+                    </div>
                 </div>
                 
                 <div className="mb-8 flex-1">

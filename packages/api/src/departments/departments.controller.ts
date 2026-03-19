@@ -79,4 +79,17 @@ router.put('/:id', authenticateToken, authorizeRoles('SUPER_ADMIN'), async (req:
   }
 });
 
+// Delete department (Super Admin only)
+router.delete('/:id', authenticateToken, authorizeRoles('SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    await prisma.department.delete({
+      where: { id: String(id) }
+    });
+    res.status(204).send();
+  } catch (error) {
+    res.status(500).json({ message: 'Error deleting department', error });
+  }
+});
+
 export default router;

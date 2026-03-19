@@ -2,7 +2,7 @@
 
 import React from 'react';
 import DashboardLayout from '../../../components/dashboard/DashboardLayout';
-import { BookOpen, Video, FileText, Users, Clock, Plus, ArrowRight, Play, CheckCircle } from 'lucide-react';
+import { BookOpen, Video, FileText, Users, Clock, Plus, ArrowRight, Play, CheckCircle, Beaker } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useAuth } from '../../../context/AuthContext';
@@ -117,7 +117,11 @@ export default function TeacherDashboard() {
             <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm">
               <h3 className="text-xl font-bold text-slate-800 mb-8">Quick Resources</h3>
               <div className="grid grid-cols-1 gap-4">
-                <button className="flex items-center gap-4 p-5 bg-blue-50 text-blue-700 rounded-xl hover:bg-blue-600 hover:text-white transition-all group">
+                <Link href="/dashboard/labs/submissions" className="flex items-center gap-4 p-5 bg-blue-50 text-blue-700 rounded-xl hover:bg-blue-600 hover:text-white transition-all group w-full">
+                  <Beaker className="w-6 h-6" />
+                  <span className="font-bold">Review Lab Reports</span>
+                </Link>
+                <button className="flex items-center gap-4 p-5 bg-slate-50 text-slate-700 rounded-xl hover:bg-slate-600 hover:text-white transition-all group w-full">
                   <Plus className="w-6 h-6" />
                   <span className="font-bold">Upload Lecture Note</span>
                 </button>

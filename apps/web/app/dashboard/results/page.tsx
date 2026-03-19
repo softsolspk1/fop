@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import DashboardLayout from '../../../components/dashboard/DashboardLayout';
-import { Plus, Search, FileText, User, BookOpen, Filter, Download, MoreVertical, Loader2, X, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Plus, Search, FileText, User, BookOpen, Filter, Download, MoreVertical, Loader2, X, CheckCircle2, AlertCircle, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../../lib/api';
 import { useAuth } from '../../../context/AuthContext';
@@ -82,6 +82,16 @@ export default function ResultsPage() {
       }
     } catch (err) {
       alert('Failed to post result');
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this result?')) return;
+    try {
+      await api.delete(`/results/${id}`);
+      if (selectedCourse) fetchCourseResults(selectedCourse);
+    } catch (err) {
+      alert('Delete failed');
     }
   };
 
@@ -206,12 +216,19 @@ export default function ResultsPage() {
                                   {res.grade}
                                </span>
                             </td>
-                            <td className="px-10 py-6 text-right">
-                               <div className="flex items-center justify-end gap-2 text-green-600">
-                                  <CheckCircle2 className="w-4 h-4" />
-                                  <span className="text-[10px] font-black uppercase tracking-[0.2em]">Verified</span>
-                               </div>
-                            </td>
+                             <td className="px-10 py-6 text-right">
+                                <div className="flex items-center justify-end gap-3">
+                                   <div className="flex items-center gap-2 text-green-600 bg-green-50 px-3 py-1 rounded-full border border-green-100">
+                                      <CheckCircle2 className="w-3 h-3" />
+                                      <span className="text-[8px] font-black uppercase tracking-widest">Verified</span>
+                                   </div>
+                                   {user?.role !== 'STUDENT' && (
+                                     <button onClick={() => handleDelete(res.id)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all opacity-0 group-hover:opacity-100">
+                                        <Trash2 className="w-4 h-4" />
+                                     </button>
+                                   )}
+                                </div>
+                             </td>
                           </motion.tr>
                         ))
                       )}

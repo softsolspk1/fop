@@ -27,7 +27,7 @@ router.get('/my-results', authenticateToken, authorizeRoles('STUDENT'), async (r
     });
     res.json(results);
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching results', error });
+    res.status(500).json({ message: 'Error fetching course results', error });
   }
 });
 
@@ -64,6 +64,32 @@ router.post('/results', authenticateToken, authorizeRoles('SUPER_ADMIN', 'DEPT_A
     res.status(201).json(result);
   } catch (error) {
     res.status(500).json({ message: 'Error posting result', error });
+  }
+});
+
+// Delete result (Super Admin only)
+router.delete('/results/:id', authenticateToken, authorizeRoles('SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    await prisma.examResult.delete({
+      where: { id: String(id) }
+    });
+    res.status(204).send();
+  } catch (error) {
+    res.status(500).json({ message: 'Error deleting result', error });
+  }
+});
+
+// Delete exam (Super Admin only)
+router.delete('/:id', authenticateToken, authorizeRoles('SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    await prisma.exam.delete({
+      where: { id: String(id) }
+    });
+    res.status(204).send();
+  } catch (error) {
+    res.status(500).json({ message: 'Error deleting exam', error });
   }
 });
 

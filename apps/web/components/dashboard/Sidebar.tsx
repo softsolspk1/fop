@@ -40,6 +40,7 @@ const navItems = [
   { icon: Sparkles, label: 'AI Pharma-Tutor', href: '/dashboard/tutor', roles: ['SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER', 'STUDENT'] },
   { icon: Video, label: 'Live Classes', href: '/dashboard/classes', roles: ['SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER', 'STUDENT'] },
   { icon: Beaker, label: 'Virtual Lab', href: '/dashboard/labs', roles: ['SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER', 'STUDENT'] },
+  { icon: ClipboardList, label: 'Lab Submissions', href: '/dashboard/labs/submissions', roles: ['SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER'] },
   { icon: BarChart, label: 'Academic Reports', href: '/dashboard/reports', roles: ['SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER', 'STUDENT'] },
   { icon: CreditCard, label: 'Fee Management', href: '/dashboard/fees', roles: ['SUPER_ADMIN', 'DEPT_ADMIN', 'STUDENT'] },
   { icon: ClipboardList, label: 'Examination', href: '/dashboard/exams', roles: ['SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER', 'STUDENT'] },

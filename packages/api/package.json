@@ -8,6 +8,7 @@
     "postinstall": "prisma generate --schema=./prisma/schema.prisma",
     "vercel-build": "prisma generate --schema=./prisma/schema.prisma && tsc",
     "seed": "ts-node src/seed.ts",
+    "seed:labs": "ts-node src/seed-labs.ts",
     "start": "node dist/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

@@ -65,6 +65,16 @@ export default function FacultyPage() {
     }
   };
 
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this faculty member?')) return;
+    try {
+      await api.delete(`/faculty/${id}`);
+      fetchData();
+    } catch (err) {
+      alert('Delete failed');
+    }
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-8">
@@ -217,7 +227,7 @@ export default function FacultyPage() {
                     <td className="px-8 py-5 text-right">
                       <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-all duration-300">
                         <button className="p-2.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"><Edit2 className="w-4 h-4" /></button>
-                        <button className="p-2.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"><Trash2 className="w-4 h-4" /></button>
+                        <button onClick={() => handleDelete(f.id)} className="p-2.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"><Trash2 className="w-4 h-4" /></button>
                         <button className="p-2.5 text-slate-400 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition-all"><MoreVertical className="w-4 h-4" /></button>
                       </div>
                     </td>

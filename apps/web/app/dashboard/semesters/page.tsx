@@ -47,6 +47,16 @@ export default function SemesterManagement() {
     }
   };
 
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this semester?')) return;
+    try {
+      await api.delete(`/semesters/${id}`);
+      fetchSemesters();
+    } catch (err) {
+      alert('Delete failed');
+    }
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-8">
@@ -109,7 +119,7 @@ export default function SemesterManagement() {
                             </span>
                           </td>
                           <td className="px-6 py-4 text-right">
-                             <button className="p-2 text-slate-400 hover:text-red-600 transition-colors"><Trash2 className="w-4 h-4" /></button>
+                             <button onClick={() => handleDelete(sem.id)} className="p-2 text-slate-400 hover:text-red-600 transition-colors"><Trash2 className="w-4 h-4" /></button>
                           </td>
                         </tr>
                       ))}

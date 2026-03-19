@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
-import { CreditCard, DollarSign, Calendar, Clock, CheckCircle2, AlertCircle, Plus, Search, Filter, Loader2, User } from 'lucide-react';
+import { CreditCard, DollarSign, Calendar, Clock, CheckCircle2, AlertCircle, Plus, Search, Filter, Loader2, User, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
@@ -36,6 +36,16 @@ export default function FeesPage() {
       setFees(fees.map(f => f.id === id ? { ...f, status } : f));
     } catch (err) {
       console.error('Error updating fee status:', err);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this fee record?')) return;
+    try {
+      await api.delete(`/fees/${id}`);
+      setFees(fees.filter(f => f.id !== id));
+    } catch (err) {
+      alert('Delete failed');
     }
   };
 
@@ -178,27 +188,33 @@ export default function FeesPage() {
                        </div>
                     </div>
 
-                    <div className="flex items-center gap-3">
-                       {isAdmin ? (
-                         <>
-                           <button 
-                             onClick={() => updateStatus(fee.id, 'PAID')}
-                             className="px-6 py-3 bg-emerald-600 text-white rounded-xl text-sm font-bold hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-100"
-                           >
-                              Mark Paid
-                           </button>
-                           <button className="p-3 bg-slate-50 text-slate-400 rounded-xl hover:text-slate-600 transition-all">
-                              <AlertCircle className="w-5 h-5" />
-                           </button>
-                         </>
-                       ) : (
-                         fee.status !== 'PAID' && (
-                           <button className="px-8 py-4 bg-blue-600 text-white rounded-2xl text-sm font-black uppercase tracking-widest hover:bg-blue-700 transition-all shadow-xl shadow-blue-200">
-                             Pay Now
-                           </button>
-                         )
-                       )}
-                    </div>
+                     <div className="flex items-center gap-3">
+                        {isAdmin ? (
+                          <>
+                            <button 
+                              onClick={() => updateStatus(fee.id, 'PAID')}
+                              className="px-6 py-3 bg-emerald-600 text-white rounded-xl text-sm font-bold hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-100"
+                            >
+                               Mark Paid
+                            </button>
+                            <button 
+                              onClick={() => handleDelete(fee.id)}
+                              className="p-3 bg-red-50 text-red-600 rounded-xl hover:bg-red-600 hover:text-white transition-all"
+                            >
+                               <Trash2 className="w-5 h-5" />
+                            </button>
+                            <button className="p-3 bg-slate-50 text-slate-400 rounded-xl hover:text-slate-600 transition-all">
+                               <AlertCircle className="w-5 h-5" />
+                            </button>
+                          </>
+                        ) : (
+                          fee.status !== 'PAID' && (
+                            <button className="px-8 py-4 bg-blue-600 text-white rounded-2xl text-sm font-black uppercase tracking-widest hover:bg-blue-700 transition-all shadow-xl shadow-blue-200">
+                              Pay Now
+                            </button>
+                          )
+                        )}
+                     </div>
                   </div>
                 </motion.div>
               ))}

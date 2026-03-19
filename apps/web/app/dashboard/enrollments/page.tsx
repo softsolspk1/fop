@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
-import { UserPlus, Search, Check, X, Loader2, Filter, Mail, Phone, Building2, User } from 'lucide-react';
+import { UserPlus, Search, Check, X, Loader2, Filter, Mail, Phone, Building2, User, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '@/lib/api';
 
@@ -38,6 +38,16 @@ export default function EnrollmentManagement() {
       console.error(`Error ${action}ing enrollment:`, err);
     } finally {
       setProcessing(null);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this enrollment record?')) return;
+    try {
+      await api.delete(`/enrollments/${id}`);
+      setEnrollments(enrollments.filter(e => e.id !== id));
+    } catch (err) {
+      alert('Delete failed');
     }
   };
 
@@ -93,12 +103,12 @@ export default function EnrollmentManagement() {
             <AnimatePresence>
               {filteredEnrollments.map((enrollment, idx) => (
                 <motion.div 
-                  key={enrollment.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  transition={{ delay: idx * 0.05 }}
-                  className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-slate-200/50 transition-all group flex flex-col md:flex-row items-center gap-8"
+                   key={enrollment.id}
+                   initial={{ opacity: 0, y: 20 }}
+                   animate={{ opacity: 1, y: 0 }}
+                   exit={{ opacity: 0, scale: 0.95 }}
+                   transition={{ delay: idx * 0.05 }}
+                   className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-slate-200/50 transition-all group flex flex-col md:flex-row items-center gap-8"
                 >
                   <div className="w-20 h-20 bg-blue-50 rounded-3xl flex items-center justify-center shrink-0">
                      <User className="w-10 h-10 text-blue-600" />
@@ -131,6 +141,13 @@ export default function EnrollmentManagement() {
                     </div>
 
                     <div className="flex items-center justify-end gap-3">
+                      <button 
+                        onClick={() => handleDelete(enrollment.id)}
+                        className="p-3 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
+                        title="Delete Request"
+                      >
+                         <Trash2 className="w-5 h-5" />
+                      </button>
                       <button 
                         disabled={!!processing}
                         onClick={() => handleAction(enrollment.id, 'reject')}

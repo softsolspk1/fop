@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
-import { ClipboardList, Calendar, MapPin, Award, Search, Plus, Loader2, BookOpen, User, CheckCircle2 } from 'lucide-react';
+import { ClipboardList, Calendar, MapPin, Award, Search, Plus, Loader2, BookOpen, User, CheckCircle2, Trash2, Edit2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
@@ -33,6 +33,26 @@ export default function ExamsPage() {
       console.error('Error fetching exam data:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDeleteExam = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this exam?')) return;
+    try {
+      await api.delete(`/exams/${id}`);
+      fetchData();
+    } catch (err) {
+      alert('Delete failed');
+    }
+  };
+
+  const handleDeleteResult = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this result?')) return;
+    try {
+      await api.delete(`/exams/results/${id}`);
+      fetchData();
+    } catch (err) {
+      alert('Delete failed');
     }
   };
 
@@ -139,9 +159,16 @@ export default function ExamsPage() {
                             </div>
                             <div className="text-[10px] font-bold text-slate-400 uppercase mt-0.5">Start Time</div>
                          </div>
-                         <button className="px-6 py-4 bg-slate-50 text-slate-600 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-50 hover:text-blue-600 transition-all">
-                            Admit Card
-                         </button>
+                         <div className="flex gap-2">
+                           <button className="px-6 py-4 bg-slate-50 text-slate-600 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-50 hover:text-blue-600 transition-all">
+                              Admit Card
+                           </button>
+                           {isAdmin && (
+                             <button onClick={() => handleDeleteExam(exam.id)} className="p-4 bg-red-50 text-red-600 rounded-2xl hover:bg-red-600 hover:text-white transition-all">
+                                <Trash2 className="w-5 h-5" />
+                             </button>
+                           )}
+                         </div>
                       </div>
                     </motion.div>
                   ))
@@ -180,9 +207,16 @@ export default function ExamsPage() {
                         </div>
                       </div>
                       
-                      <div className="text-right">
-                        <div className="text-4xl font-black text-blue-600 tracking-tighter">{result.score}%</div>
-                        <div className="text-xs font-black text-emerald-500 uppercase tracking-widest mt-1">Grade: {result.grade || 'A'}</div>
+                      <div className="flex items-center gap-4">
+                        <div className="text-right">
+                          <div className="text-4xl font-black text-blue-600 tracking-tighter">{result.score}%</div>
+                          <div className="text-xs font-black text-emerald-500 uppercase tracking-widest mt-1">Grade: {result.grade || 'A'}</div>
+                        </div>
+                        {isAdmin && (
+                          <button onClick={() => handleDeleteResult(result.id)} className="p-3 bg-red-50 text-red-600 rounded-xl hover:bg-red-600 hover:text-white transition-all opacity-0 group-hover:opacity-100">
+                             <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
                       </div>
                     </motion.div>
                   ))
