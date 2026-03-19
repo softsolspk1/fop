@@ -21,9 +21,27 @@ potentialMetroPaths.forEach(p => {
       const pkg = JSON.parse(fs.readFileSync(p, 'utf8'));
       let modified = false;
 
-      if (pkg.exports) {
-        console.log(`[Patch] Removing restrictive exports field from ${p}`);
-        delete pkg.exports;
+      if (pkg.name.startsWith('metro')) {
+        console.log(`[Patch] Redefining exports for ${pkg.name} in ${p}`);
+        
+        // This map covers all known paths used by @expo/cli and internal metro packages
+        pkg.exports = {
+          ".": "./src/index.js",
+          "./package.json": "./package.json",
+          "./private/*": "./src/*.js",
+          "./src/*": "./src/*.js",
+          "./src/lib/TerminalReporter": "./src/lib/TerminalReporter.js",
+          "./src/shared/output/bundle": "./src/shared/output/bundle.js",
+          // Broad fallback for any top-level or nested access
+          "./*": "./src/*.js"
+        };
+
+        // For metro-config specifically, they sometimes need different defaults
+        if (pkg.name === 'metro-config') {
+           pkg.exports["./src/defaults/index"] = "./src/defaults/index.js";
+           pkg.exports["./src/defaults/*"] = "./src/defaults/*.js";
+        }
+
         modified = true;
       }
 
