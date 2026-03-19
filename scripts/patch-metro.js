@@ -29,11 +29,11 @@ potentialMetroPaths.forEach(p => {
           ".": "./src/index.js",
           "./package.json": "./package.json",
           "./private/*": "./src/*.js",
+          "./src/*.js": "./src/*.js",
           "./src/*": "./src/*.js",
-          "./src/lib/TerminalReporter": "./src/lib/TerminalReporter.js",
-          "./src/shared/output/bundle": "./src/shared/output/bundle.js",
-          // Broad fallback for any top-level or nested access
-          "./*": "./src/*.js"
+          // Explicitly map nested folders that are often problematic
+          "./src/lib/*": "./src/lib/*.js",
+          "./src/shared/output/*": "./src/shared/output/*.js"
         };
 
         // For metro-config specifically, they sometimes need different defaults
