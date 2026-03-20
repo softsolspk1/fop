@@ -1,8 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import axios from 'axios';
-
-const API_URL = 'https://fop-backend.vercel.app';
+import api from '../lib/api';
 
 interface AuthContextType {
   user: any;
@@ -31,8 +29,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (storedToken && storedUser) {
         setToken(storedToken);
         setUser(JSON.parse(storedUser));
-        // Verify token with backend
-        axios.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
+        
+        // Verify token and refresh user data
+        try {
+          const { data } = await api.get('/auth/me');
+          setUser(data);
+          await AsyncStorage.setItem('user', JSON.stringify(data));
+        } catch (error) {
+          console.error('Session expired or invalid');
+          await logout();
+        }
       }
     } catch (e) {
       console.error('Failed to load auth data');
@@ -42,7 +48,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const login = async (email: string, password: string) => {
-    const response = await axios.post(`${API_URL}/auth/login`, { email, password });
+    const response = await api.post('/auth/login', { email, password });
     const { token, user } = response.data;
 
     await AsyncStorage.setItem('token', token);
@@ -50,7 +56,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     setToken(token);
     setUser(user);
-    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
   };
 
   const logout = async () => {
@@ -58,7 +63,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await AsyncStorage.removeItem('user');
     setToken(null);
     setUser(null);
-    delete axios.defaults.headers.common['Authorization'];
   };
 
   return (

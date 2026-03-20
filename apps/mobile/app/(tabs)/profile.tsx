@@ -1,16 +1,19 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { User, Settings, LogOut, ChevronRight, BookOpen, Shield } from 'lucide-react-native';
+import { useAuth } from '../../context/AuthContext';
 
 export default function ProfileScreen() {
+  const { user, logout } = useAuth();
+
   return (
     <View style={styles.container}>
       <View style={styles.profileHeader}>
         <View style={styles.avatarContainer}>
-          <Text style={styles.avatarText}>AK</Text>
+          <Text style={styles.avatarText}>{user?.name?.substring(0, 2).toUpperCase() || 'U'}</Text>
         </View>
-        <Text style={styles.name}>Ali Khan</Text>
-        <Text style={styles.role}>Student • 2023-PHA-124</Text>
+        <Text style={styles.name}>{user?.name || 'User'}</Text>
+        <Text style={styles.role}>{user?.role?.replace('_', ' ')} • {user?.email}</Text>
       </View>
 
       <View style={styles.menuContainer}>
@@ -40,7 +43,7 @@ export default function ProfileScreen() {
 
         <View style={styles.divider} />
 
-        <TouchableOpacity style={styles.logoutBtn}>
+        <TouchableOpacity style={styles.logoutBtn} onPress={logout}>
           <LogOut size={20} color="#ef4444" />
           <Text style={styles.logoutText}>Logout</Text>
         </TouchableOpacity>
@@ -96,6 +99,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#64748b',
     marginTop: 4,
+    textTransform: 'capitalize',
   },
   menuContainer: {
     padding: 24,

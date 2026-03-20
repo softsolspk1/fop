@@ -73,7 +73,7 @@ export default function LoginScreen() {
 
         <TouchableOpacity 
           style={styles.loginBtn}
-          onPress={() => router.replace('/(tabs)')}
+          onPress={handleLogin}
         >
           <Text style={styles.loginBtnText}>Sign In</Text>
           <ArrowRight size={20} color="#fff" />

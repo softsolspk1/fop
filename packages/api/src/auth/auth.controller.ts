@@ -1,9 +1,10 @@
-import { Router } from 'express';
+import { Router, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import prisma from '../lib/prisma';
 import { z } from 'zod';
 import { validate } from '../middleware/validate';
+import { authenticateToken, AuthRequest } from './auth.middleware';
 
 const router = Router();
 
@@ -108,6 +109,31 @@ router.post('/login', validate(loginSchema), async (req, res, next) => {
         role: user.role,
       },
     });
+  } catch (error) {
+    res.status(500).json({ message: 'Internal server error', error });
+  }
+});
+
+router.get('/me', authenticateToken, async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.user!.userId;
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        departmentId: true,
+        status: true
+      }
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json(user);
   } catch (error) {
     res.status(500).json({ message: 'Internal server error', error });
   }
