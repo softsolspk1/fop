@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { FileText, ChevronRight, Award, Calendar } from 'lucide-react-native';
-import api from '../../lib/api';
-import { useAuth } from '../../context/AuthContext';
+import api from '../lib/api';
+import { useAuth } from '../context/AuthContext';
 
 export default function ResultsScreen() {
   const { user } = useAuth();
