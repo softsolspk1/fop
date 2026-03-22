@@ -179,13 +179,13 @@ export default function ReportsPage() {
         </div>
       </div>
 
-      <style jsx global>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         @media print {
           .no-print { display: none !important; }
           body { background: white !important; }
           .DashboardLayout_main { padding: 0 !important; margin: 0 !important; }
         }
-      `}</style>
+      `}} />
     </DashboardLayout>
   );
 }

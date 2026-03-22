@@ -31,3 +31,8 @@ Set the Root Directory pointing to your sub-project:
 For fop-backend: Set Root Directory to packages/api.
 For fopwebsite: Set Root Directory to apps/web.
 
+==========================
+
+Email: kashif@healthhandspharmacy.com
+Username: softsols012345
+Password: ???Softsols@123
