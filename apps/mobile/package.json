@@ -27,5 +27,10 @@
     "react-native-screens": "~4.4.0",
     "react-native-svg": "^15.15.4"
   },
+  "devDependencies": {
+    "@babel/core": "^7.20.0",
+    "@babel/plugin-transform-flow-strip-types": "^7.24.1",
+    "babel-preset-expo": "~12.0.12"
+  },
   "private": true
 }
