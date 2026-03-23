@@ -78,7 +78,7 @@ router.put('/:id/status', authenticateToken, authorizeRoles('DEPT_ADMIN', 'SUPER
     const { status } = req.body;
 
     const quiz = await prisma.quiz.update({
-      where: { id },
+      where: { id: String(id) },
       data: { status }
     });
 

@@ -56,7 +56,7 @@ router.put('/:id/start', authenticateToken, authorizeRoles('TEACHER', 'SUPER_ADM
   try {
     const { id } = req.params;
     const session = await prisma.class.update({
-      where: { id },
+      where: { id: String(id) },
       data: { actualStartTime: new Date() }
     });
     res.json({ message: 'Session started successfully', session });
@@ -70,7 +70,7 @@ router.put('/:id/stop', authenticateToken, authorizeRoles('TEACHER', 'SUPER_ADMI
   try {
     const { id } = req.params;
     const session = await prisma.class.update({
-      where: { id },
+      where: { id: String(id) },
       data: { actualEndTime: new Date() }
     });
     res.json({ message: 'Session stopped successfully', session });

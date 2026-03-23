@@ -93,7 +93,7 @@ router.put('/materials/:id/status', authenticateToken, authorizeRoles('DEPT_ADMI
     }
 
     const material = await prisma.material.update({
-      where: { id },
+      where: { id: String(id) },
       data: { status }
     });
 
@@ -107,7 +107,7 @@ router.put('/materials/:id/status', authenticateToken, authorizeRoles('DEPT_ADMI
 router.delete('/materials/:id', authenticateToken, authorizeRoles('TEACHER', 'DEPT_ADMIN', 'SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
-    await prisma.material.delete({ where: { id } });
+    await prisma.material.delete({ where: { id: String(id) } });
     res.status(204).send();
   } catch (error) {
     res.status(500).json({ message: 'Error deleting material', error });
