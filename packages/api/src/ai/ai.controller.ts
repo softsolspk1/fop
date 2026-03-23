@@ -33,9 +33,10 @@ router.post('/tutor', authenticateToken, async (req: AuthRequest, res: Response)
     `;
 
     try {
-      if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY === 'sk-...') {
+      const key = process.env.OPENAI_API_KEY;
+      if (!key || key === 'sk-...' || key.length < 20) {
         return res.json({ 
-          response: "I am ready to assist you! However, my 'OpenAI Brain' is currently disconnected. Please ask your administrator to add a valid OPENAI_API_KEY to the server environment variables. Once connected, I can provide full pharmaceutical analysis and calculations." 
+          response: `I am ready to assist you! However, my 'OpenAI Brain' is currently disconnected. [Diagnostic: Key Status: ${!key ? 'MISSING' : 'INVALID_LENGTH (' + key.length + ')'}]. Please ensure OPENAI_API_KEY is set in your Vercel Backend environment variables and redeploy.` 
         });
       }
 
