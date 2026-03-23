@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import DashboardLayout from '../../../../../components/dashboard/DashboardLayout';
 import { 
   Beaker, 
@@ -116,10 +116,10 @@ export default function LabSimulationPage({ params }: { params: { type: string }
   };
 
   const dissolutionChart = {
-    labels: Array.isArray(results) ? results.map(r => `${r.time}m`) : [],
+    labels: Array.isArray(results) ? results.map((r: any) => `${r.time}m`) : [],
     datasets: [{
       label: 'Dissolved %',
-      data: Array.isArray(results) ? results.map(r => r.concentration) : [],
+      data: Array.isArray(results) ? results.map((r: any) => r.concentration) : [],
       borderColor: '#3b82f6',
       backgroundColor: 'rgba(59, 130, 246, 0.1)',
       tension: 0.4,
@@ -191,7 +191,7 @@ export default function LabSimulationPage({ params }: { params: { type: string }
                   <RotateCcw className="w-5 h-5" />
                 </button>
                 <button disabled={isRunning} onClick={handleSimulate} className="px-8 py-4 bg-blue-600 text-white font-black rounded-2xl shadow-xl shadow-blue-200 border-b-4 border-blue-800 hover:bg-blue-700 active:border-b-0 active:translate-y-1 transition-all flex items-center gap-3 uppercase text-xs tracking-widest">
-                  <Play className="w-4 h-4 fill-current" />
+                  <Play className="w-4 h-4 fill-current ml-1" />
                   Launch Sim
                 </button>
              </div>
@@ -209,25 +209,25 @@ export default function LabSimulationPage({ params }: { params: { type: string }
                 <div className="space-y-8">
                    {labType === 'dissolution' && (
                      <>
-                       <ControlSlider label="Temp (°C)" min={25} max={50} value={dissolutionData.temp} icon={<Thermometer className="w-4 h-4" />} onChange={(v) => setDissolutionData({...dissolutionData, temp: v})} />
-                       <ControlSlider label="Speed (RPM)" min={0} max={200} value={dissolutionData.rpm} icon={<Activity className="w-4 h-4" />} onChange={(v) => setDissolutionData({...dissolutionData, rpm: v})} />
-                       <ControlSlider label="Interval (Min)" min={1} max={30} value={dissolutionData.samplingInterval} icon={<Clock className="w-4 h-4" />} onChange={(v) => setDissolutionData({...dissolutionData, samplingInterval: v})} />
+                       <ControlSlider label="Temp (°C)" min={25} max={50} value={dissolutionData.temp} icon={<Thermometer className="w-4 h-4" />} onChange={(v: number) => setDissolutionData({...dissolutionData, temp: v})} />
+                       <ControlSlider label="Speed (RPM)" min={0} max={200} value={dissolutionData.rpm} icon={<Activity className="w-4 h-4" />} onChange={(v: number) => setDissolutionData({...dissolutionData, rpm: v})} />
+                       <ControlSlider label="Interval (Min)" min={1} max={30} value={dissolutionData.samplingInterval} icon={<Clock className="w-4 h-4" />} onChange={(v: number) => setDissolutionData({...dissolutionData, samplingInterval: v})} />
                      </>
                    )}
                    {labType === 'tablet' && (
                      <>
-                       <ControlSlider label="API (mg)" min={100} max={1000} value={tabletData.apiWeight} icon={<Zap className="w-4 h-4" />} onChange={(v) => setTabletData({...tabletData, apiWeight: v})} />
-                       <ControlSlider label="Binder (mg)" min={10} max={100} value={tabletData.binderWeight} icon={<Box className="w-4 h-4" />} onChange={(v) => setTabletData({...tabletData, binderWeight: v})} />
-                       <ControlSlider label="Disintegrant (mg)" min={5} max={50} value={tabletData.disintegrantWeight} icon={<Activity className="w-4 h-4" />} onChange={(v) => setTabletData({...tabletData, disintegrantWeight: v})} />
-                       <ControlSlider label="Press Force (kN)" min={1} max={10} value={tabletData.compressionForce} icon={<Settings className="w-4 h-4" />} onChange={(v) => setTabletData({...tabletData, compressionForce: v})} />
+                       <ControlSlider label="API (mg)" min={100} max={1000} value={tabletData.apiWeight} icon={<Zap className="w-4 h-4" />} onChange={(v: number) => setTabletData({...tabletData, apiWeight: v})} />
+                       <ControlSlider label="Binder (mg)" min={10} max={100} value={tabletData.binderWeight} icon={<Box className="w-4 h-4" />} onChange={(v: number) => setTabletData({...tabletData, binderWeight: v})} />
+                       <ControlSlider label="Disintegrant (mg)" min={5} max={50} value={tabletData.disintegrantWeight} icon={<Activity className="w-4 h-4" />} onChange={(v: number) => setTabletData({...tabletData, disintegrantWeight: v})} />
+                       <ControlSlider label="Press Force (kN)" min={1} max={10} value={tabletData.compressionForce} icon={<Settings className="w-4 h-4" />} onChange={(v: number) => setTabletData({...tabletData, compressionForce: v})} />
                      </>
                    )}
                    {labType === 'emulsion' && (
                      <>
-                       <ControlSlider label="Oil Requirement (HLB)" min={5} max={20} value={emulsionData.oilHLB} icon={<Droplets className="w-4 h-4" />} onChange={(v) => setEmulsionData({...emulsionData, oilHLB: v})} />
-                       <ControlSlider label="Surfactant 1 HLB" min={1} max={20} value={emulsionData.surfactant1HLB} icon={<Activity className="w-4 h-4" />} onChange={(v) => setEmulsionData({...emulsionData, surfactant1HLB: v})} />
-                       <ControlSlider label="Surfactant 1 Ratio" min={0.1} max={0.9} step={0.1} value={emulsionData.surfactant1Ratio} icon={<Settings className="w-4 h-4" />} onChange={(v) => setEmulsionData({...emulsionData, surfactant1Ratio: v})} />
-                       <ControlSlider label="Surfactant 2 HLB" min={1} max={20} value={emulsionData.surfactant2HLB} icon={<Activity className="w-4 h-4" />} onChange={(v) => setEmulsionData({...emulsionData, surfactant2HLB: v})} />
+                       <ControlSlider label="Oil Requirement (HLB)" min={5} max={20} value={emulsionData.oilHLB} icon={<Droplets className="w-4 h-4" />} onChange={(v: number) => setEmulsionData({...emulsionData, oilHLB: v})} />
+                       <ControlSlider label="Surfactant 1 HLB" min={1} max={20} value={emulsionData.surfactant1HLB} icon={<Activity className="w-4 h-4" />} onChange={(v: number) => setEmulsionData({...emulsionData, surfactant1HLB: v})} />
+                       <ControlSlider label="Surfactant 1 Ratio" min={0.1} max={0.9} step={0.1} value={emulsionData.surfactant1Ratio} icon={<Settings className="w-4 h-4" />} onChange={(v: number) => setEmulsionData({...emulsionData, surfactant1Ratio: v})} />
+                       <ControlSlider label="Surfactant 2 HLB" min={1} max={20} value={emulsionData.surfactant2HLB} icon={<Activity className="w-4 h-4" />} onChange={(v: number) => setEmulsionData({...emulsionData, surfactant2HLB: v})} />
                      </>
                    )}
                 </div>
@@ -269,7 +269,7 @@ export default function LabSimulationPage({ params }: { params: { type: string }
                       <div className="text-center animate-pulse">
                          <div className="w-20 h-20 bg-slate-800 rounded-[2rem] flex items-center justify-center mx-auto mb-6 text-slate-600">
                             <Activity className="w-10 h-10" />
-                         </div>
+                          </div>
                          <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">Waiting for Lab Execution...</p>
                       </div>
                    )}

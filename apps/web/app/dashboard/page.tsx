@@ -4,6 +4,7 @@ import React from 'react';
 import DashboardLayout from '../../components/dashboard/DashboardLayout';
 import { Users, Building2, BookOpen, Video, ArrowUpRight, ArrowDownRight, Clock } from 'lucide-react';
 import { motion } from 'framer-motion';
+import api from '../../lib/api';
 
 const stats = [
   { label: 'Total Students', value: '1,284', change: '+12%', icon: Users, color: 'text-blue-600', bg: 'bg-blue-100', trend: 'up' },
