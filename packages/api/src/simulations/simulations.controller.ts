@@ -69,10 +69,10 @@ router.post('/save-observation', authenticateToken, async (req: AuthRequest, res
  */
 router.get('/analytics/:userId', authenticateToken, async (req: AuthRequest, res: Response) => {
     try {
-        const { userId } = req.params;
+        const userId = req.params.userId as string;
         
         const observations = await prisma.labObservation.findMany({
-            where: { userId },
+            where: { userId: userId },
             orderBy: { createdAt: 'desc' }
         });
 
