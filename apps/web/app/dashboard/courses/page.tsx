@@ -7,7 +7,10 @@ import { Plus, Search, BookOpen, User, Clock, MoreVertical, Filter, ArrowRight, 
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../../lib/api';
 
+import { useAuth } from '../../../context/AuthContext';
+
 export default function CoursesPage() {
+  const { user: currentUser } = useAuth();
   const [courses, setCourses] = useState<any[]>([]);
   const [departments, setDepartments] = useState<any[]>([]);
   const [teachers, setTeachers] = useState<any[]>([]);
@@ -22,6 +25,8 @@ export default function CoursesPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterProfessional, setFilterProfessional] = useState('');
   const [filterSemester, setFilterSemester] = useState('');
+  const [filterDepartment, setFilterDepartment] = useState('');
+  const [isSyncing, setIsSyncing] = useState(false);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -83,8 +88,24 @@ export default function CoursesPage() {
     const matchesSearch = course.name.toLowerCase().includes(searchQuery.toLowerCase()) || course.code.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesProf = filterProfessional ? course.professional === filterProfessional : true;
     const matchesSem = filterSemester ? course.semesterName === filterSemester : true;
-    return matchesSearch && matchesProf && matchesSem;
+    const matchesDept = filterDepartment ? course.departmentId === filterDepartment : true;
+    return matchesSearch && matchesProf && matchesSem && matchesDept;
   });
+
+  const handleSemesterVisibility = async (semesterName: string, isActive: boolean) => {
+    if (!confirm(`Are you sure you want to ${isActive ? 'ACTIVATE' : 'DEACTIVATE'} all courses for ${semesterName}?`)) return;
+    try {
+      setIsSyncing(true);
+      await api.put('/courses/visibility/bulk', { semesterName, isActive });
+      await fetchData();
+      alert(`Success: ${semesterName} courses are now ${isActive ? 'active' : 'inactive'}.`);
+    } catch (err) {
+      console.error('Error updating visibility:', err);
+      alert('Failed to update visibility.');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -166,9 +187,52 @@ export default function CoursesPage() {
                 className="px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 outline-none focus:ring-4 focus:ring-blue-50 focus:border-blue-500 shadow-sm"
               >
                 <option value="">All Semesters</option>
-                <option value="1st Semester">1st Semester</option>
-                <option value="2nd Semester">2nd Semester</option>
               </select>
+              <select 
+                value={filterDepartment}
+                onChange={(e) => setFilterDepartment(e.target.value)}
+                className="px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 outline-none focus:ring-4 focus:ring-blue-50 focus:border-blue-500 shadow-sm"
+              >
+                <option value="">All Departments</option>
+                {departments.map((dept: any) => (
+                  <option key={dept.id} value={dept.id}>{dept.name.replace('Department of ', '')}</option>
+                ))}
+              </select>
+
+              {currentUser?.role === 'SUPER_ADMIN' && (
+                <div className="flex gap-2 ml-auto">
+                  <button 
+                    disabled={isSyncing}
+                    onClick={() => handleSemesterVisibility('1st Semester', true)}
+                    className="px-4 py-3 bg-indigo-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-lg border-b-4 border-indigo-800 active:border-b-0 active:translate-y-1 transition-all disabled:opacity-50"
+                  >
+                    Activate 1st Sem
+                  </button>
+                  <button 
+                    disabled={isSyncing}
+                    onClick={() => handleSemesterVisibility('2nd Semester', true)}
+                    className="px-4 py-3 bg-teal-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-lg border-b-4 border-teal-800 active:border-b-0 active:translate-y-1 transition-all disabled:opacity-50"
+                  >
+                    Activate 2nd Sem
+                  </button>
+                  <button 
+                    disabled={isSyncing}
+                    onClick={async () => {
+                      if(!confirm('Deactivate ALL courses? Students will not see anything until you activate a semester.')) return;
+                      setIsSyncing(true);
+                      await Promise.all([
+                        api.put('/courses/visibility/bulk', { semesterName: '1st Semester', isActive: false }),
+                        api.put('/courses/visibility/bulk', { semesterName: '2nd Semester', isActive: false })
+                      ]);
+                      await fetchData();
+                      setIsSyncing(false);
+                    }}
+                    className="px-4 py-3 bg-slate-200 text-slate-600 text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-red-50 hover:text-red-600 transition-all disabled:opacity-50"
+                  >
+                    Disable All
+                  </button>
+                </div>
+              )}
             </div>
 
             {filteredCourses.map((course, idx) => (
@@ -192,8 +256,8 @@ export default function CoursesPage() {
                 <div className="mb-6 flex-1">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-[10px] font-black text-blue-600 uppercase tracking-[0.2em]">{course.code}</span>
-                    <span className="px-3 py-1 bg-green-50 text-green-700 rounded-full text-[10px] font-black uppercase tracking-widest border border-green-100">
-                      Active
+                    <span className={`px-3 py-1 ${course.isActive ? 'bg-green-50 text-green-700 border-green-100' : 'bg-slate-50 text-slate-400 border-slate-100'} rounded-full text-[10px] font-black uppercase tracking-widest border`}>
+                      {course.isActive ? 'Active' : 'Inactive'}
                     </span>
                   </div>
                   <h3 className="text-xl font-black text-slate-800 leading-tight mb-1">{course.name}</h3>

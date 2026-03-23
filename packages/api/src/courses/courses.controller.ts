@@ -7,10 +7,40 @@ import fs from 'fs';
 
 const router = Router();
 
-// Get all courses (Authenticated)
+// Update all courses visibility by semester (Admin only)
+router.put('/visibility/bulk', authenticateToken, authorizeRoles('SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
+  try {
+    const { semesterName, isActive } = req.body;
+    if (!semesterName) return res.status(400).json({ message: 'semesterName is required' });
+
+    await prisma.course.updateMany({
+      where: { semesterName: String(semesterName) },
+      data: { isActive: Boolean(isActive) }
+    });
+
+    res.json({ message: `Courses for ${semesterName} visibility set to ${isActive}` });
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating bulk visibility', error });
+  }
+});
+
+// Get all courses (Authenticated) - Supporting Filters
 router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
+    const { departmentId, semesterName } = req.query;
+    const isStudent = req.user?.role === 'STUDENT';
+
+    const whereClause: any = {};
+    if (departmentId) whereClause.departmentId = String(departmentId);
+    if (semesterName) whereClause.semesterName = String(semesterName);
+    
+    // Students only see active courses
+    if (isStudent) {
+      whereClause.isActive = true;
+    }
+
     const courses = await prisma.course.findMany({
+      where: whereClause,
       include: {
         department: true,
         teacher: {
