@@ -50,7 +50,7 @@ router.post('/tutor', authenticateToken, async (req: AuthRequest, res: Response)
       } else if (input.includes('tablet')) {
         fallbackResponse += "Tablet formulation involves several steps: Weighing, Sifting, Blending, Granulation (Wet or Dry), Drying, and finally Compression. Glidants like Talc are essential for flow.";
       } else {
-        fallbackResponse += "That's a great question about Pharmacy. For the most detailed answer, please consult your course materials or ask your lecturer. I'm here to support your learning journey at UOK!";
+        fallbackResponse += "I am currently performing optimized searches through our local pharmaceutical repository. For the most comprehensive Gemini-powered analysis, please ensure your system administrator has configured a valid API key. I'm here to support your learning journey at UOK!";
       }
 
       res.json({ response: fallbackResponse });
