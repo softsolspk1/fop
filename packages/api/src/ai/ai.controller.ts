@@ -7,8 +7,8 @@ const router = Router();
 const prisma = new PrismaClient();
 
 // Gemini Setup
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "YOUR_FALLBACK_KEY_OR_EMPTY");
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" }); // Fast and reliable
 
 // AI Tutor Chat
 router.post('/tutor', authenticateToken, async (req: AuthRequest, res: Response) => {

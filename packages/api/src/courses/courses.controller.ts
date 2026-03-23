@@ -19,8 +19,13 @@ router.put('/visibility/bulk', authenticateToken, authorizeRoles('SUPER_ADMIN'),
     });
 
     res.json({ message: `Courses for ${semesterName} visibility set to ${isActive}` });
-  } catch (error) {
-    res.status(500).json({ message: 'Error updating bulk visibility', error });
+  } catch (error: any) {
+    console.error('Bulk Visibility Error:', error);
+    res.status(500).json({ 
+      message: 'Error updating bulk visibility', 
+      error: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 });
 
