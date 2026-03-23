@@ -32,28 +32,23 @@ router.post('/tutor', authenticateToken, async (req: AuthRequest, res: Response)
     `;
 
     try {
+      if (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY.includes('Replace')) {
+        return res.json({ 
+          response: "I am ready to assist you! However, my 'Internal Brain' (Gemini API) is currently disconnected. Please ask your administrator to add a valid GEMINI_API_KEY to the server environment variables. Once connected, I can provide full pharmaceutical analysis and calculations." 
+        });
+      }
+
       const result = await model.generateContent([systemContext, prompt]);
       const response = await result.response;
       const text = response.text();
       return res.json({ response: text });
-    } catch (apiError) {
-      console.warn('Gemini API failed, using Local Pharma-Intelligence fallback');
-      
-      // Simple Keyword-based Fallback
-      const input = prompt.toLowerCase();
-      let fallbackResponse = "I am currently in 'Lite Mode' due to high traffic, but I can still help you. ";
-
-      if (input.includes('dissolution')) {
-        fallbackResponse += "Dissolution testing measures the rate of release of a drug from its dosage form. In our lab, we use the Apparatus 1 (Basket) and Apparatus 2 (Paddle) methods. Always ensure the medium is at 37°C ± 0.5°C.";
-      } else if (input.includes('calculation') || input.includes('dosage')) {
-        fallbackResponse += "For dosage calculations, remember the formula: (Dose Wanted / Dose on Hand) × Quantity. Always double-check your units (mg vs g)!";
-      } else if (input.includes('tablet')) {
-        fallbackResponse += "Tablet formulation involves several steps: Weighing, Sifting, Blending, Granulation (Wet or Dry), Drying, and finally Compression. Glidants like Talc are essential for flow.";
-      } else {
-        fallbackResponse += "I am currently performing optimized searches through our local pharmaceutical repository. For the most comprehensive Gemini-powered analysis, please ensure your system administrator has configured a valid API key. I'm here to support your learning journey at UOK!";
-      }
-
-      res.json({ response: fallbackResponse });
+    } catch (apiError: any) {
+      console.error('Gemini API Error:', apiError);
+      return res.status(503).json({ 
+        message: 'AI Service Temporarily Unavailable',
+        error: apiError.message,
+        response: "I'm having trouble reaching my knowledge base. This usually happens if the API key is invalid or the quota is exceeded. Please check the server logs."
+      });
     }
   } catch (error) {
     console.error('AI Tutor Critical Error:', error);

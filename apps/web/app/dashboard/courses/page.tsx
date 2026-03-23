@@ -104,9 +104,10 @@ export default function CoursesPage() {
       await api.put('/courses/visibility/bulk', { semesterName, isActive });
       await fetchData();
       alert(`Success: ${semesterName} courses are now ${isActive ? 'active' : 'inactive'}.`);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error updating visibility:', err);
-      alert('Failed to update visibility.');
+      const errorDetail = err.response?.data?.error || err.response?.data?.message || err.message;
+      alert(`Failed to update visibility: ${errorDetail}`);
     } finally {
       setIsSyncing(false);
     }
