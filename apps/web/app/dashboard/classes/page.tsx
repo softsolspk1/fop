@@ -13,6 +13,10 @@ export default function LiveClassesPage() {
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [courses, setCourses] = useState<any[]>([]);
+  const [departments, setDepartments] = useState<any[]>([]);
+  const [selectedDept, setSelectedDept] = useState('');
+  const [selectedSem, setSelectedSem] = useState('');
+  
   const [formData, setFormData] = useState({
     title: '',
     courseId: '',
@@ -21,7 +25,8 @@ export default function LiveClassesPage() {
     dayOfWeek: 'Monday',
     location: 'Lecture Hall 1',
     classType: 'Physical',
-    isRecurring: false
+    isRecurring: false,
+    recurrentMonths: [] as string[]
   });
 
 
@@ -31,12 +36,14 @@ export default function LiveClassesPage() {
 
   const fetchClasses = async () => {
     try {
-      const [classesRes, coursesRes] = await Promise.all([
+      const [classesRes, coursesRes, deptsRes] = await Promise.all([
         api.get('/classes'),
-        api.get('/courses')
+        api.get('/courses'),
+        api.get('/departments')
       ]);
       setClasses(classesRes.data);
       setCourses(coursesRes.data);
+      setDepartments(deptsRes.data);
     } catch (err) {
       console.error(err);
     } finally {
@@ -58,13 +65,32 @@ export default function LiveClassesPage() {
         dayOfWeek: 'Monday',
         location: 'Lecture Hall 1',
         classType: 'Physical',
-        isRecurring: false
+        isRecurring: false,
+        recurrentMonths: []
       });
-
+      setSelectedDept('');
+      setSelectedSem('');
     } catch (err) {
       console.error(err);
       alert('Failed to create class session');
     }
+  };
+
+  const filteredCourses = courses.filter(course => {
+    const matchDept = selectedDept ? course.departmentId === selectedDept : true;
+    const matchSem = selectedSem ? course.semesterName === selectedSem : true;
+    return matchDept && matchSem;
+  });
+
+  const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+  const toggleMonth = (month: string) => {
+    setFormData(prev => ({
+      ...prev,
+      recurrentMonths: prev.recurrentMonths.includes(month)
+        ? prev.recurrentMonths.filter(m => m !== month)
+        : [...prev.recurrentMonths, month]
+    }));
   };
 
   return (
@@ -247,12 +273,39 @@ export default function LiveClassesPage() {
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Session Title</label>
                   <input required value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} placeholder="e.g. Advanced Pharmaceutics Lecture" className="w-full px-5 py-3.5 bg-white border-2 border-slate-100 rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-400 transition-all placeholder:text-slate-300 shadow-sm" />
                 </div>
+
                 <div className="grid grid-cols-2 gap-5">
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Related Course</label>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Department</label>
+                    <select 
+                      value={selectedDept} 
+                      onChange={(e) => { setSelectedDept(e.target.value); setFormData({...formData, courseId: ''}); }} 
+                      className="w-full px-5 py-3.5 bg-white border-2 border-slate-100 rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-400 transition-all shadow-sm"
+                    >
+                      <option value="">All Departments</option>
+                      {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Semester</label>
+                    <select 
+                      value={selectedSem} 
+                      onChange={(e) => { setSelectedSem(e.target.value); setFormData({...formData, courseId: ''}); }} 
+                      className="w-full px-5 py-3.5 bg-white border-2 border-slate-100 rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-400 transition-all shadow-sm"
+                    >
+                      <option value="">All Semesters</option>
+                      <option value="1st Semester">1st Semester</option>
+                      <option value="2nd Semester">2nd Semester</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-5">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Course</label>
                     <select required value={formData.courseId} onChange={(e) => setFormData({...formData, courseId: e.target.value})} className="w-full px-5 py-3.5 bg-white border-2 border-slate-100 rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-400 transition-all shadow-sm">
                       <option value="">Select Course</option>
-                      {courses.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                      {filteredCourses.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                     </select>
                   </div>
                   <div className="space-y-2">
@@ -263,6 +316,7 @@ export default function LiveClassesPage() {
                     </select>
                   </div>
                 </div>
+
                 <div className="grid grid-cols-2 gap-5">
                   <div className="space-y-2">
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Start Time</label>
@@ -273,9 +327,30 @@ export default function LiveClassesPage() {
                     <input required type="datetime-local" value={formData.endTime} onChange={(e) => setFormData({...formData, endTime: e.target.value})} className="w-full px-5 py-3.5 bg-white border-2 border-slate-100 rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-400 transition-all shadow-sm" />
                   </div>
                 </div>
-                <div className="flex items-center gap-2 p-4 bg-blue-50 rounded-2xl border border-blue-100">
-                  <input type="checkbox" id="isRecurring" checked={formData.isRecurring} onChange={(e) => setFormData({...formData, isRecurring: e.target.checked})} className="w-5 h-5 accent-blue-600" />
-                  <label htmlFor="isRecurring" className="text-sm font-bold text-blue-800 uppercase tracking-widest">Recurring Session (Monthly)</label>
+
+                <div className="space-y-4">
+                   <div className="flex items-center gap-2 p-4 bg-blue-50 rounded-2xl border border-blue-100">
+                    <input type="checkbox" id="isRecurring" checked={formData.isRecurring} onChange={(e) => setFormData({...formData, isRecurring: e.target.checked})} className="w-5 h-5 accent-blue-600" />
+                    <label htmlFor="isRecurring" className="text-sm font-bold text-blue-800 uppercase tracking-widest">Recurring Session (Weekly)</label>
+                  </div>
+
+                  {formData.isRecurring && (
+                    <div className="p-6 bg-slate-50 rounded-2xl border border-slate-200">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 block">Select Months to Recur</label>
+                      <div className="grid grid-cols-3 gap-2">
+                        {months.map(m => (
+                          <button 
+                            key={m} 
+                            type="button" 
+                            onClick={() => toggleMonth(m)}
+                            className={`px-3 py-2 rounded-xl text-[10px] font-bold uppercase transition-all border ${formData.recurrentMonths.includes(m) ? 'bg-blue-600 text-white border-blue-700' : 'bg-white text-slate-400 border-slate-100 hover:border-blue-300'}`}
+                          >
+                            {m.substring(0, 3)}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
                 <button type="submit" className="w-full py-4.5 bg-blue-600 text-white font-black rounded-2xl shadow-xl shadow-blue-200 uppercase text-xs tracking-widest border-b-4 border-blue-800 active:border-b-0 active:translate-y-1 hover:bg-blue-700 transition-all">Launch Session</button>
               </form>
