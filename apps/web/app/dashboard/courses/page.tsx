@@ -266,43 +266,62 @@ export default function CoursesPage() {
 
                 <div className="flex-1 overflow-y-auto p-8 space-y-6">
                   {/* Add Material Form */}
-                  <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100 space-y-4">
-                    <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest">Add New Resource</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <input 
-                        type="text" 
-                        placeholder="Title (e.g. Lecture Notes)"
-                        id="mat-title"
-                        className="px-4 py-3 rounded-xl border border-slate-200 text-sm font-bold outline-none focus:ring-4 focus:ring-blue-100 transition-all"
-                      />
-                      <select id="mat-type" className="px-4 py-3 rounded-xl border border-slate-200 text-sm font-bold outline-none focus:ring-4 focus:ring-blue-100 transition-all">
-                        <option value="PDF">PDF Document</option>
-                        <option value="VIDEO">Uploaded Video</option>
-                        <option value="YOUTUBE">YouTube Link</option>
-                        <option value="IMAGE">Image / Diagram</option>
-                      </select>
-                      <input 
-                        type="text" 
-                        placeholder="URL / File Link"
-                        id="mat-url"
-                        className="md:col-span-2 px-4 py-3 rounded-xl border border-slate-200 text-sm font-bold outline-none focus:ring-4 focus:ring-blue-100 transition-all"
-                      />
-                      <button 
-                        onClick={async () => {
-                          const title = (document.getElementById('mat-title') as HTMLInputElement).value;
-                          const type = (document.getElementById('mat-type') as HTMLSelectElement).value;
-                          const url = (document.getElementById('mat-url') as HTMLInputElement).value;
-                          if (!title || !url) return alert('Please fill all fields');
-                          try {
-                            await api.post('/lms/materials', { title, type, url, courseId: managingMaterials.id });
-                            alert('Material submitted for HOD approval');
-                            setManagingMaterials({...managingMaterials}); // Trigger re-render or fetch
-                          } catch (err) { alert('Error uploading material'); }
-                        }}
-                        className="md:col-span-2 py-3 bg-blue-600 text-white font-black rounded-xl shadow-lg border-b-4 border-blue-800 active:border-b-0 active:translate-y-1 transition-all uppercase text-[10px] tracking-widest"
-                      >
-                        Submit for Approval
-                      </button>
+                  <div className="p-10 bg-slate-50/50 rounded-[2.5rem] border border-slate-100/80 space-y-6 shadow-inner">
+                    <div className="flex items-center gap-3 mb-2">
+                       <div className="p-2 bg-blue-600 rounded-lg text-white">
+                          <Plus className="w-4 h-4" />
+                       </div>
+                       <h4 className="text-sm font-black text-slate-800 uppercase tracking-widest">Add New Resource</h4>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                      <div className="space-y-1.5 px-1">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Resource Title</label>
+                        <input 
+                          type="text" 
+                          placeholder="e.g. Midterm Lecture Notes"
+                          id="mat-title"
+                          className="w-full px-5 py-3.5 bg-white border-2 border-slate-100 rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-400 transition-all placeholder:text-slate-300 shadow-sm"
+                        />
+                      </div>
+                      <div className="space-y-1.5 px-1">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Content Type</label>
+                        <select id="mat-type" className="w-full px-5 py-3.5 bg-white border-2 border-slate-100 rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-400 transition-all shadow-sm">
+                          <option value="PDF">PDF Document</option>
+                          <option value="VIDEO">Uploaded Video</option>
+                          <option value="YOUTUBE">YouTube Link</option>
+                          <option value="IMAGE">Image / Diagram</option>
+                        </select>
+                      </div>
+                      <div className="md:col-span-2 space-y-1.5 px-1">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">URL / Resource Link</label>
+                        <input 
+                          type="text" 
+                          placeholder="https://..."
+                          id="mat-url"
+                          className="w-full px-5 py-3.5 bg-white border-2 border-slate-100 rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-400 transition-all placeholder:text-slate-300 shadow-sm"
+                        />
+                      </div>
+                      <div className="md:col-span-2 pt-2">
+                        <button 
+                          onClick={async () => {
+                            const title = (document.getElementById('mat-title') as HTMLInputElement).value;
+                            const type = (document.getElementById('mat-type') as HTMLSelectElement).value;
+                            const url = (document.getElementById('mat-url') as HTMLInputElement).value;
+                            if (!title || !url) return alert('Please fill all fields');
+                            try {
+                              await api.post('/lms/materials', { title, type, url, courseId: managingMaterials.id });
+                              alert('Material submitted for HOD approval');
+                              (document.getElementById('mat-title') as HTMLInputElement).value = '';
+                              (document.getElementById('mat-url') as HTMLInputElement).value = '';
+                              setManagingMaterials({...managingMaterials}); 
+                            } catch (err) { alert('Error uploading material'); }
+                          }}
+                          className="w-full py-4.5 bg-blue-600 text-white font-black rounded-2xl shadow-xl shadow-blue-200 uppercase text-xs tracking-[0.2em] border-b-4 border-blue-800 active:border-b-0 active:translate-y-1 hover:bg-blue-700 transition-all flex items-center justify-center gap-3"
+                        >
+                          Submit for HOD Approval
+                        </button>
+                      </div>
                     </div>
                   </div>
 
@@ -525,7 +544,7 @@ export default function CoursesPage() {
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
-                  <div className="space-y-1.5">
+                  <div className="space-y-2">
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Course Name</label>
                     <input 
                       required
@@ -533,10 +552,10 @@ export default function CoursesPage() {
                       value={formData.name}
                       onChange={(e) => setFormData({...formData, name: e.target.value})}
                       placeholder="e.g. Advanced Pharmacology I"
-                      className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 transition-all"
+                      className="w-full px-5 py-3.5 bg-white border-2 border-slate-100 rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-400 transition-all placeholder:text-slate-300 shadow-sm"
                     />
                   </div>
-                  <div className="space-y-1.5">
+                  <div className="space-y-2">
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Course Code</label>
                     <input 
                       required
@@ -544,16 +563,16 @@ export default function CoursesPage() {
                       value={formData.code}
                       onChange={(e) => setFormData({...formData, code: e.target.value})}
                       placeholder="e.g. PHA-501"
-                      className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 transition-all"
+                      className="w-full px-5 py-3.5 bg-white border-2 border-slate-100 rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-400 transition-all placeholder:text-slate-300 shadow-sm"
                     />
                   </div>
-                  <div className="space-y-1.5">
+                  <div className="space-y-2">
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Department</label>
                     <select 
                       required
                       value={formData.departmentId}
                       onChange={(e) => setFormData({...formData, departmentId: e.target.value})}
-                      className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 transition-all"
+                      className="w-full px-5 py-3.5 bg-white border-2 border-slate-100 rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-400 transition-all shadow-sm"
                     >
                       <option value="" className="text-slate-900">Select Department</option>
                       {departments.map((dept: any) => (
@@ -561,17 +580,17 @@ export default function CoursesPage() {
                       ))}
                     </select>
                   </div>
-                  <div className="space-y-1.5">
+                  <div className="space-y-2">
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Assigned Instructor</label>
                     <select 
                       required
                       value={formData.teacherId}
                       onChange={(e) => setFormData({...formData, teacherId: e.target.value})}
-                      className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 transition-all"
+                      className="w-full px-5 py-3.5 bg-white border-2 border-slate-100 rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-400 transition-all shadow-sm"
                     >
-                      <option value="">Select Teacher</option>
+                      <option value="" className="text-slate-900">Select Teacher</option>
                       {teachers.map((teacher: any) => (
-                        <option key={teacher.id} value={teacher.id}>{teacher.name}</option>
+                        <option key={teacher.id} value={teacher.id} className="text-slate-900">{teacher.name}</option>
                       ))}
                     </select>
                   </div>
@@ -606,28 +625,28 @@ export default function CoursesPage() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-1.5">
-                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Credit Hours</label>
-                      <input 
-                        type="number" 
-                        step="0.5"
-                        value={formData.creditHours}
-                        onChange={(e) => setFormData({...formData, creditHours: parseFloat(e.target.value) || 0})}
-                        className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 transition-all"
-                      />
+                    <div className="grid grid-cols-2 gap-5">
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Credit Hours</label>
+                        <input 
+                          type="number" 
+                          step="0.5"
+                          value={formData.creditHours}
+                          onChange={(e) => setFormData({...formData, creditHours: parseFloat(e.target.value) || 0})}
+                          className="w-full px-5 py-3.5 bg-white border-2 border-slate-100 rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-400 transition-all shadow-sm"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Category</label>
+                        <input 
+                          type="text" 
+                          value={formData.category}
+                          onChange={(e) => setFormData({...formData, category: e.target.value})}
+                          placeholder="e.g. Core"
+                          className="w-full px-5 py-3.5 bg-white border-2 border-slate-100 rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-400 transition-all placeholder:text-slate-300 shadow-sm"
+                        />
+                      </div>
                     </div>
-                    <div className="space-y-1.5">
-                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Category</label>
-                      <input 
-                        type="text" 
-                        value={formData.category}
-                        onChange={(e) => setFormData({...formData, category: e.target.value})}
-                        placeholder="e.g. Core"
-                        className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 transition-all"
-                      />
-                    </div>
-                  </div>
 
                   <div className="pt-4">
                     <button type="submit" className="w-full py-4 bg-blue-600 text-white font-black rounded-2xl shadow-xl shadow-blue-200 hover:bg-blue-700 active:scale-95 transition-all uppercase text-xs tracking-widest">

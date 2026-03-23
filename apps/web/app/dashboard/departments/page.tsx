@@ -169,23 +169,24 @@ export default function DepartmentsPage() {
                    <button onClick={() => setIsModalOpen(false)} className="p-2 text-slate-400"><X className="w-6 h-6" /></button>
                  </div>
 
-                 <form onSubmit={handleSubmit} className="space-y-6">
-                    <div className="space-y-1.5">
-                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Department Name</label>
-                      <input required value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} placeholder="e.g. Pharmaceutical Chemistry" className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 transition-all font-black italic" />
-                    </div>
-                    <div className="space-y-1.5">
-                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Appoint HOD</label>
-                      <select value={formData.hodId} onChange={(e) => setFormData({...formData, hodId: e.target.value})} className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 transition-all">
-                        <option value="" className="text-slate-900">Select a Faculty Member...</option>
-                        {users.map(u => <option key={u.id} value={u.id} className="text-slate-900">{u.name} ({u.role})</option>)}
-                      </select>
-                    </div>
-                    
-                    <button type="submit" className="w-full py-4 bg-blue-600 text-white font-black rounded-2xl shadow-xl shadow-blue-200 border-b-4 border-blue-800 uppercase text-xs tracking-[0.2em] active:translate-y-1 active:border-b-0 transition-all">
-                      {editingDept ? 'Confirm Reconfiguration' : 'Activate Unit'}
-                    </button>
-                 </form>
+                  <form onSubmit={handleSubmit} className="space-y-6">
+                     <div className="space-y-2">
+                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Department Name</label>
+                       <input required value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} placeholder="e.g. Pharmaceutical Chemistry" className="w-full px-5 py-3.5 bg-white border-2 border-slate-100 rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-400 transition-all placeholder:text-slate-300 shadow-sm" />
+                     </div>
+                     <div className="space-y-2">
+                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Appoint HOD</label>
+                       <select value={formData.hodId} onChange={(e) => setFormData({...formData, hodId: e.target.value})} className="w-full px-5 py-3.5 bg-white border-2 border-slate-100 rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-400 transition-all shadow-sm">
+                         <option value="" className="text-slate-900">Select a Faculty Member...</option>
+                         {users.map(u => <option key={u.id} value={u.id} className="text-slate-900">{u.name} ({u.role})</option>)}
+                       </select>
+                     </div>
+                     
+                     <button type="submit" className="w-full py-4.5 bg-blue-600 text-white font-black rounded-2xl shadow-xl shadow-blue-200 border-b-4 border-blue-800 uppercase text-xs tracking-[0.2em] active:translate-y-1 active:border-b-0 transition-all hover:bg-blue-700">
+                       {editingDept ? 'Confirm Reconfiguration' : 'Activate Unit'}
+                     </button>
+                  </form>
+
               </motion.div>
             </div>
           )}

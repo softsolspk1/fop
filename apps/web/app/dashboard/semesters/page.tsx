@@ -139,55 +139,56 @@ export default function SemesterManagement() {
                   className="bg-white p-8 rounded-2xl border border-blue-100 shadow-xl shadow-blue-900/5"
                 >
                   <h3 className="text-xl font-bold text-slate-800 mb-6">Create Semester</h3>
-                  <form onSubmit={handleCreate} className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-bold text-slate-700 mb-2">Term Name</label>
+                  <form onSubmit={handleCreate} className="space-y-6">
+                    <div className="space-y-2">
+                      <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Term Name</label>
                       <input 
                         required
                         type="text" 
                         placeholder="e.g. Fall 2025"
                         value={newSemester.name}
                         onChange={(e) => setNewSemester({...newSemester, name: e.target.value})}
-                        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                        className="w-full px-5 py-3.5 bg-white border-2 border-slate-100 rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-400 transition-all placeholder:text-slate-300 shadow-sm"
                       />
                     </div>
-                    <div>
-                      <label className="block text-sm font-bold text-slate-700 mb-2">Start Date</label>
+                    <div className="space-y-2">
+                      <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Start Date</label>
                       <input 
                         required
                         type="date" 
                         value={newSemester.startDate}
                         onChange={(e) => setNewSemester({...newSemester, startDate: e.target.value})}
-                        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                        className="w-full px-5 py-3.5 bg-white border-2 border-slate-100 rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-400 transition-all shadow-sm"
                       />
                     </div>
-                    <div>
-                      <label className="block text-sm font-bold text-slate-700 mb-2">End Date</label>
-                      <input 
-                        required
-                        type="date" 
-                        value={newSemester.endDate}
-                        onChange={(e) => setNewSemester({...newSemester, endDate: e.target.value})}
-                        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
-                      />
+                    <div className="space-y-2">
+                       <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">End Date</label>
+                       <input 
+                         required
+                         type="date" 
+                         value={newSemester.endDate}
+                         onChange={(e) => setNewSemester({...newSemester, endDate: e.target.value})}
+                         className="w-full px-5 py-3.5 bg-white border-2 border-slate-100 rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-400 transition-all shadow-sm"
+                       />
                     </div>
-                    <div className="flex gap-3 pt-2">
+                    <div className="flex gap-4 pt-4">
                        <button 
-                        type="button"
-                        onClick={() => setIsCreating(false)}
-                        className="flex-1 py-3 bg-slate-100 text-slate-600 font-bold rounded-xl hover:bg-slate-200 transition-all"
+                         type="button"
+                         onClick={() => setIsCreating(false)}
+                         className="flex-1 py-4 bg-slate-100 text-slate-600 font-black rounded-2xl hover:bg-slate-200 transition-all uppercase text-[10px] tracking-widest"
                        >
-                        Cancel
+                         Cancel
                        </button>
                        <button 
-                        type="submit"
-                        disabled={submitting}
-                        className="flex-1 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all disabled:opacity-50"
+                         type="submit"
+                         disabled={submitting}
+                         className="flex-1 py-4 bg-blue-600 text-white font-black rounded-2xl shadow-xl shadow-blue-200 border-b-4 border-blue-800 active:translate-y-1 active:border-b-0 transition-all uppercase text-[10px] tracking-widest flex items-center justify-center"
                        >
-                        {submitting ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : 'Create'}
+                         {submitting ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : 'Activate Term'}
                        </button>
                     </div>
                   </form>
+
                 </motion.div>
               )}
             </AnimatePresence>
