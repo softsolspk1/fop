@@ -34,9 +34,11 @@ router.post('/tutor', authenticateToken, async (req: AuthRequest, res: Response)
 
     try {
       const key = process.env.OPENAI_API_KEY;
+      const detectedNames = Object.keys(process.env).filter(k => k.includes('OPENAI') || k.includes('AI') || k.includes('KEY'));
+      
       if (!key || key === 'sk-...' || key.length < 20) {
         return res.json({ 
-          response: `I am ready to assist you! However, my 'OpenAI Brain' is currently disconnected. [Diagnostic: Key Status: ${!key ? 'MISSING' : 'INVALID_LENGTH (' + key.length + ')'}]. Please ensure OPENAI_API_KEY is set in your Vercel Backend environment variables and redeploy.` 
+          response: `I am ready to assist you! However, my 'OpenAI Brain' is currently disconnected. [Diagnostic: Key Status: MISSING. Similar Env Names detected: ${detectedNames.length > 0 ? detectedNames.join(', ') : 'NONE'}]. Please ensure exactly 'OPENAI_API_KEY' is set in the Vercel project Settings -> Environment Variables for the BACKEND.` 
         });
       }
 
