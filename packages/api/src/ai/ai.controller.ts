@@ -34,11 +34,9 @@ router.post('/tutor', authenticateToken, async (req: AuthRequest, res: Response)
 
     try {
       const key = process.env.OPENAI_API_KEY;
-      const detectedNames = Object.keys(process.env).filter(k => k.includes('OPENAI') || k.includes('AI') || k.includes('KEY'));
-      
-      if (!key || key === 'sk-...' || key.length < 20) {
+      if (!key || key === 'sk-...') {
         return res.json({ 
-          response: `I am ready to assist you! However, my 'OpenAI Brain' is currently disconnected. [Diagnostic: Key Status: MISSING. Similar Env Names detected: ${detectedNames.length > 0 ? detectedNames.join(', ') : 'NONE'}]. Please ensure exactly 'OPENAI_API_KEY' is set in the Vercel project Settings -> Environment Variables for the BACKEND.` 
+          response: "I am ready to assist you! However, my 'OpenAI Brain' is currently disconnected. Please ask your administrator to add a valid OPENAI_API_KEY to the server environment variables. Once connected, I can provide full pharmaceutical analysis and calculations." 
         });
       }
 
@@ -55,8 +53,10 @@ router.post('/tutor', authenticateToken, async (req: AuthRequest, res: Response)
       return res.json({ response: text });
     } catch (apiError: any) {
       console.error('OpenAI API Error:', apiError);
-      return res.json({ 
-        response: `OpenAI API Error: ${apiError.message}. Please check your OpenAI Billing/Quota or Key validity.` 
+      return res.status(503).json({ 
+        message: 'AI Service Temporarily Unavailable',
+        error: apiError.message,
+        response: "I'm having trouble reaching my OpenAI knowledge base. This usually happens if your OpenAI account billing is inactive or the quota is exceeded. Please check your OpenAI platform dashboard."
       });
     }
   } catch (error) {
