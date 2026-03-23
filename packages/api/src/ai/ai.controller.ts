@@ -33,7 +33,7 @@ router.post('/tutor', authenticateToken, async (req: AuthRequest, res: Response)
     `;
 
     try {
-      if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY.includes('sk-')) {
+      if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY === 'sk-...') {
         return res.json({ 
           response: "I am ready to assist you! However, my 'OpenAI Brain' is currently disconnected. Please ask your administrator to add a valid OPENAI_API_KEY to the server environment variables. Once connected, I can provide full pharmaceutical analysis and calculations." 
         });
