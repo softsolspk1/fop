@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import DashboardLayout from '../../../components/dashboard/DashboardLayout';
-import { Plus, Search, BookOpen, User, Clock, MoreVertical, Filter, ArrowRight, Loader2, X, Edit2, Trash2, FileText } from 'lucide-react';
+import { Plus, Search, BookOpen, User, Clock, MoreVertical, Filter, ArrowRight, Loader2, X, Edit2, Trash2, FileText, Video, ShieldCheck } from 'lucide-react';
 
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../../lib/api';
@@ -412,37 +412,76 @@ export default function CoursesPage() {
                      </section>
                    )}
 
-                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6">
-                      <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100">
-                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Academic Info</p>
-                         <div className="space-y-2">
-                           <div className="flex justify-between font-bold text-sm">
-                             <span className="text-slate-500">Credit Hours:</span>
-                             <span className="text-slate-800">{viewingCourse.creditHours}</span>
-                           </div>
-                           <div className="flex justify-between font-bold text-sm">
-                             <span className="text-slate-500">Semester:</span>
-                             <span className="text-slate-800">{viewingCourse.semesterName}</span>
-                           </div>
-                           <div className="flex justify-between font-bold text-sm">
-                             <span className="text-slate-500">Category:</span>
-                             <span className="text-slate-800">{viewingCourse.category}</span>
-                           </div>
-                         </div>
+                    {/* Approved Materials Gallery */}
+                    <section>
+                      <h4 className="text-sm font-black text-green-600 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                        <div className="w-2 h-2 bg-green-600 rounded-full" />
+                        Course Resources & Materials
+                      </h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {(viewingCourse.materials || []).filter((m: any) => m.status === 'APPROVED').length === 0 ? (
+                          <div className="col-span-full p-8 bg-slate-50 rounded-3xl border border-dashed border-slate-200 text-center">
+                            <p className="text-slate-400 font-bold text-xs uppercase tracking-widest">No verified materials available yet.</p>
+                          </div>
+                        ) : (
+                          viewingCourse.materials.filter((m: any) => m.status === 'APPROVED').map((mat: any) => (
+                            <a 
+                              key={mat.id} 
+                              href={mat.url} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="p-5 bg-white border border-slate-100 rounded-2xl flex items-center gap-4 hover:border-green-200 hover:shadow-lg hover:shadow-green-100/20 transition-all group"
+                            >
+                              <div className="p-3 bg-green-50 text-green-600 rounded-xl group-hover:bg-green-600 group-hover:text-white transition-all">
+                                 {mat.type === 'VIDEO' || mat.type === 'YOUTUBE' ? <Video className="w-5 h-5" /> : <FileText className="w-5 h-5" />}
+                              </div>
+                              <div className="overflow-hidden">
+                                <p className="font-black text-slate-800 text-sm truncate">{mat.title}</p>
+                                <div className="flex items-center gap-2 mt-0.5">
+                                   <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{mat.type}</span>
+                                   <div className="w-1 h-1 bg-slate-200 rounded-full" />
+                                   <span className="text-[9px] font-black text-green-600 uppercase tracking-widest flex items-center gap-1">
+                                      <ShieldCheck className="w-2.5 h-2.5" /> Verified
+                                   </span>
+                                </div>
+                              </div>
+                            </a>
+                          ))
+                        )}
                       </div>
-                      <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100">
-                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Assigned Faculty</p>
-                         <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white text-xl font-black">
-                               {viewingCourse.teacher?.name?.charAt(0)}
+                    </section>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6">
+                       <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100">
+                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Academic Info</p>
+                          <div className="space-y-2">
+                            <div className="flex justify-between font-bold text-sm">
+                              <span className="text-slate-500">Credit Hours:</span>
+                              <span className="text-slate-800">{viewingCourse.creditHours}</span>
                             </div>
-                            <div>
-                               <p className="font-bold text-slate-800">{viewingCourse.teacher?.name}</p>
-                               <p className="text-xs text-slate-500 font-medium">{viewingCourse.teacher?.designation || 'Faculty Member'}</p>
+                            <div className="flex justify-between font-bold text-sm">
+                              <span className="text-slate-500">Semester:</span>
+                              <span className="text-slate-800">{viewingCourse.semesterName}</span>
                             </div>
-                         </div>
-                      </div>
-                   </div>
+                            <div className="flex justify-between font-bold text-sm">
+                              <span className="text-slate-500">Category:</span>
+                              <span className="text-slate-800">{viewingCourse.category}</span>
+                            </div>
+                          </div>
+                       </div>
+                       <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100">
+                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Assigned Faculty</p>
+                          <div className="flex items-center gap-4">
+                             <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white text-xl font-black">
+                                {viewingCourse.teacher?.name?.charAt(0)}
+                             </div>
+                             <div>
+                                <p className="font-bold text-slate-800">{viewingCourse.teacher?.name}</p>
+                                <p className="text-xs text-slate-500 font-medium">{viewingCourse.teacher?.designation || 'Faculty Member'}</p>
+                             </div>
+                          </div>
+                       </div>
+                    </div>
                 </div>
 
                 <div className="p-8 border-t border-slate-100 bg-slate-50/50 flex justify-end">
