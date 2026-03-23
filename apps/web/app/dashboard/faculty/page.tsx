@@ -202,18 +202,23 @@ export default function FacultyPage() {
                         </div>
                         <div>
                           <p className="font-black text-slate-800 tracking-tight text-lg">{f.name}</p>
-                          <p className="text-xs text-slate-400 font-medium flex items-center gap-1.5 mt-0.5 uppercase tracking-tighter italic">
-                            Official Academic Profile
+                          <p className="text-xs text-slate-400 font-medium mt-0.5 tracking-tight">
+                            {f.email || 'Official Academic Profile'}
                           </p>
                         </div>
                       </div>
                     </td>
                     <td className="px-8 py-5 border-r border-slate-100/50">
-                      <div className="flex items-center gap-2.5">
-                        <div className="p-1.5 bg-purple-50 text-purple-600 rounded-lg">
-                            <GraduationCap className="w-3.5 h-3.5" />
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-2.5">
+                          <div className="p-1.5 bg-purple-50 text-purple-600 rounded-lg">
+                              <GraduationCap className="w-3.5 h-3.5" />
+                          </div>
+                          <span className="text-slate-700 font-black text-xs uppercase tracking-tight">{f.designation || 'Faculty Member'}</span>
                         </div>
-                        <span className="text-slate-700 font-black text-xs uppercase tracking-tight">{f.designation}</span>
+                        {f.qualification && (
+                          <span className="text-[10px] text-slate-400 font-bold ml-1">{f.qualification}</span>
+                        )}
                       </div>
                     </td>
                     <td className="px-8 py-5 border-r border-slate-100/50">

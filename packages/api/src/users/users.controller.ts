@@ -101,4 +101,57 @@ router.delete('/:id', authenticateToken, authorizeRoles('SUPER_ADMIN'), async (r
   }
 });
 
+// Change Password (Authenticated)
+router.put('/change-password', authenticateToken, async (req: AuthRequest, res: Response) => {
+  try {
+    const { oldPassword, newPassword } = req.body;
+    const userId = req.user?.userId;
+
+    if (!userId || !oldPassword || !newPassword) {
+      return res.status(400).json({ message: 'Missing required fields' });
+    }
+
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    const bcrypt = await import('bcryptjs');
+    const isValid = await bcrypt.compare(oldPassword, user.password);
+    
+    if (!isValid) return res.status(400).json({ message: 'Invalid current password' });
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    
+    await prisma.user.update({
+      where: { id: userId },
+      data: { password: hashedPassword }
+    });
+
+    res.json({ message: 'Password updated successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error changing password', error });
+  }
+});
+
+// Admin reset password (Super Admin only)
+router.put('/:id/reset-password', authenticateToken, authorizeRoles('SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { newPassword } = req.body;
+
+    if (!newPassword) return res.status(400).json({ message: 'New password is required' });
+
+    const bcrypt = await import('bcryptjs');
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    await prisma.user.update({
+      where: { id: String(id) },
+      data: { password: hashedPassword }
+    });
+
+    res.json({ message: 'Password reset successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error resetting password', error });
+  }
+});
+
 export default router;

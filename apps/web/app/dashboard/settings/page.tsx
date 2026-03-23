@@ -59,8 +59,8 @@ export default function SettingsPage() {
     }
     try {
       setSaving(true);
-      await api.put('/users/me/password', {
-        currentPassword: profileData.currentPassword,
+      await api.put('/users/change-password', {
+        oldPassword: profileData.currentPassword,
         newPassword: profileData.newPassword
       });
       alert('Password updated successfully!');

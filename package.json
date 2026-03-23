@@ -16,19 +16,20 @@
     "test": "npm run test --workspaces --if-present"
   },
   "devDependencies": {
-    "typescript": "^5.0.0",
-    "prisma": "^6.19.2",
-    "next": "16.1.6",
     "@tailwindcss/postcss": "^4",
     "lightningcss": "^1.31.1",
-    "tailwindcss": "^4"
+    "next": "16.1.6",
+    "prisma": "^6.19.2",
+    "tailwindcss": "^4",
+    "typescript": "^5.0.0"
   },
   "dependencies": {
+    "@prisma/client": "^6.19.2",
+    "expo-router": "~4.0.22",
+    "pdf-parse": "^2.4.5",
     "react": "18.3.1",
     "react-dom": "18.3.1",
-    "react-native": "0.76.9",
-    "expo-router": "~4.0.22",
-    "@prisma/client": "^6.19.2"
+    "react-native": "0.76.9"
   },
   "overrides": {
     "react": "18.3.1",

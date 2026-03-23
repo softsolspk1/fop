@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import { LayoutDashboard, BookOpen, Video, User, FileText, FlaskConical, MessageSquare } from 'lucide-react-native';
+import { LayoutDashboard, BookOpen, Video, User, FileText, FlaskConical, MessageSquare, Users } from 'lucide-react-native';
 
 export default function TabLayout() {
   return (
@@ -40,6 +40,13 @@ export default function TabLayout() {
         options={{
           title: 'Live',
           tabBarIcon: ({ color }) => <Video size={24} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="faculty"
+        options={{
+          title: 'Faculty',
+          tabBarIcon: ({ color }) => <Users size={24} color={color} />,
         }}
       />
       <Tabs.Screen

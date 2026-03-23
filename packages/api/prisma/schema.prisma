@@ -41,6 +41,13 @@ model User {
   department        Department?        @relation(fields: [departmentId], references: [id])
   groups            ChatGroup[]        @relation("GroupMembers")
   studentCourses    Course[]           @relation("StudentCourses")
+  labObservations   LabObservation[]
+  
+  // Faculty Profile Fields
+  designation       String?
+  qualification     String?
+  bio               String?
+  yearOfAssociation String?
 }
 
 model Result {
@@ -136,6 +143,15 @@ model Course {
   quizzes      Quiz[]
   results      Result[]
   students     User[]       @relation("StudentCourses")
+
+  // Academic Metadata
+  professional String?      // e.g. "First", "Second"
+  semesterName String?      // e.g. "1st Semester"
+  creditHours  Float?
+  category     String?      // e.g. "Core", "General"
+  outcomes     String?      @db.Text
+  contents     String?      @db.Text
+  readings     String?      @db.Text
 }
 
 model Material {
@@ -307,6 +323,15 @@ model Assessment {
   createdAt DateTime           @default(now())
   lab       Lab                @relation(fields: [labId], references: [id])
   results   AssessmentResult[]
+}
+
+model LabObservation {
+  id        String   @id @default(uuid())
+  userId    String
+  labType   String
+  data      Json
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
 }
 
 model AssessmentResult {

@@ -15,12 +15,20 @@ export default function CoursesPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCourse, setEditingCourse] = useState<any>(null);
 
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterProfessional, setFilterProfessional] = useState('');
+  const [filterSemester, setFilterSemester] = useState('');
+
   // Form State
   const [formData, setFormData] = useState({
     name: '',
     code: '',
     departmentId: '',
-    teacherId: ''
+    teacherId: '',
+    professional: '',
+    semesterName: '',
+    creditHours: 0,
+    category: ''
   });
 
   const fetchData = async () => {
@@ -54,14 +62,25 @@ export default function CoursesPage() {
         name: course.name,
         code: course.code,
         departmentId: course.departmentId,
-        teacherId: course.teacherId
+        teacherId: course.teacherId,
+        professional: course.professional || '',
+        semesterName: course.semesterName || '',
+        creditHours: course.creditHours || 0,
+        category: course.category || ''
       });
     } else {
       setEditingCourse(null);
-      setFormData({ name: '', code: '', departmentId: '', teacherId: '' });
+      setFormData({ name: '', code: '', departmentId: '', teacherId: '', professional: '', semesterName: '', creditHours: 0, category: '' });
     }
     setIsModalOpen(true);
   };
+  
+  const filteredCourses = courses.filter(course => {
+    const matchesSearch = course.name.toLowerCase().includes(searchQuery.toLowerCase()) || course.code.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesProf = filterProfessional ? course.professional === filterProfessional : true;
+    const matchesSem = filterSemester ? course.semesterName === filterSemester : true;
+    return matchesSearch && matchesProf && matchesSem;
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -114,22 +133,41 @@ export default function CoursesPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div className="md:col-span-2 lg:col-span-3 flex gap-4">
-              <div className="relative flex-1">
+            <div className="md:col-span-2 lg:col-span-3 flex flex-wrap gap-4">
+              <div className="relative flex-1 min-w-[200px]">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <input 
                   type="text" 
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search courses by name or code..." 
                   className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-sm text-slate-900 outline-none focus:ring-4 focus:ring-blue-50 focus:border-blue-500 transition-all shadow-sm font-medium"
                 />
               </div>
-              <button className="px-6 py-3 bg-white border border-slate-200 rounded-xl flex items-center gap-2 font-bold text-slate-600 hover:bg-slate-50 transition-colors shadow-sm">
-                <Filter className="w-4 h-4" />
-                Filters
-              </button>
+              <select 
+                value={filterProfessional}
+                onChange={(e) => setFilterProfessional(e.target.value)}
+                className="px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 outline-none focus:ring-4 focus:ring-blue-50 focus:border-blue-500 shadow-sm"
+              >
+                <option value="">All Professionals</option>
+                <option value="First">First</option>
+                <option value="Second">Second</option>
+                <option value="Third">Third</option>
+                <option value="Fourth">Fourth</option>
+                <option value="Fifth">Fifth</option>
+              </select>
+              <select 
+                value={filterSemester}
+                onChange={(e) => setFilterSemester(e.target.value)}
+                className="px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 outline-none focus:ring-4 focus:ring-blue-50 focus:border-blue-500 shadow-sm"
+              >
+                <option value="">All Semesters</option>
+                <option value="1st Semester">1st Semester</option>
+                <option value="2nd Semester">2nd Semester</option>
+              </select>
             </div>
 
-            {courses.map((course, idx) => (
+            {filteredCourses.map((course, idx) => (
               <motion.div 
                 key={course.id}
                 initial={{ opacity: 0, y: 20 }}
@@ -155,7 +193,13 @@ export default function CoursesPage() {
                     </span>
                   </div>
                   <h3 className="text-xl font-black text-slate-800 leading-tight mb-1">{course.name}</h3>
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-tighter">{course.department?.name}</p>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {course.professional && <span className="px-2 py-1 bg-purple-50 text-purple-700 rounded-md text-[10px] font-bold">{course.professional} Prof</span>}
+                    {course.semesterName && <span className="px-2 py-1 bg-orange-50 text-orange-700 rounded-md text-[10px] font-bold">{course.semesterName}</span>}
+                    {course.creditHours && <span className="px-2 py-1 bg-teal-50 text-teal-700 rounded-md text-[10px] font-bold">Cr: {course.creditHours}</span>}
+                    {course.category && <span className="px-2 py-1 bg-indigo-50 text-indigo-700 rounded-md text-[10px] font-bold">{course.category}</span>}
+                  </div>
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-tighter mt-3">{course.department?.name}</p>
                 </div>
 
                 <div className="space-y-3 pt-6 border-t border-slate-50 mt-auto">
@@ -259,6 +303,59 @@ export default function CoursesPage() {
                         <option key={teacher.id} value={teacher.id}>{teacher.name}</option>
                       ))}
                     </select>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Professional</label>
+                      <select 
+                        value={formData.professional}
+                        onChange={(e) => setFormData({...formData, professional: e.target.value})}
+                        className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 transition-all"
+                      >
+                        <option value="">Select</option>
+                        <option value="First">First</option>
+                        <option value="Second">Second</option>
+                        <option value="Third">Third</option>
+                        <option value="Fourth">Fourth</option>
+                        <option value="Fifth">Fifth</option>
+                      </select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Semester</label>
+                      <select 
+                        value={formData.semesterName}
+                        onChange={(e) => setFormData({...formData, semesterName: e.target.value})}
+                        className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 transition-all"
+                      >
+                        <option value="">Select</option>
+                        <option value="1st Semester">1st Semester</option>
+                        <option value="2nd Semester">2nd Semester</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Credit Hours</label>
+                      <input 
+                        type="number" 
+                        step="0.5"
+                        value={formData.creditHours}
+                        onChange={(e) => setFormData({...formData, creditHours: parseFloat(e.target.value) || 0})}
+                        className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 transition-all"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Category</label>
+                      <input 
+                        type="text" 
+                        value={formData.category}
+                        onChange={(e) => setFormData({...formData, category: e.target.value})}
+                        placeholder="e.g. Core"
+                        className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 transition-all"
+                      />
+                    </div>
                   </div>
 
                   <div className="pt-4">

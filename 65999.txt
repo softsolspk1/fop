@@ -36,3 +36,39 @@ For fopwebsite: Set Root Directory to apps/web.
 Email: kashif@healthhandspharmacy.com
 Username: softsols012345
 Password: ???Softsols@123
+
+
+Add Courses to Database with as following details:
+Course Title
+Course NO.
+Professional: First, Second, Third, Fourth and Fifth
+Credit Hourse:
+Category: 
+Semester: 1st Semester or  2nd Semester
+
+Take all details available in /c1.pdf file and will be live on /dashboard/courses 
+There shoule be filter for Professional and Semester along with Search
+
+=====================================
+
+Add Courses to Database with as following details:
+Course Title
+Course NO.
+Professional: First, Second, Third, Fourth and Fifth
+Credit Hourse:
+Category: 
+Semester: 1st Semester or  2nd Semester
+
+Take all details available in /c1.pdf file and will be live on /dashboard/courses 
+There shoule be filter for Professional and Semester along with Search
+
+1) Take all Courses Details from file /ph1.pdf availble From Page 33 to Page 237 and add in Database under each Course. Upon click on any course, the details will be visible.
+
+2) Take all Faculty Members Details from file /ph1.pdf availble From Page 33 to Page 237 and add in Database under Faculty.
+All information will be visible at /dashboard/faculty
+Also Create Account of All Favulty Members with their respective email addresses and use default Password of Softsols@123
+There is also an option to change Password in Web Admin and Mobile App by any user.
+
+3) In Mobile App, the Faculty Members will be shown under Faculty Tab.
+
+4) In Mobile App, the Course details will be shown under Course Tab and only relevant Professional Year courses will eb visible to Student. Like Student of first Year showing the courses of frist professional. Likewise all other years students.

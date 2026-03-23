@@ -36,6 +36,7 @@ import facultyRouter from './faculty/faculty.controller';
 import labsRouter from './labs/labs.controller';
 import resultsRouter from './results/results.controller';
 import chatRouter from './chat/chat.controller';
+import simulationsRouter from './simulations/simulations.controller';
 import prisma from './lib/prisma';
 
 const app = express();
@@ -90,6 +91,7 @@ app.use('/faculty', facultyRouter);
 app.use('/labs', labsRouter);
 app.use('/results', resultsRouter);
 app.use('/chat', chatRouter);
+app.use('/api', simulationsRouter);
 
 app.get('/', (req, res) => {
   res.json({ status: 'ok', message: 'KU APP Backend is alive' });
