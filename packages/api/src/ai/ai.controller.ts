@@ -55,10 +55,8 @@ router.post('/tutor', authenticateToken, async (req: AuthRequest, res: Response)
       return res.json({ response: text });
     } catch (apiError: any) {
       console.error('OpenAI API Error:', apiError);
-      return res.status(503).json({ 
-        message: 'AI Service Temporarily Unavailable',
-        error: apiError.message,
-        response: "I'm having trouble reaching my OpenAI knowledge base. This usually happens if the API key is invalid or the quota is exceeded. Please check the server logs."
+      return res.json({ 
+        response: `OpenAI API Error: ${apiError.message}. Please check your OpenAI Billing/Quota or Key validity.` 
       });
     }
   } catch (error) {
