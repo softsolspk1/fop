@@ -13,6 +13,36 @@ const stats = [
 ];
 
 export default function AdminDashboard() {
+  const [dashboardStats, setDashboardStats] = React.useState<any>(null);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/reports/dashboard-stats/stats`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        const data = await res.json();
+        setDashboardStats(data);
+      } catch (err) {
+        console.error('Failed to fetch stats', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchStats();
+  }, []);
+
+  const displayStats = [
+    { label: 'Total Students', value: loading ? '...' : dashboardStats?.students || '0', change: '+12%', icon: Users, color: 'text-blue-600', bg: 'bg-blue-100', trend: 'up' },
+    { label: 'Departments', value: loading ? '...' : dashboardStats?.departments || '0', change: '0%', icon: Building2, color: 'text-purple-600', bg: 'bg-purple-100', trend: 'neutral' },
+    { label: 'Active Courses', value: loading ? '...' : dashboardStats?.courses || '0', change: '+5%', icon: BookOpen, color: 'text-orange-600', bg: 'bg-orange-100', trend: 'up' },
+    { label: 'Virtual Labs', value: loading ? '...' : dashboardStats?.labs || '0', change: 'Live', icon: Video, color: 'text-green-600', bg: 'bg-green-100', trend: 'up' },
+  ];
+
   return (
     <DashboardLayout>
       <div className="space-y-8">
@@ -22,7 +52,7 @@ export default function AdminDashboard() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {stats.map((stat, idx) => (
+          {displayStats.map((stat, idx) => (
             <motion.div 
               key={idx}
               initial={{ opacity: 0, y: 20 }}
@@ -34,12 +64,6 @@ export default function AdminDashboard() {
                 <div className={`p-3 rounded-xl ${stat.bg} ${stat.color}`}>
                   <stat.icon className="w-6 h-6" />
                 </div>
-                {stat.trend === 'up' && (
-                  <div className="flex items-center gap-1 text-green-600 bg-green-50 px-2 py-1 rounded-lg text-xs font-bold">
-                    <ArrowUpRight className="w-3 h-3" />
-                    {stat.change}
-                  </div>
-                )}
               </div>
               <p className="text-sm font-medium text-slate-500">{stat.label}</p>
               <h3 className="text-3xl font-bold text-slate-900 mt-1">{stat.value}</h3>

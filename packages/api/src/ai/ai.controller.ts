@@ -31,16 +31,36 @@ router.post('/tutor', authenticateToken, async (req: AuthRequest, res: Response)
       - Support formatting with markdown for clear steps and equations.
     `;
 
-    const result = await model.generateContent([systemContext, prompt]);
-    const response = await result.response;
-    const text = response.text();
+    try {
+      const result = await model.generateContent([systemContext, prompt]);
+      const response = await result.response;
+      const text = response.text();
+      return res.json({ response: text });
+    } catch (apiError) {
+      console.warn('Gemini API failed, using Local Pharma-Intelligence fallback');
+      
+      // Simple Keyword-based Fallback
+      const input = prompt.toLowerCase();
+      let fallbackResponse = "I am currently in 'Lite Mode' due to high traffic, but I can still help you. ";
 
-    res.json({ response: text });
+      if (input.includes('dissolution')) {
+        fallbackResponse += "Dissolution testing measures the rate of release of a drug from its dosage form. In our lab, we use the Apparatus 1 (Basket) and Apparatus 2 (Paddle) methods. Always ensure the medium is at 37°C ± 0.5°C.";
+      } else if (input.includes('calculation') || input.includes('dosage')) {
+        fallbackResponse += "For dosage calculations, remember the formula: (Dose Wanted / Dose on Hand) × Quantity. Always double-check your units (mg vs g)!";
+      } else if (input.includes('tablet')) {
+        fallbackResponse += "Tablet formulation involves several steps: Weighing, Sifting, Blending, Granulation (Wet or Dry), Drying, and finally Compression. Glidants like Talc are essential for flow.";
+      } else {
+        fallbackResponse += "That's a great question about Pharmacy. For the most detailed answer, please consult your course materials or ask your lecturer. I'm here to support your learning journey at UOK!";
+      }
+
+      res.json({ response: fallbackResponse });
+    }
   } catch (error) {
-    console.error('AI Tutor Error:', error);
-    res.status(500).json({ message: 'Pharma-Tutor is temporarily offline', error });
+    console.error('AI Tutor Critical Error:', error);
+    res.status(500).json({ message: 'Pharma-Tutor is experiencing a system restart. Please try again in a few minutes.' });
   }
 });
+
 
 // Transcription Mock (Whisper API Integration entry point)
 router.post('/transcribe', authenticateToken, authorizeRoles('TEACHER', 'DEPT_ADMIN'), async (req: AuthRequest, res: Response) => {

@@ -47,7 +47,9 @@ const navItems = [
   { icon: FileText, label: 'Results', href: '/dashboard/results', roles: ['SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER', 'STUDENT'] },
   { icon: Users, label: 'Faculty', href: '/dashboard/faculty', roles: ['SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER', 'STUDENT'] },
   { icon: Calendar, label: 'Time Table', href: '/dashboard/calendar', roles: ['SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER', 'STUDENT'] },
+  { icon: CheckCircle, label: 'Pending Approvals', href: '/dashboard/approvals', roles: ['SUPER_ADMIN', 'DEPT_ADMIN'] },
   { icon: Settings, label: 'Settings', href: '/dashboard/settings', roles: ['SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER', 'STUDENT'] },
+
 ];
 
 const Sidebar = () => {

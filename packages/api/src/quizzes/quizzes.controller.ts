@@ -21,10 +21,10 @@ router.get('/course/:courseId', authenticateToken, async (req: AuthRequest, res:
   }
 });
 
-// Create a new quiz (Teacher/Admin)
+// Create a new quiz or exam (Teacher/Admin)
 router.post('/', authenticateToken, authorizeRoles('TEACHER', 'DEPT_ADMIN', 'SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
   try {
-    const { title, description, timeLimit, courseId, questions } = req.body;
+    const { title, description, timeLimit, courseId, questions, isExam } = req.body;
     
     const quiz = await prisma.quiz.create({
       data: {
@@ -32,6 +32,8 @@ router.post('/', authenticateToken, authorizeRoles('TEACHER', 'DEPT_ADMIN', 'SUP
         description,
         timeLimit,
         courseId,
+        isExam: !!isExam,
+        status: 'PENDING', // Always starts as PENDING for approval
         questions: {
           create: questions // Expecting array of { text, options, answer }
         }
@@ -44,6 +46,48 @@ router.post('/', authenticateToken, authorizeRoles('TEACHER', 'DEPT_ADMIN', 'SUP
     res.status(500).json({ message: 'Error creating quiz', error });
   }
 });
+
+// Get Pending Quizzes/Exams (HOD or Super Admin)
+router.get('/pending', authenticateToken, authorizeRoles('DEPT_ADMIN', 'SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
+  try {
+    const userBuffer = await prisma.user.findUnique({ where: { id: req.user?.userId } });
+    
+    let whereClause: any = { status: 'PENDING' };
+    
+    if (req.user?.role === 'DEPT_ADMIN' && userBuffer?.departmentId) {
+      whereClause.course = { departmentId: userBuffer.departmentId };
+    }
+
+    const pending = await prisma.quiz.findMany({
+      where: whereClause,
+      include: {
+        course: { select: { name: true, code: true } }
+      }
+    });
+
+    res.json(pending);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching pending quizzes', error });
+  }
+});
+
+// Approve/Reject Quiz (HOD or Super Admin)
+router.put('/:id/status', authenticateToken, authorizeRoles('DEPT_ADMIN', 'SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    const quiz = await prisma.quiz.update({
+      where: { id },
+      data: { status }
+    });
+
+    res.json({ message: `Quiz ${status.toLowerCase()} successfully`, quiz });
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating quiz status', error });
+  }
+});
+
 
 // Submit quiz results (Student)
 router.post('/:id/submit', authenticateToken, authorizeRoles('STUDENT'), async (req: AuthRequest, res: Response) => {

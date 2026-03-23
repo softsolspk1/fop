@@ -27,7 +27,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
 // Create a new class session
 router.post('/', authenticateToken, authorizeRoles('TEACHER', 'SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
   try {
-    const { title, startTime, endTime, courseId, dayOfWeek, location } = req.body;
+    const { title, startTime, endTime, courseId, dayOfWeek, location, classType, isRecurring, recurrentMonths } = req.body;
     const agoraChannel = `class-${courseId}-${Date.now()}`;
 
     const newClass = await prisma.class.create({
@@ -38,7 +38,10 @@ router.post('/', authenticateToken, authorizeRoles('TEACHER', 'SUPER_ADMIN'), as
         endTime: new Date(endTime),
         location: location || 'Lecture Hall 1',
         courseId,
-        agoraChannel
+        agoraChannel,
+        classType: classType || 'Physical',
+        isRecurring: !!isRecurring,
+        recurrentMonths: recurrentMonths || []
       }
     });
 
@@ -47,6 +50,35 @@ router.post('/', authenticateToken, authorizeRoles('TEACHER', 'SUPER_ADMIN'), as
     res.status(500).json({ message: 'Error creating class', error });
   }
 });
+
+// START Session (Teacher)
+router.put('/:id/start', authenticateToken, authorizeRoles('TEACHER', 'SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const session = await prisma.class.update({
+      where: { id },
+      data: { actualStartTime: new Date() }
+    });
+    res.json({ message: 'Session started successfully', session });
+  } catch (error) {
+    res.status(500).json({ message: 'Error starting session', error });
+  }
+});
+
+// STOP Session (Teacher)
+router.put('/:id/stop', authenticateToken, authorizeRoles('TEACHER', 'SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const session = await prisma.class.update({
+      where: { id },
+      data: { actualEndTime: new Date() }
+    });
+    res.json({ message: 'Session stopped successfully', session });
+  } catch (error) {
+    res.status(500).json({ message: 'Error stopping session', error });
+  }
+});
+
 
 // Join a class session (Get Agora Token)
 router.get('/:id/join', authenticateToken, async (req: AuthRequest, res: Response) => {

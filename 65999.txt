@@ -72,3 +72,46 @@ There is also an option to change Password in Web Admin and Mobile App by any us
 3) In Mobile App, the Faculty Members will be shown under Faculty Tab.
 
 4) In Mobile App, the Course details will be shown under Course Tab and only relevant Professional Year courses will eb visible to Student. Like Student of first Year showing the courses of frist professional. Likewise all other years students.
+
+
+=======================
+
+1) The Courses are not categorized to Classwise like First, Second, Third, Fourth and Fifth Professional.
+Also recheck all added Courses and also add remaining Courses (which not added yet) and also add Every COurse Details as available in file /ph1.pdf availble From Page 33 to Page 237. When any user click any Course, then the relevant information will be visible.
+
+2) Check the The Faculty Members added in Users. There are some information not properly added and not all Facultu members added. Fix the issue and also recheck all added faculty members informations and also add remaining faculty members.
+
+3) Remove all Virtual Labs previously added as Demo and I only need followign 3 Labs:
+a)  Dissolution Test 
+b) Tablet Formulation 
+c) Emulsion Prep
+I need 100% working Virtual Lab process/flow including Simulation
+
+4) I also need you to add real analytics on Dashboard.
+
+
+==============================
+
+1) Fix AI Pharma-Tutor as when I search anything, it gives a response as:
+I'm sorry, I'm having trouble connecting to my knowledge base right now. Please try again in a moment.
+
+
+2) I also need you to add complete LMS System in Course Module. Every teacher will add content to the Course Like Presentation, Word Document, Image, text Document and there should also an option to add Video (uploaded on server as well as also Youtube Link)
+I need 100% working Learning Management System for Courses.
+Admin and Teacher will allow to Add Course Material of their Respective Course and Deaprtment Head will Approve to be visible to Student on App and Web Admin
+
+3) In Exam, I need you to add Quiz Based Exams for Every Course. Admin and Teacher will allow to Add exam of their Respective Course and Deaprtment Head will Approve to be visible to Student on App and Web Admin
+
+4) In Live CLass, Create New Session will be as:
+Session Title:
+Class: (drop Down of First, Second, Third, Fourth and Fifth Professional)
+Department: (drop down deaprtment list)
+Course Teacher: (drop down teacher list of sealected department)
+Course (drop down course list of selected Professional Year and Department)
+Class Type: Drop down Online and Physical
+Day:
+Start Time:
+End Time:
+Recurrent Session on same Day and Time for whole month.
+
+

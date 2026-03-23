@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import DashboardLayout from '../../../components/dashboard/DashboardLayout';
-import { Plus, Search, BookOpen, User, Clock, MoreVertical, Filter, ArrowRight, Loader2, X, Edit2, Trash2 } from 'lucide-react';
+import { Plus, Search, BookOpen, User, Clock, MoreVertical, Filter, ArrowRight, Loader2, X, Edit2, Trash2, FileText } from 'lucide-react';
+
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../../lib/api';
 
@@ -14,6 +15,9 @@ export default function CoursesPage() {
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCourse, setEditingCourse] = useState<any>(null);
+  const [viewingCourse, setViewingCourse] = useState<any>(null);
+  const [managingMaterials, setManagingMaterials] = useState<any>(null);
+
 
   const [searchQuery, setSearchQuery] = useState('');
   const [filterProfessional, setFilterProfessional] = useState('');
@@ -216,15 +220,243 @@ export default function CoursesPage() {
                       <Clock className="w-3.5 h-3.5" />
                       <span className="font-bold text-[10px] uppercase tracking-widest">{course.students?.length || 0} Students</span>
                     </div>
-                    <button className="flex items-center gap-1 text-blue-600 font-black text-xs uppercase tracking-widest hover:gap-2 transition-all">
-                      Manage <ArrowRight className="w-3 h-3" />
-                    </button>
+                    <div className="flex gap-2">
+                      <button 
+                        onClick={() => setManagingMaterials(course)}
+                        className="flex items-center gap-1 text-slate-600 font-black text-[10px] uppercase tracking-widest hover:text-blue-600 transition-all border border-slate-200 px-3 py-1.5 rounded-lg"
+                      >
+                        Materials
+                      </button>
+                      <button 
+                        onClick={() => setViewingCourse(course)}
+                        className="flex items-center gap-1 text-blue-600 font-black text-[10px] uppercase tracking-widest hover:gap-2 transition-all"
+                      >
+                        Details <ArrowRight className="w-3 h-3" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </motion.div>
             ))}
           </div>
         )}
+
+        {/* Material Management Modal */}
+        <AnimatePresence>
+          {managingMaterials && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+               <motion.div 
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                onClick={() => setManagingMaterials(null)}
+                className="absolute inset-0 bg-slate-900/60 backdrop-blur-md"
+              />
+              <motion.div 
+                initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                className="relative bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[85vh]"
+              >
+                <div className="p-8 border-b border-slate-100 flex items-center justify-between">
+                  <div>
+                    <h3 className="text-2xl font-black text-slate-800 tracking-tight">Manage Materials</h3>
+                    <p className="text-sm text-slate-500 font-medium">Add/Remove resources for {managingMaterials.name}</p>
+                  </div>
+                  <button onClick={() => setManagingMaterials(null)} className="p-2 hover:bg-slate-50 rounded-xl transition-colors">
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
+
+                <div className="flex-1 overflow-y-auto p-8 space-y-6">
+                  {/* Add Material Form */}
+                  <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100 space-y-4">
+                    <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest">Add New Resource</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <input 
+                        type="text" 
+                        placeholder="Title (e.g. Lecture Notes)"
+                        id="mat-title"
+                        className="px-4 py-3 rounded-xl border border-slate-200 text-sm font-bold outline-none focus:ring-4 focus:ring-blue-100 transition-all"
+                      />
+                      <select id="mat-type" className="px-4 py-3 rounded-xl border border-slate-200 text-sm font-bold outline-none focus:ring-4 focus:ring-blue-100 transition-all">
+                        <option value="PDF">PDF Document</option>
+                        <option value="VIDEO">Uploaded Video</option>
+                        <option value="YOUTUBE">YouTube Link</option>
+                        <option value="IMAGE">Image / Diagram</option>
+                      </select>
+                      <input 
+                        type="text" 
+                        placeholder="URL / File Link"
+                        id="mat-url"
+                        className="md:col-span-2 px-4 py-3 rounded-xl border border-slate-200 text-sm font-bold outline-none focus:ring-4 focus:ring-blue-100 transition-all"
+                      />
+                      <button 
+                        onClick={async () => {
+                          const title = (document.getElementById('mat-title') as HTMLInputElement).value;
+                          const type = (document.getElementById('mat-type') as HTMLSelectElement).value;
+                          const url = (document.getElementById('mat-url') as HTMLInputElement).value;
+                          if (!title || !url) return alert('Please fill all fields');
+                          try {
+                            await api.post('/lms/materials', { title, type, url, courseId: managingMaterials.id });
+                            alert('Material submitted for HOD approval');
+                            setManagingMaterials({...managingMaterials}); // Trigger re-render or fetch
+                          } catch (err) { alert('Error uploading material'); }
+                        }}
+                        className="md:col-span-2 py-3 bg-blue-600 text-white font-black rounded-xl shadow-lg border-b-4 border-blue-800 active:border-b-0 active:translate-y-1 transition-all uppercase text-[10px] tracking-widest"
+                      >
+                        Submit for Approval
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Existing Materials List */}
+                  <div className="space-y-3">
+                    <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest">Existing Resources</h4>
+                    {(managingMaterials.materials || []).length === 0 ? (
+                      <p className="text-center py-6 text-slate-400 font-bold text-sm">No materials added yet.</p>
+                    ) : (
+                      managingMaterials.materials.map((mat: any) => (
+                        <div key={mat.id} className="flex items-center justify-between p-4 bg-white border border-slate-100 rounded-2xl">
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 bg-slate-50 text-slate-600 rounded-lg">
+                              <FileText className="w-4 h-4" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-bold text-slate-800">{mat.title}</p>
+                              <span className={`text-[9px] font-black uppercase tracking-tighter ${mat.status === 'APPROVED' ? 'text-green-600' : 'text-orange-500'}`}>{mat.status}</span>
+                            </div>
+                          </div>
+                          <button 
+                            onClick={async () => {
+                              if (!confirm('Delete this material?')) return;
+                              await api.delete(`/lms/materials/${mat.id}`);
+                              setManagingMaterials({...managingMaterials});
+                            }}
+                            className="p-2 text-slate-300 hover:text-red-500 transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+
+
+        {/* View Details Modal */}
+        <AnimatePresence>
+          {viewingCourse && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+              <motion.div 
+                initial={{ opacity: 0 }} 
+                animate={{ opacity: 1 }} 
+                exit={{ opacity: 0 }}
+                onClick={() => setViewingCourse(null)}
+                className="absolute inset-0 bg-slate-900/60 backdrop-blur-md"
+              />
+              <motion.div 
+                initial={{ scale: 0.9, opacity: 0, y: 20 }} 
+                animate={{ scale: 1, opacity: 1, y: 0 }} 
+                exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                className="relative bg-white w-full max-w-4xl max-h-[90vh] rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col"
+              >
+                <div className="p-8 border-b border-slate-100 flex items-start justify-between bg-white sticky top-0 z-10">
+                  <div>
+                    <div className="flex items-center gap-3 mb-2">
+                       <span className="px-3 py-1 bg-blue-50 text-blue-600 rounded-lg text-[10px] font-black uppercase tracking-widest">{viewingCourse.code}</span>
+                       <span className="px-3 py-1 bg-purple-50 text-purple-600 rounded-lg text-[10px] font-black uppercase tracking-widest">{viewingCourse.professional} Prof</span>
+                    </div>
+                    <h3 className="text-3xl font-black text-slate-800 tracking-tight leading-tight">{viewingCourse.name}</h3>
+                    <p className="text-slate-500 font-bold mt-1 uppercase tracking-tighter text-xs">{viewingCourse.department?.name}</p>
+                  </div>
+                  <button onClick={() => setViewingCourse(null)} className="p-3 hover:bg-slate-50 rounded-2xl transition-colors text-slate-400">
+                    <X className="w-8 h-8" />
+                  </button>
+                </div>
+
+                <div className="flex-1 overflow-y-auto p-8 space-y-10 custom-scrollbar">
+                   {viewingCourse.outcomes && (
+                     <section>
+                       <h4 className="text-sm font-black text-blue-600 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                         <div className="w-2 h-2 bg-blue-600 rounded-full" />
+                         Learning Outcomes
+                       </h4>
+                       <div className="prose prose-slate max-w-none text-slate-600 font-medium whitespace-pre-line bg-slate-50/50 p-6 rounded-3xl border border-slate-100/50">
+                          {viewingCourse.outcomes}
+                       </div>
+                     </section>
+                   )}
+
+                   {viewingCourse.contents && (
+                     <section>
+                       <h4 className="text-sm font-black text-orange-600 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                         <div className="w-2 h-2 bg-orange-600 rounded-full" />
+                         Course Contents
+                       </h4>
+                       <div className="prose prose-slate max-w-none text-slate-600 font-medium whitespace-pre-line bg-orange-50/30 p-6 rounded-3xl border border-orange-100/30">
+                          {viewingCourse.contents}
+                       </div>
+                     </section>
+                   )}
+
+                   {viewingCourse.readings && (
+                     <section>
+                       <h4 className="text-sm font-black text-purple-600 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                         <div className="w-2 h-2 bg-purple-600 rounded-full" />
+                         Recommended Readings
+                       </h4>
+                       <div className="prose prose-slate max-w-none text-slate-600 font-medium whitespace-pre-line bg-purple-50/30 p-6 rounded-3xl border border-purple-100/30">
+                          {viewingCourse.readings}
+                       </div>
+                     </section>
+                   )}
+
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6">
+                      <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100">
+                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Academic Info</p>
+                         <div className="space-y-2">
+                           <div className="flex justify-between font-bold text-sm">
+                             <span className="text-slate-500">Credit Hours:</span>
+                             <span className="text-slate-800">{viewingCourse.creditHours}</span>
+                           </div>
+                           <div className="flex justify-between font-bold text-sm">
+                             <span className="text-slate-500">Semester:</span>
+                             <span className="text-slate-800">{viewingCourse.semesterName}</span>
+                           </div>
+                           <div className="flex justify-between font-bold text-sm">
+                             <span className="text-slate-500">Category:</span>
+                             <span className="text-slate-800">{viewingCourse.category}</span>
+                           </div>
+                         </div>
+                      </div>
+                      <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100">
+                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Assigned Faculty</p>
+                         <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white text-xl font-black">
+                               {viewingCourse.teacher?.name?.charAt(0)}
+                            </div>
+                            <div>
+                               <p className="font-bold text-slate-800">{viewingCourse.teacher?.name}</p>
+                               <p className="text-xs text-slate-500 font-medium">{viewingCourse.teacher?.designation || 'Faculty Member'}</p>
+                            </div>
+                         </div>
+                      </div>
+                   </div>
+                </div>
+
+                <div className="p-8 border-t border-slate-100 bg-slate-50/50 flex justify-end">
+                   <button 
+                     onClick={() => setViewingCourse(null)}
+                     className="px-8 py-3 bg-slate-800 text-white font-black rounded-2xl hover:bg-slate-900 transition-all text-xs tracking-widest uppercase"
+                   >
+                     Close View
+                   </button>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
 
         {/* Create/Edit Modal */}
         <AnimatePresence>

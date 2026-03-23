@@ -30,6 +30,7 @@ import quizzesRouter from './quizzes/quizzes.controller';
 import aiRouter from './ai/ai.controller';
 import enrollmentRouter from './enrollment/enrollment.controller';
 import reportsRouter from './reports/reports.controller';
+import dashboardStatsRouter from './reports/dashboard-stats.controller';
 import feesRouter from './fees/fees.controller';
 import examsRouter from './exams/exams.controller';
 import facultyRouter from './faculty/faculty.controller';
@@ -37,7 +38,9 @@ import labsRouter from './labs/labs.controller';
 import resultsRouter from './results/results.controller';
 import chatRouter from './chat/chat.controller';
 import simulationsRouter from './simulations/simulations.controller';
+import lmsRouter from './lms/lms.controller';
 import prisma from './lib/prisma';
+
 
 const app = express();
 const port = process.env.PORT || 4000;
@@ -85,6 +88,7 @@ app.use('/quizzes', quizzesRouter);
 app.use('/ai', aiRouter);
 app.use('/enrollments', enrollmentRouter);
 app.use('/academic-reports', reportsRouter);
+app.use('/reports/dashboard-stats', dashboardStatsRouter);
 app.use('/fees', feesRouter);
 app.use('/exams', examsRouter);
 app.use('/faculty', facultyRouter);
@@ -92,6 +96,8 @@ app.use('/labs', labsRouter);
 app.use('/results', resultsRouter);
 app.use('/chat', chatRouter);
 app.use('/api', simulationsRouter);
+app.use('/lms', lmsRouter);
+
 
 app.get('/', (req, res) => {
   res.json({ status: 'ok', message: 'KU APP Backend is alive' });

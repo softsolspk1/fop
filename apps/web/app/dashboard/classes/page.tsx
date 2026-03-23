@@ -19,8 +19,11 @@ export default function LiveClassesPage() {
     startTime: '',
     endTime: '',
     dayOfWeek: 'Monday',
-    location: 'Lecture Hall 1'
+    location: 'Lecture Hall 1',
+    classType: 'Physical',
+    isRecurring: false
   });
+
 
   useEffect(() => {
     fetchClasses();
@@ -53,8 +56,11 @@ export default function LiveClassesPage() {
         startTime: '',
         endTime: '',
         dayOfWeek: 'Monday',
-        location: 'Lecture Hall 1'
+        location: 'Lecture Hall 1',
+        classType: 'Physical',
+        isRecurring: false
       });
+
     } catch (err) {
       console.error(err);
       alert('Failed to create class session');
@@ -149,21 +155,70 @@ export default function LiveClassesPage() {
                       <Play className="w-4 h-4 fill-current" />
                       Enter Session
                     </button>
-                     {user?.role === 'STUDENT' && (
-                        <button 
-                         onClick={async () => {
-                           try {
-                             await api.post(`/classes/${cls.id}/attendance`);
-                             alert('Attendance Marked Successfully!');
-                           } catch (err) {
-                             alert('Failed to mark attendance');
-                           }
-                         }}
-                         className="px-8 py-4 bg-slate-900 text-white font-black rounded-2xl hover:bg-slate-800 transition-all uppercase text-xs tracking-widest border-b-4 border-slate-700 active:border-b-0 active:translate-y-1"
-                        >
-                          Mark Attendance
-                        </button>
-                     )}
+                    
+                    {/* Teacher Controls */}
+                    {(user?.role === 'TEACHER' || user?.role === 'SUPER_ADMIN') && (
+                      <div className="flex gap-2">
+                        {!cls.actualStartTime && (
+                          <button 
+                            onClick={async () => {
+                              await api.put(`/classes/${cls.id}/start`);
+                              fetchClasses();
+                            }}
+                            className="px-6 py-4 bg-green-600 text-white font-black rounded-2xl hover:bg-green-700 transition-all uppercase text-xs tracking-widest border-b-4 border-green-800"
+                          >
+                            Start Session
+                          </button>
+                        )}
+                        {cls.actualStartTime && !cls.actualEndTime && (
+                          <button 
+                            onClick={async () => {
+                              await api.put(`/classes/${cls.id}/stop`);
+                              fetchClasses();
+                            }}
+                            className="px-6 py-4 bg-red-600 text-white font-black rounded-2xl hover:bg-red-700 transition-all uppercase text-xs tracking-widest border-b-4 border-red-800"
+                          >
+                            Stop Session
+                          </button>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Student Controls */}
+                    {user?.role === 'STUDENT' && (
+                      <div className="flex gap-2">
+                        {cls.actualStartTime && !cls.actualEndTime && (
+                          <button 
+                            onClick={async () => {
+                              try {
+                                await api.post('/attendance/mark-start', { classId: cls.id });
+                                alert('Start Attendance Marked!');
+                              } catch (err: any) {
+                                alert(err.response?.data?.message || 'Failed to mark attendance');
+                              }
+                            }}
+                            className="px-6 py-4 bg-slate-900 text-white font-black rounded-2xl hover:bg-slate-800 transition-all uppercase text-xs tracking-widest border-b-4 border-slate-700"
+                          >
+                            Check-In
+                          </button>
+                        )}
+                        {cls.actualEndTime && (
+                          <button 
+                            onClick={async () => {
+                              try {
+                                await api.post('/attendance/mark-end', { classId: cls.id });
+                                alert('End Attendance Marked! You are PRESENT.');
+                              } catch (err: any) {
+                                alert(err.response?.data?.message || 'Failed to mark attendance');
+                              }
+                            }}
+                            className="px-6 py-4 bg-blue-900 text-white font-black rounded-2xl hover:bg-blue-800 transition-all uppercase text-xs tracking-widest border-b-4 border-blue-700"
+                          >
+                            Check-Out
+                          </button>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               </motion.div>
@@ -185,12 +240,12 @@ export default function LiveClassesPage() {
         {isModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsModalOpen(false)} className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" />
-            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="relative bg-white w-full max-w-lg rounded-[3.5rem] shadow-2xl overflow-hidden p-10">
-              <h3 className="text-2xl font-black text-slate-800 tracking-tight mb-8 uppercase">Direct Session Broadcast</h3>
+            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="relative bg-white w-full max-w-lg rounded-[3.5rem] shadow-2xl overflow-hidden p-10 max-h-[90vh] overflow-y-auto">
+              <h3 className="text-2xl font-black text-slate-800 tracking-tight mb-8 uppercase">Create Live Session</h3>
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Session Title</label>
-                  <input required value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} placeholder="e.g. Advanced Pharmaceutics Lecture" className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-800 outline-none focus:ring-4 focus:ring-blue-50 transition-all text-slate-900" />
+                  <input required value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} placeholder="e.g. Advanced Pharmaceutics Lecture" className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-800 outline-none focus:ring-4 focus:ring-blue-50 transition-all" />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
@@ -201,8 +256,11 @@ export default function LiveClassesPage() {
                     </select>
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Location</label>
-                    <input required value={formData.location} onChange={(e) => setFormData({...formData, location: e.target.value})} className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-50 transition-all" />
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Class Type</label>
+                    <select required value={formData.classType} onChange={(e) => setFormData({...formData, classType: e.target.value})} className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-50 transition-all">
+                      <option value="Physical">Physical</option>
+                      <option value="Online">Online</option>
+                    </select>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
@@ -214,6 +272,10 @@ export default function LiveClassesPage() {
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">End Time</label>
                     <input required type="datetime-local" value={formData.endTime} onChange={(e) => setFormData({...formData, endTime: e.target.value})} className="w-full px-5 py-3.5 bg-slate-50 border-none rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-50 transition-all" />
                   </div>
+                </div>
+                <div className="flex items-center gap-2 p-4 bg-blue-50 rounded-2xl border border-blue-100">
+                  <input type="checkbox" id="isRecurring" checked={formData.isRecurring} onChange={(e) => setFormData({...formData, isRecurring: e.target.checked})} className="w-5 h-5 accent-blue-600" />
+                  <label htmlFor="isRecurring" className="text-sm font-bold text-blue-800 uppercase tracking-widest">Recurring Session (Monthly)</label>
                 </div>
                 <button type="submit" className="w-full py-5 bg-blue-600 text-white font-black rounded-2xl shadow-xl shadow-blue-500 hover:bg-blue-700 active:scale-95 transition-all uppercase text-xs tracking-[0.2em] border-b-4 border-blue-800">
                   Launch Session
