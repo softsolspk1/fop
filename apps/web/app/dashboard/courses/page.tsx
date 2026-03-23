@@ -43,8 +43,13 @@ export default function CoursesPage() {
   const fetchData = async () => {
     try {
       setLoading(true);
+      const params: any = {};
+      if (filterProfessional) params.professional = filterProfessional;
+      if (filterSemester) params.semesterName = filterSemester;
+      if (filterDepartment) params.departmentId = filterDepartment;
+
       const [coursesRes, deptsRes, usersRes] = await Promise.all([
-        api.get('/courses'),
+        api.get('/courses', { params }),
         api.get('/departments'),
         api.get('/users')
       ]);
@@ -62,7 +67,7 @@ export default function CoursesPage() {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [filterProfessional, filterSemester, filterDepartment]);
 
   const handleOpenModal = (course: any = null) => {
     if (course) {
