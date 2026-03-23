@@ -152,6 +152,7 @@ model Course {
   outcomes     String?      @db.Text
   contents     String?      @db.Text
   readings     String?      @db.Text
+  isActive     Boolean      @default(true)
 }
 
 model Material {
