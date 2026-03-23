@@ -19,13 +19,7 @@ export default function AdminDashboard() {
   React.useEffect(() => {
     const fetchStats = async () => {
       try {
-        const token = localStorage.getItem('token');
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/reports/dashboard-stats/stats`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-        const data = await res.json();
+        const { data } = await api.get('/reports/dashboard-stats/stats');
         setDashboardStats(data);
       } catch (err) {
         console.error('Failed to fetch stats', err);
