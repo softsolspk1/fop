@@ -1,14 +1,15 @@
 import { Router, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { authenticateToken, authorizeRoles, AuthRequest } from '../auth/auth.middleware';
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import OpenAI from 'openai';
 
 const router = Router();
 const prisma = new PrismaClient();
 
-// Gemini Setup
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" }); // Fast and reliable
+// OpenAI Setup
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY || '',
+});
 
 // AI Tutor Chat
 router.post('/tutor', authenticateToken, async (req: AuthRequest, res: Response) => {
@@ -32,22 +33,29 @@ router.post('/tutor', authenticateToken, async (req: AuthRequest, res: Response)
     `;
 
     try {
-      if (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY.includes('Replace')) {
+      if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY.includes('sk-')) {
         return res.json({ 
-          response: "I am ready to assist you! However, my 'Internal Brain' (Gemini API) is currently disconnected. Please ask your administrator to add a valid GEMINI_API_KEY to the server environment variables. Once connected, I can provide full pharmaceutical analysis and calculations." 
+          response: "I am ready to assist you! However, my 'OpenAI Brain' is currently disconnected. Please ask your administrator to add a valid OPENAI_API_KEY to the server environment variables. Once connected, I can provide full pharmaceutical analysis and calculations." 
         });
       }
 
-      const result = await model.generateContent([systemContext, prompt]);
-      const response = await result.response;
-      const text = response.text();
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          { role: "system", content: systemContext },
+          { role: "user", content: prompt }
+        ],
+        temperature: 0.7,
+      });
+
+      const text = completion.choices[0].message.content;
       return res.json({ response: text });
     } catch (apiError: any) {
-      console.error('Gemini API Error:', apiError);
+      console.error('OpenAI API Error:', apiError);
       return res.status(503).json({ 
         message: 'AI Service Temporarily Unavailable',
         error: apiError.message,
-        response: "I'm having trouble reaching my knowledge base. This usually happens if the API key is invalid or the quota is exceeded. Please check the server logs."
+        response: "I'm having trouble reaching my OpenAI knowledge base. This usually happens if the API key is invalid or the quota is exceeded. Please check the server logs."
       });
     }
   } catch (error) {
