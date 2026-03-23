@@ -22,6 +22,8 @@ export default function UsersPage() {
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<any>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterRole, setFilterRole] = useState('');
 
   // Form State
   const [formData, setFormData] = useState({
@@ -101,6 +103,14 @@ export default function UsersPage() {
     }
   };
 
+  const filteredUsers = users.filter(u => {
+    const matchesSearch = u.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                         u.email.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                         (u.rollNumber && u.rollNumber.toLowerCase().includes(searchQuery.toLowerCase()));
+    const matchesRole = filterRole ? u.role === filterRole : true;
+    return matchesSearch && matchesRole;
+  });
+
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this user?')) return;
     try {
@@ -143,12 +153,18 @@ export default function UsersPage() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
               <input 
                 type="text" 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search by name, email or roll number..." 
-                className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm outline-none focus:ring-4 focus:ring-blue-50 focus:border-blue-500 transition-all font-medium"
+                className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm text-slate-900 outline-none focus:ring-4 focus:ring-blue-50 focus:border-blue-500 transition-all font-medium"
               />
             </div>
             <div className="flex gap-2">
-              <select className="px-4 py-2.5 text-sm font-bold bg-white border border-slate-200 rounded-xl outline-none focus:ring-4 focus:ring-blue-50 transition-all text-slate-900">
+              <select 
+                value={filterRole}
+                onChange={(e) => setFilterRole(e.target.value)}
+                className="px-4 py-2.5 text-sm font-bold bg-white border border-slate-200 rounded-xl outline-none focus:ring-4 focus:ring-blue-50 transition-all text-slate-900"
+              >
                 <option value="" className="text-slate-900">All Roles</option>
                 <option value="TEACHER" className="text-slate-900">Teachers</option>
                 <option value="STUDENT" className="text-slate-900">Students</option>
@@ -175,14 +191,14 @@ export default function UsersPage() {
                       <p className="text-slate-500 font-black uppercase tracking-widest text-xs">Accessing User Segments...</p>
                     </td>
                   </tr>
-                ) : users.length === 0 ? (
+                ) : filteredUsers.length === 0 ? (
                   <tr>
                     <td colSpan={4} className="px-8 py-20 text-center text-slate-400 font-medium">
                       No users found in the system.
                     </td>
                   </tr>
                 ) : (
-                  users.map((user, idx) => (
+                  filteredUsers.map((user, idx) => (
                     <motion.tr 
                       key={user.id}
                       initial={{ opacity: 0, x: -10 }}

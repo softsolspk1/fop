@@ -13,6 +13,7 @@ export default function FacultyPage() {
   const [error, setError] = useState<string | null>(null);
   const [filterDept, setFilterDept] = useState('');
   const [filterDesignation, setFilterDesignation] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
 
   const fetchData = async () => {
     try {
@@ -36,7 +37,9 @@ export default function FacultyPage() {
   }, []);
 
   const filteredFaculty = faculty.filter(f => {
-    return (filterDept === '' || f.department === filterDept) &&
+    const matchesSearch = f.name.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesSearch &&
+           (filterDept === '' || f.department === filterDept) &&
            (filterDesignation === '' || f.designation === filterDesignation);
   });
 
@@ -138,8 +141,10 @@ export default function FacultyPage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
             <input 
               type="text" 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search faculty by name..." 
-              className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-sm outline-none focus:ring-4 focus:ring-blue-50 focus:border-blue-500 transition-all shadow-sm font-medium"
+              className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-sm text-slate-900 outline-none focus:ring-4 focus:ring-blue-50 focus:border-blue-500 transition-all shadow-sm font-medium"
             />
           </div>
           <div className="flex gap-2">

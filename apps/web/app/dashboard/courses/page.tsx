@@ -187,6 +187,8 @@ export default function CoursesPage() {
                 className="px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 outline-none focus:ring-4 focus:ring-blue-50 focus:border-blue-500 shadow-sm"
               >
                 <option value="">All Semesters</option>
+                <option value="1st Semester">1st Semester</option>
+                <option value="2nd Semester">2nd Semester</option>
               </select>
               <select 
                 value={filterDepartment}
