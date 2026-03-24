@@ -102,7 +102,10 @@ async function main() {
 
   for (const l of labs) {
     await prisma.lab.create({
-      data: l
+      data: {
+        ...l,
+        year: l.year ? String(l.year) : undefined
+      }
     });
   }
 

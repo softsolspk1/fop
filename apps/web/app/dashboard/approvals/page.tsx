@@ -77,7 +77,8 @@ export default function ApprovalsPage() {
             <p className="font-bold text-slate-400 uppercase tracking-widest text-xs">Syncing Pending Queue...</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Materials Section */}
             <section className="space-y-4">
               <div className="flex items-center gap-2 mb-2">
@@ -237,7 +238,8 @@ export default function ApprovalsPage() {
               )}
             </div>
           </section>
-        )}
+        </>
+      )}
       </div>
     </DashboardLayout>
   );

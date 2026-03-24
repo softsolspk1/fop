@@ -162,6 +162,7 @@ model Material {
   type         String           // IMAGE, VIDEO, DOCUMENT, YOUTUBE
   courseId     String
   uploadedById String?
+  publicId     String?
   status       EnrollmentStatus @default(PENDING) // Reusing EnrollmentStatus for simplicity: PENDING, APPROVED, REJECTED
   createdAt    DateTime         @default(now())
   updatedAt    DateTime         @updatedAt
@@ -204,6 +205,8 @@ model Attendance {
   remarks        String?
   class          Class     @relation(fields: [classId], references: [id])
   user           User      @relation(fields: [userId], references: [id])
+
+  @@unique([userId, classId])
 }
 
 model Assignment {
