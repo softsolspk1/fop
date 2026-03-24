@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, ActivityIndicator, ScrollView } from 'react-native';
 import { Search, FlaskConical, ChevronRight, Beaker } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import api from '../../lib/api';
@@ -27,9 +27,9 @@ export default function LabsScreen() {
     }
   };
 
-  const filteredLabs = labs.filter(l => {
-    const searchMatch = l.title.toLowerCase().includes(search.toLowerCase()) ||
-                        l.department.toLowerCase().includes(search.toLowerCase());
+  const filteredLabs = (labs || []).filter(l => {
+    const searchMatch = (l.title || '').toLowerCase().includes(search.toLowerCase()) ||
+                        (l.department || '').toLowerCase().includes(search.toLowerCase());
     const deptMatch = selectedDept === 'All' || l.department === selectedDept;
     const yearMatch = selectedYear === 'All' || String(l.year) === selectedYear;
     return searchMatch && deptMatch && yearMatch;

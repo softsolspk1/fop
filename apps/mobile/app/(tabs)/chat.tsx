@@ -56,8 +56,8 @@ export default function ChatScreen() {
   }
 
   const allSessions = [
-    ...sessions.groups.map(g => ({ ...g, isGroup: true })),
-    ...sessions.direct.map(d => ({ ...d, isGroup: false }))
+    ...(sessions.groups || []).map(g => ({ ...g, isGroup: true })),
+    ...(sessions.direct || []).map(d => ({ ...d, isGroup: false }))
   ];
 
   return (
