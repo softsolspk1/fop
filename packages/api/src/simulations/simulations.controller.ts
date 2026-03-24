@@ -124,6 +124,9 @@ router.post('/submit', authenticateToken, async (req: AuthRequest, res: Response
 router.delete('/experiments/:id', authenticateToken, async (req: AuthRequest, res: Response) => {
     try {
         const { id } = req.params;
+        // 1. Delete associated observations first to avoid FK constraint error
+        await prisma.observation.deleteMany({ where: { experimentId: String(id) } });
+        // 2. Delete the experiment
         await prisma.experiment.delete({ where: { id: String(id) } });
         res.json({ message: "Lab submission deleted successfully" });
     } catch (error: any) {

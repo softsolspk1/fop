@@ -213,58 +213,7 @@ export default function VirtualLabsPage() {
               </div>
             </div>
 
-            {/* Extended Repository */}
-            <div className="space-y-8 mt-16">
-              <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] flex items-center gap-2">
-                 <Search className="w-4 h-4" />
-                 Extended Lab Repository
-              </h3>
-              
-              {loading ? (
-                <div className="flex flex-col items-center justify-center py-24 bg-white rounded-[3rem] border-2 border-dashed border-slate-100">
-                  <Loader2 className="w-12 h-12 text-blue-600 animate-spin mb-4" />
-                  <p className="font-black text-slate-400 uppercase tracking-[0.3em] text-[10px]">Synchronizing Equipment Data...</p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  {filteredLabs.map((lab) => (
-                    <motion.div 
-                      key={lab.id}
-                      className="bg-white p-8 rounded-[3rem] border border-slate-100 shadow-sm hover:shadow-2xl transition-all group overflow-hidden flex flex-col"
-                    >
-                      <div className="flex justify-between items-start mb-6">
-                          <div className="p-5 bg-slate-50 text-slate-400 rounded-2xl group-hover:bg-blue-600 group-hover:text-white transition-all">
-                              {lab.department === 'Pharmacology' ? <Beaker className="w-8 h-8" /> : <Microscope className="w-8 h-8" />}
-                          </div>
-                          <div className="flex gap-2">
-                              {(user?.role === 'SUPER_ADMIN' || user?.role === 'TEACHER') && (
-                                <>
-                                  <button onClick={() => handleOpenModal(lab)} className="p-3 bg-slate-50 text-slate-400 hover:text-blue-600 rounded-xl transition-all"><Edit2 className="w-4 h-4" /></button>
-                                  <button onClick={async () => { if(confirm('Delete?')) { await api.delete(`/labs/${lab.id}`); fetchData(); } }} className="p-3 bg-slate-50 text-slate-400 hover:text-red-600 rounded-xl transition-all"><Trash2 className="w-4 h-4" /></button>
-                                </>
-                              )}
-                          </div>
-                      </div>
-                      <h3 className="text-2xl font-black text-slate-800 mb-2 uppercase tracking-tighter">{lab.title}</h3>
-                      <p className="text-[10px] font-black text-blue-600 uppercase tracking-[0.2em] mb-4">{lab.department}</p>
-                      <p className="text-slate-500 font-medium mb-8 flex-1 leading-relaxed opacity-80 italic line-clamp-2">"{lab.description}"</p>
-                      <div className="flex items-center justify-between mt-auto">
-                          <div className="flex items-center gap-2 text-slate-300">
-                              <ShieldCheck className="w-4 h-4" />
-                              <span className="text-[9px] font-black uppercase tracking-widest">Verified Module</span>
-                          </div>
-                          <button 
-                              onClick={() => { setActiveLab(lab); setWorkflowStep('PRE_LAB'); }}
-                              className="px-8 py-3 bg-slate-900 text-white font-black rounded-2xl shadow-lg border-b-4 border-slate-700 hover:bg-black transition-all flex items-center gap-2 uppercase text-[10px] tracking-widest"
-                          >
-                              Launch Lab
-                          </button>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-              )}
-            </div>
+            {/* Extended Repository removed as per user request to avoid duplication */}
           </>
         ) : (
           <div className="space-y-8">

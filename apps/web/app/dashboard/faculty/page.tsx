@@ -47,24 +47,48 @@ export default function FacultyPage() {
   const designations = Array.from(new Set(faculty.map(f => f.designation)));
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingFaculty, setEditingFaculty] = useState<any>(null);
   const [formData, setFormData] = useState({ name: '', designation: '', departmentId: '' });
+
+  const handleOpenModal = (f: any = null) => {
+    console.log('Opening modal for:', f);
+    if (f) {
+      setEditingFaculty(f);
+      const dept = departments.find(d => d.name === f.department);
+      setFormData({
+        name: f.name,
+        designation: f.designation || '',
+        departmentId: dept?.id || ''
+      });
+    } else {
+      setEditingFaculty(null);
+      setFormData({ name: '', designation: '', departmentId: '' });
+    }
+    setIsModalOpen(true);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      // Find the department name for the selected ID to maintain consistency if backend expects name
-      // or just send departmentId if backend is updated.
-      // Based on previous faculty.controller.ts, it expects 'department' as string (name).
       const selectedDept = departments.find(d => d.id === formData.departmentId);
-      await api.post('/faculty', {
-        ...formData,
+      const payload = {
+        name: formData.name,
+        designation: formData.designation,
         department: selectedDept?.name || ''
-      });
+      };
+
+      if (editingFaculty) {
+        await api.put(`/faculty/${editingFaculty.id}`, payload);
+      } else {
+        await api.post('/faculty', payload);
+      }
+      
       setIsModalOpen(false);
       setFormData({ name: '', designation: '', departmentId: '' });
       fetchData();
     } catch (err) {
-      alert('Failed to add faculty member');
+      console.error(err);
+      alert(editingFaculty ? 'Failed to update faculty' : 'Failed to add faculty');
     }
   };
 
@@ -101,9 +125,9 @@ export default function FacultyPage() {
           {isModalOpen && (
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsModalOpen(false)} className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" />
-              <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="relative bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden p-8">
+               <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="relative bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden p-8">
                  <div className="flex items-center justify-between mb-8">
-                  <h3 className="text-2xl font-black text-slate-800 tracking-tight">Add Faculty</h3>
+                  <h3 className="text-2xl font-black text-slate-800 tracking-tight">{editingFaculty ? 'Edit Faculty' : 'Add Faculty'}</h3>
                   <button onClick={() => setIsModalOpen(false)} className="p-2 text-slate-400 hover:bg-slate-50 rounded-xl transition-colors"><X className="w-6 h-6" /></button>
                  </div>
                  <form onSubmit={handleSubmit} className="space-y-6">
@@ -236,7 +260,7 @@ export default function FacultyPage() {
                     </td>
                     <td className="px-8 py-5 text-right">
                       <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-all duration-300">
-                        <button className="p-2.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"><Edit2 className="w-4 h-4" /></button>
+                        <button onClick={() => handleOpenModal(f)} className="p-2.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"><Edit2 className="w-4 h-4" /></button>
                         <button onClick={() => handleDelete(f.id)} className="p-2.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"><Trash2 className="w-4 h-4" /></button>
                         <button className="p-2.5 text-slate-400 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition-all"><MoreVertical className="w-4 h-4" /></button>
                       </div>

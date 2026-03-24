@@ -236,6 +236,25 @@ router.post('/experiments/:id/grade', authenticateToken, authorizeRoles('SUPER_A
   }
 });
 
+// Update lab details (Super Admin or Teacher)
+router.put('/:id', authenticateToken, authorizeRoles('SUPER_ADMIN', 'TEACHER'), async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { title, description, department, provider, difficulty, theory, objectives, safety, year } = req.body;
+    console.log(`[Labs]: Updating lab ${id} with:`, req.body);
+    
+    const lab = await prisma.lab.update({
+      where: { id: String(id) },
+      data: { title, description, department, provider, difficulty, theory, objectives, safety, year }
+    });
+    
+    res.json(lab);
+  } catch (error) {
+    console.error(`[Labs]: Update failed for ${req.params.id}:`, error);
+    res.status(500).json({ message: 'Error updating lab', error });
+  }
+});
+
 // Submit Assessment (Existing - Keep for compatibility)
 router.post('/:id/assessment/:assessmentId', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {

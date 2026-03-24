@@ -15,7 +15,10 @@ import {
   Clock,
   Droplets,
   Zap,
-  Box
+  Box,
+  Archive,
+  Loader2,
+  Edit2
 } from 'lucide-react';
 import {
   Chart as ChartJS,
@@ -32,6 +35,7 @@ import { Line, Bar } from 'react-chartjs-2';
 import api from '../../../../../lib/api';
 import { motion, AnimatePresence } from 'framer-motion';
 import { use } from 'react';
+import { useAuth } from '../../../../../context/AuthContext';
 
 ChartJS.register(
   CategoryScale,
@@ -45,12 +49,73 @@ ChartJS.register(
 );
 
 export default function LabSimulationPage({ params }: { params: Promise<{ type: string }> }) {
+  const { user } = useAuth();
   const { type: labType } = use(params); // dissolution, tablet, emulsion
   const [step, setStep] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
   const [results, setResults] = useState<any>(null);
   const [score, setScore] = useState(0);
   const [showIntro, setShowIntro] = useState(true);
+  
+  // Lab Data from DB
+  const [labDb, setLabDb] = useState<any>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isEditingTheory, setIsEditingTheory] = useState(false);
+  const [theoryText, setTheoryText] = useState('');
+
+  const fetchLabInfo = async () => {
+    try {
+      const { data: labs } = await api.get('/labs');
+      const current = labs.find((l: any) => l.title.toLowerCase().includes(labType.toLowerCase()));
+      if (current) {
+        setLabDb(current);
+        setTheoryText(current.theory || '');
+      }
+    } catch (err) {
+      console.error('Error fetching lab info:', err);
+    }
+  };
+
+  React.useEffect(() => {
+    fetchLabInfo();
+  }, [labType]);
+
+  const handleUpdateTheory = async () => {
+    if (!labDb) return;
+    try {
+      await api.put(`/labs/${labDb.id}`, { theory: theoryText });
+      setIsEditingTheory(false);
+      fetchLabInfo();
+      alert('Experiment documentation updated!');
+    } catch (err) {
+      alert('Failed to update documentation');
+    }
+  };
+
+  const handleSubmitResult = async () => {
+    if (!labDb || !results) return;
+    setIsSubmitting(true);
+    try {
+      let body = {};
+      if (labType === 'dissolution') body = dissolutionData;
+      else if (labType === 'tablet') body = tabletData;
+      else if (labType === 'emulsion') body = emulsionData;
+
+      await api.post('/api/submit', {
+        labId: labDb.id,
+        inputs: body,
+        resultData: results,
+        score: score
+      });
+      alert('Laboratory results submitted successfully to the faculty!');
+      setStep(3); // Completed state
+    } catch (err) {
+      console.error(err);
+      alert('Submission failed');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   // Simulation Parameters - Dissolution
   const [dissolutionData, setDissolutionData] = useState({
@@ -80,6 +145,7 @@ export default function LabSimulationPage({ params }: { params: Promise<{ type: 
 
   const handleSimulate = async () => {
     setIsRunning(true);
+    setResults(null);
     try {
       let body = {};
       if (labType === 'dissolution') body = dissolutionData;
@@ -89,7 +155,6 @@ export default function LabSimulationPage({ params }: { params: Promise<{ type: 
       const response = await api.post(`/api/${labType}/simulate`, body);
       setResults(response.data);
       
-      // Calculate Score Based on Type
       let finalScore = 0;
       if (labType === 'dissolution') {
         const tempAccuracy = Math.max(0, 100 - Math.abs(dissolutionData.temp - 37) * 5);
@@ -103,7 +168,6 @@ export default function LabSimulationPage({ params }: { params: Promise<{ type: 
       
       setScore(Math.round(finalScore));
 
-      // Save Observation
       await api.post('/api/save-observation', {
         labType,
         data: { params: body, results: response.data, score: finalScore }
@@ -112,7 +176,7 @@ export default function LabSimulationPage({ params }: { params: Promise<{ type: 
       console.error(err);
     } finally {
       setIsRunning(false);
-      setStep(2); // Show Results
+      setStep(2); 
     }
   };
 
@@ -142,21 +206,24 @@ export default function LabSimulationPage({ params }: { params: Promise<{ type: 
     <DashboardLayout>
       <div className="flex h-[calc(100vh-120px)] gap-6 overflow-hidden">
         
-        {/* Sidebar */}
         <div className="w-1/4 bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-sm flex flex-col">
           <div className="flex items-center gap-3 mb-8">
              <div className="p-3 bg-blue-600 text-white rounded-2xl">
                 <Beaker className="w-6 h-6" />
              </div>
-             <h2 className="text-xl font-black uppercase tracking-tight text-slate-800">
-               {labType.replace(/^\w/, c => c.toUpperCase())} Protocol
-             </h2>
+             <div className="flex-1">
+               <h2 className="text-xl font-black uppercase tracking-tight text-slate-800 leading-none">
+                 {labType.replace(/^\w/, c => c.toUpperCase())}
+               </h2>
+               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Laboratory Protocol</p>
+             </div>
           </div>
 
           <div className="space-y-6 flex-1 overflow-y-auto">
             <LabStep number={1} active={step === 0} completed={step > 0} title="Equipment Setup" desc="Configure experimental parameters and environmental conditions." />
             <LabStep number={2} active={step === 1} completed={step > 1} title="Execution" desc="Monitor real-time data flow and reaction metrics." />
             <LabStep number={3} active={step === 2} completed={step > 2} title="Final Analysis" desc="Evaluate results against pharmacopoeial standards." />
+            <LabStep number={4} active={step === 3} completed={step > 3} title="Submission" desc="Official record shared with academic faculty." />
           </div>
 
           <div className="mt-8 p-6 bg-slate-50 rounded-3xl border border-slate-100">
@@ -170,10 +237,9 @@ export default function LabSimulationPage({ params }: { params: Promise<{ type: 
           </div>
         </div>
 
-        {/* Main Work Area */}
-        <div className="flex-1 flex flex-col gap-6 overflow-y-auto pr-2">
+        <div className="flex-1 flex flex-col gap-6 overflow-y-auto pr-2 pb-10">
           
-          <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm flex items-center justify-between">
+          <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm flex items-center justify-between sticky top-0 z-10">
              <div className="flex items-center gap-8">
                 <div className="flex flex-col">
                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Efficiency</span>
@@ -182,29 +248,45 @@ export default function LabSimulationPage({ params }: { params: Promise<{ type: 
                 <div className="w-px h-10 bg-slate-100" />
                 <div className="flex flex-col">
                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Lab Status</span>
-                   <span className={`text-2xl font-black ${isRunning ? 'text-orange-500' : 'text-green-600'}`}>
-                      {isRunning ? 'Running...' : 'Standby'}
+                   <span className={`text-2xl font-black ${isRunning ? 'text-orange-500' : step === 3 ? 'text-green-600' : 'text-slate-600'}`}>
+                      {isRunning ? 'Running...' : step === 3 ? 'Submitted' : 'Standby'}
                    </span>
                 </div>
              </div>
              <div className="flex gap-4">
-                <button onClick={() => { setStep(0); setResults(null); }} className="p-4 bg-slate-100 text-slate-600 rounded-2xl hover:bg-slate-200 transition-all active:scale-95">
+                <button onClick={() => { setStep(0); setResults(null); setScore(0); }} className="p-4 bg-slate-100 text-slate-600 rounded-2xl hover:bg-slate-200 transition-all active:scale-95">
                   <RotateCcw className="w-5 h-5" />
                 </button>
-                <button disabled={isRunning} onClick={handleSimulate} className="px-8 py-4 bg-blue-600 text-white font-black rounded-2xl shadow-xl shadow-blue-200 border-b-4 border-blue-800 hover:bg-blue-700 active:border-b-0 active:translate-y-1 transition-all flex items-center gap-3 uppercase text-xs tracking-widest">
-                  <Play className="w-4 h-4 fill-current ml-1" />
-                  Launch Sim
-                </button>
+                {step === 2 ? (
+                   <button 
+                    disabled={isSubmitting}
+                    onClick={handleSubmitResult}
+                    className="px-8 py-4 bg-green-600 text-white font-black rounded-2xl shadow-xl shadow-green-200 border-b-4 border-green-800 hover:bg-green-700 active:border-b-0 active:translate-y-1 transition-all flex items-center gap-3 uppercase text-xs tracking-widest"
+                   >
+                     {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+                     Submit Result
+                   </button>
+                ) : (
+                  <button 
+                   disabled={isRunning || step === 3} 
+                   onClick={handleSimulate} 
+                   className="px-8 py-4 bg-blue-600 text-white font-black rounded-2xl shadow-xl shadow-blue-200 border-b-4 border-blue-800 hover:bg-blue-700 disabled:opacity-50 active:border-b-0 active:translate-y-1 transition-all flex items-center gap-3 uppercase text-xs tracking-widest"
+                  >
+                    <Play className="w-4 h-4 fill-current ml-1" />
+                    Launch Sim
+                  </button>
+                )}
              </div>
           </div>
 
-          <div className="flex-1 grid grid-cols-1 xl:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
              
-             {/* Dynamic Control Panel */}
              <div className="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-sm overflow-y-auto">
-                <h3 className="text-lg font-black text-slate-800 uppercase mb-8 flex items-center gap-3">
-                   <Settings className="w-5 h-5 text-blue-600" />
-                   Configuration Matrix
+                <h3 className="text-lg font-black text-slate-800 uppercase mb-8 flex items-center justify-between">
+                   <div className="flex items-center gap-3">
+                     <Settings className="w-5 h-5 text-blue-600" />
+                     Configuration Matrix
+                   </div>
                 </h3>
                 
                 <div className="space-y-8">
@@ -234,17 +316,18 @@ export default function LabSimulationPage({ params }: { params: Promise<{ type: 
                 </div>
              </div>
 
-             {/* Visualization Panel */}
-             <div className="bg-slate-900 p-10 rounded-[3rem] border border-slate-800 shadow-2xl flex flex-col">
+             <div className="bg-slate-900 p-10 rounded-[3rem] border border-slate-800 shadow-2xl flex flex-col min-h-[500px]">
                 <h3 className="text-lg font-black text-white uppercase mb-8 flex items-center gap-3">
                    <TrendingUp className="w-5 h-5 text-blue-400" />
-                   {labType === 'dissolution' ? 'Vessel UV-Vis' : labType === 'tablet' ? 'Mechanical Stability' : 'Emulsion Microstructure'}
+                   Analytical Viewport
                 </h3>
 
-                <div className="flex-1 flex items-center justify-center">
+                <div className="flex-1 flex items-center justify-center relative">
                    {results ? (
                       labType === 'dissolution' ? (
-                        <Line data={dissolutionChart} options={darkLineOptions} />
+                        <div className="w-full">
+                           <Line data={dissolutionChart} options={darkLineOptions} />
+                        </div>
                       ) : labType === 'tablet' ? (
                         <div className="w-full space-y-8">
                            <Bar data={tabletChart} options={darkBarOptions} />
@@ -277,23 +360,62 @@ export default function LabSimulationPage({ params }: { params: Promise<{ type: 
                 </div>
              </div>
 
+             <div className="xl:col-span-2 bg-white rounded-[3rem] border border-slate-100 shadow-sm p-10 mt-6 overflow-hidden">
+                <div className="flex items-center justify-between mb-8">
+                   <h3 className="text-lg font-black text-slate-800 uppercase flex items-center gap-3">
+                      <Archive className="w-5 h-5 text-blue-600" />
+                      Experiment Documentation & Formulas
+                   </h3>
+                   {(user?.role === 'SUPER_ADMIN' || user?.role === 'TEACHER') && (
+                     <button 
+                      onClick={() => isEditingTheory ? handleUpdateTheory() : setIsEditingTheory(true)}
+                      className="flex items-center gap-2 px-6 py-2.5 bg-slate-900 text-white font-black rounded-xl text-[10px] uppercase tracking-widest hover:bg-black transition-all"
+                     >
+                        {isEditingTheory ? <CheckCircle2 className="w-4 h-4" /> : <Edit2 className="w-4 h-4" />}
+                        {isEditingTheory ? 'Save Documentation' : 'Edit Details'}
+                     </button>
+                   )}
+                </div>
+
+                <div className="bg-slate-50 rounded-[2rem] p-8 border border-slate-100 min-h-[200px]">
+                   {isEditingTheory ? (
+                     <textarea 
+                      value={theoryText}
+                      onChange={(e) => setTheoryText(e.target.value)}
+                      placeholder="Add experiment methodology, formulas, and clinical implications..."
+                      className="w-full min-h-[300px] p-6 bg-white border border-slate-200 rounded-2xl font-medium text-slate-700 outline-none focus:ring-4 focus:ring-blue-50 transition-all shadow-inner resize-none"
+                     />
+                   ) : (
+                     <div className="prose prose-slate max-w-none">
+                        {theoryText ? (
+                          <div className="whitespace-pre-wrap font-medium text-slate-600 leading-relaxed italic">
+                            {theoryText}
+                          </div>
+                        ) : (
+                          <div className="flex flex-col items-center justify-center py-10 opacity-30 italic">
+                             <Archive className="w-12 h-12 mb-3" />
+                             <p className="text-sm">No documentation provided for this experiment.</p>
+                          </div>
+                        )}
+                     </div>
+                   )}
+                </div>
+             </div>
           </div>
-
         </div>
-
       </div>
 
       <AnimatePresence>
         {showIntro && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-slate-900/80 backdrop-blur-xl" />
-             <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="relative bg-white w-full max-w-2xl rounded-[4rem] p-16 text-center">
-                <div className="w-24 h-24 bg-blue-50 text-blue-600 rounded-[2.5rem] flex items-center justify-center mx-auto mb-10"><Beaker className="w-12 h-12" /></div>
+             <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="relative bg-white w-full max-w-2xl rounded-[4rem] p-16 text-center shadow-2xl border-4 border-blue-50">
+                <div className="w-24 h-24 bg-blue-50 text-blue-600 rounded-[2.5rem] flex items-center justify-center mx-auto mb-10 ring-4 ring-blue-100"><Beaker className="w-12 h-12" /></div>
                 <h2 className="text-4xl font-black text-slate-800 uppercase tracking-tighter mb-6">{labType} Simulation</h2>
-                <p className="text-slate-500 font-medium text-lg mb-12 italic">
+                <p className="text-slate-500 font-medium text-lg mb-12 italic leading-relaxed">
                    "Master the professional standards of pharmaceutical formulation in a high-fidelity virtual environment."
                 </p>
-                <button onClick={() => setShowIntro(false)} className="w-full py-6 bg-slate-900 text-white font-black rounded-3xl shadow-2xl uppercase tracking-widest text-sm">Proceed to Workstation</button>
+                <button onClick={() => setShowIntro(false)} className="w-full py-6 bg-slate-900 text-white font-black rounded-3xl shadow-2xl uppercase tracking-widest text-sm border-b-8 border-black active:border-b-0 active:translate-y-2 transition-all">Proceed to Workstation</button>
              </motion.div>
           </div>
         )}
@@ -302,7 +424,6 @@ export default function LabSimulationPage({ params }: { params: Promise<{ type: 
   );
 }
 
-// UI Helpers
 function LabStep({ number, active, completed, title, desc }: any) {
   return (
     <div className={`flex gap-5 transition-all ${active ? 'opacity-100' : 'opacity-40'}`}>

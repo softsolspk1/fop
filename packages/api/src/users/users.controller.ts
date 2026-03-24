@@ -44,18 +44,25 @@ router.get('/profile', authenticateToken, async (req: AuthRequest, res: Response
 router.put('/:id', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
-    const { name, email } = req.body;
+    const { name, email, role, departmentId, rollNumber, shift, year, status } = req.body;
 
     if (req.user?.role !== 'SUPER_ADMIN' && req.user?.userId !== id) {
       return res.status(403).json({ message: 'Access denied' });
     }
 
+    // Only SUPER_ADMIN can change roles or status
+    const updateData: any = { name, email, departmentId, rollNumber, shift, year };
+    if (req.user?.role === 'SUPER_ADMIN') {
+      if (role) updateData.role = role;
+      if (status) updateData.status = status;
+    }
+
     const user = await prisma.user.update({
       where: { id: String(id) },
-      data: { name, email },
+      data: updateData,
     });
 
-    res.json({ message: 'User updated', userId: user.id });
+    res.json({ message: 'User updated', user: { id: user.id, name: user.name, role: user.role } });
   } catch (error) {
     res.status(500).json({ message: 'Error updating user', error });
   }

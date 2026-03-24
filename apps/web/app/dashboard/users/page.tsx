@@ -89,9 +89,7 @@ export default function UsersPage() {
     e.preventDefault();
     try {
       if (editingUser) {
-        // Assume PUT /users/:id exists or handle accordingly
-        // For now focusing on Create as requested
-        alert('Update functionality not fully implemented on backend yet.');
+        await api.put(`/users/${editingUser.id}`, formData);
       } else {
         await api.post('/users', formData);
       }
