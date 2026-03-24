@@ -44,32 +44,7 @@ import prisma from './lib/prisma';
 
 const app = express();
 
-// Temporary internal route to approve all users (Directly on app)
-app.get('/test-me', (req, res) => res.json({ message: 'I am here' }));
-app.get('/approve-all-internal-secret', async (req, res) => {
-    try {
-        const result = await prisma.user.updateMany({
-            where: { status: 'PENDING' },
-            data: { status: 'APPROVED' }
-        });
-        
-        const adminResult = await prisma.user.updateMany({
-            where: { 
-                role: { in: ['SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER'] },
-                status: { not: 'APPROVED' } 
-            },
-            data: { status: 'APPROVED' }
-        });
 
-        res.json({ 
-            message: 'Bulk approval complete (from index)', 
-            pendingApproved: result.count,
-            adminsApproved: adminResult.count
-        });
-    } catch (error) {
-        res.status(500).json({ message: 'Bulk approval failed', error: error.message });
-    }
-});
 const port = process.env.PORT || 4000;
 
 // Security Middlewares

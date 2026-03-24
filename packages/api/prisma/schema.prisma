@@ -231,7 +231,7 @@ model Submission {
   plagiarism   Float?
   assignmentId String
   studentId    String
-  createdAt    DateTime   @now()
+  createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
   grade        Grade?
   assignment   Assignment @relation(fields: [assignmentId], references: [id])
@@ -328,8 +328,10 @@ model Experiment {
   grade        Float?
   feedback     String?
   createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  lab          Lab           @relation(fields: [labId], references: [id])
+  updatedAt          DateTime      @updatedAt
+  studentResult      Json?
+  studentObservation Json?
+  lab                Lab           @relation(fields: [labId], references: [id])
   student      User          @relation(fields: [studentId], references: [id])
   observations Observation[]
 }
@@ -358,7 +360,7 @@ model LabObservation {
   userId    String
   labType   String
   data      Json
-  createdAt DateTime @now()
+  createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id])
 }
 
