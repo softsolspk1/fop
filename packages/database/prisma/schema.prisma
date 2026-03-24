@@ -20,7 +20,7 @@ model User {
   rollNumber        String?
   shift             String?
   status            EnrollmentStatus   @default(PENDING)
-  year              Int?
+  year              String?
   enrollmentNumber  String?
   phoneNumber       String?
   assessmentResults AssessmentResult[]
@@ -311,7 +311,7 @@ model Lab {
   safety      String?
   theory      String?
   courseId    String?
-  year        Int?
+  year        String?
   assessments Assessment[]
   experiments Experiment[]
   course      Course?      @relation(fields: [courseId], references: [id])
