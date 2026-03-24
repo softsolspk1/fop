@@ -12,7 +12,7 @@
     "dev": "npm run dev --workspaces --if-present",
     "build:all": "npm run build --workspaces --if-present",
     "build:web": "cd apps/web && npx next build",
-    "postinstall": "npx prisma@6.19.2 generate --schema=packages/database/prisma/schema.prisma && node scripts/patch-metro.js",
+    "postinstall": "npx prisma@6.19.2 generate --schema=packages/database/prisma/schema.prisma && node build-scripts/patch-metro.js",
     "test": "npm run test --workspaces --if-present"
   },
   "devDependencies": {
