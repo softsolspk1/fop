@@ -9,18 +9,21 @@ import api from '../../../lib/api';
 export default function ApprovalsPage() {
   const [pendingMaterials, setPendingMaterials] = useState<any[]>([]);
   const [pendingQuizzes, setPendingQuizzes] = useState<any[]>([]);
+  const [pendingUsers, setPendingUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchPending = async () => {
     try {
       setLoading(true);
-      const [materialsRes, quizzesRes] = await Promise.all([
+      const [materialsRes, quizzesRes, usersRes] = await Promise.all([
         api.get('/lms/pending'),
-        api.get('/quizzes/pending')
+        api.get('/quizzes/pending'),
+        api.get('/users/pending')
       ]);
-      setPendingMaterials(materialsRes.data);
-      setPendingQuizzes(quizzesRes.data);
+      setPendingMaterials(materialsRes.data || []);
+      setPendingQuizzes(quizzesRes.data || []);
+      setPendingUsers(usersRes.data || []);
     } catch (err) {
       console.error('Error fetching pending items:', err);
       setError('Failed to load pending approvals.');
@@ -48,6 +51,15 @@ export default function ApprovalsPage() {
       fetchPending();
     } catch (err) {
       alert('Error updating quiz status');
+    }
+  };
+
+  const handleApproveUser = async (id: string, approve: boolean) => {
+    try {
+      await api.put(`/users/${id}`, { status: approve ? 'APPROVED' : 'REJECTED' });
+      fetchPending();
+    } catch (err) {
+      alert('Error updating user status');
     }
   };
 
@@ -168,6 +180,63 @@ export default function ApprovalsPage() {
               </div>
             </section>
           </div>
+
+          {/* User Registrations Section (Full Width) */}
+          <section className="space-y-4 pt-8 border-t border-slate-100">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-2 h-6 bg-green-600 rounded-full" />
+              <h3 className="text-lg font-black text-slate-800 tracking-tight">User Registrations</h3>
+              <span className="px-2 py-0.5 bg-green-50 text-green-600 rounded-lg text-[10px] font-black">{pendingUsers.length}</span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {pendingUsers.length === 0 ? (
+                <div className="col-span-full p-10 bg-slate-50 rounded-[2rem] border border-slate-100 text-center">
+                  <p className="text-slate-400 font-bold text-sm">No new user registrations pending approval.</p>
+                </div>
+              ) : (
+                pendingUsers.map((user) => (
+                  <motion.div 
+                    key={user.id} 
+                    layout
+                    className="p-6 bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-md transition-all space-y-4"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-green-50 text-green-600 rounded-2xl flex items-center justify-center font-black">
+                        {user.name.charAt(0)}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-black text-slate-800 leading-tight truncate">{user.name}</p>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1 truncate">
+                          {user.role} • {user.email}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between pt-2 border-t border-slate-50 italic text-[10px] text-slate-400 font-medium">
+                      <span>{new Date(user.createdAt).toLocaleDateString()}</span>
+                      <span>{user.department?.name || 'No Dept'}</span>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <button 
+                        onClick={() => handleApproveUser(user.id, false)}
+                        className="flex-1 py-3 bg-red-50 text-red-600 rounded-2xl font-black text-xs hover:bg-red-600 hover:text-white transition-all shadow-sm"
+                      >
+                        REJECT
+                      </button>
+                      <button 
+                        onClick={() => handleApproveUser(user.id, true)}
+                        className="flex-1 py-3 bg-green-600 text-white rounded-2xl font-black text-xs hover:bg-green-700 transition-all shadow-md active:scale-95"
+                      >
+                        APPROVE
+                      </button>
+                    </div>
+                  </motion.div>
+                ))
+              )}
+            </div>
+          </section>
         )}
       </div>
     </DashboardLayout>

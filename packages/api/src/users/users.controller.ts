@@ -7,18 +7,46 @@ const router = Router();
 // Get all users (Authenticated) - used for chat discovery and directory
 router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
+    const { status } = req.query;
+    const where: any = {};
+    if (status) where.status = status;
+
     const users = await prisma.user.findMany({
+      where,
       select: {
         id: true,
         name: true,
         role: true,
         departmentId: true,
         createdAt: true,
+        status: true,
+        email: true
       },
     });
+    console.log(`Fetched ${users.length} users with status: ${status || 'any'}`);
     res.json(users);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching users', error });
+  }
+});
+
+// Get pending users (Super Admin only)
+router.get('/pending', authenticateToken, authorizeRoles('SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
+  try {
+    const users = await prisma.user.findMany({
+      where: { status: 'PENDING' },
+      select: {
+        id: true,
+        name: true,
+        role: true,
+        email: true,
+        createdAt: true,
+        department: { select: { name: true } }
+      }
+    });
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching pending users', error });
   }
 });
 
