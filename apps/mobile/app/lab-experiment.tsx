@@ -18,6 +18,10 @@ export default function LabExperimentScreen() {
     temp: 37
   });
   const [result, setResult] = useState<any>(null);
+  const [observation, setObservation] = useState('');
+  const [studentResult, setStudentResult] = useState('');
+  const [experimentId, setExperimentId] = useState<string | null>(null);
+  const [submitted, setSubmitted] = useState(false);
 
   const runSimulation = async () => {
     setLoading(true);
@@ -25,9 +29,35 @@ export default function LabExperimentScreen() {
       // Use the simulation endpoint which handles the math
       const { data } = await api.post(`/labs/${id}/simulate`, inputs);
       setResult(data.results || data.resultData);
+      setExperimentId(data.experimentId);
     } catch (error) {
       console.error(error);
       Alert.alert('Error', 'Simulation failed. Check parameters.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const submitReport = async () => {
+    if (!experimentId) {
+      Alert.alert('Error', 'Please run simulation first.');
+      return;
+    }
+    if (!observation || !studentResult) {
+      Alert.alert('Error', 'Please fill in both Observation and Result.');
+      return;
+    }
+    setLoading(true);
+    try {
+      await api.post(`/labs/experiments/${experimentId}/submit`, { 
+        studentObservation: observation, 
+        studentResult 
+      });
+      setSubmitted(true);
+      Alert.alert('Success', 'Lab report submitted successfully!');
+    } catch (error) {
+      console.error(error);
+      Alert.alert('Error', 'Failed to submit lab report.');
     } finally {
       setLoading(false);
     }
@@ -138,15 +168,44 @@ export default function LabExperimentScreen() {
           ) : (
             <Text style={styles.resultText}>{String(result)}</Text>
           )}
-          
-          <TouchableOpacity 
-            style={styles.saveBtn}
-            onPress={() => Alert.alert('Saved', 'Observation recorded in your Lab Notebook!')}
-          >
-            <Save size={20} color="#2563eb" />
-            <Text style={styles.saveBtnText}>Save to Lab Notebook</Text>
-          </TouchableOpacity>
 
+          <View style={[styles.card, { margin: 0, marginTop: 24 }]}>
+            <Text style={styles.sectionTitle}>Report Submission</Text>
+            
+            <Text style={styles.label}>Observations</Text>
+            <TextInput 
+              style={[styles.input, { height: 80, textAlignVertical: 'top' }]} 
+              multiline
+              placeholder="Record your observations here..."
+              value={observation}
+              onChangeText={setObservation}
+              editable={!submitted}
+            />
+
+            <Text style={styles.label}>Final Result / Conclusion</Text>
+            <TextInput 
+              style={[styles.input, { height: 80, textAlignVertical: 'top' }]} 
+              multiline
+              placeholder="Enter your final findings..."
+              value={studentResult}
+              onChangeText={setStudentResult}
+              editable={!submitted}
+            />
+
+            <TouchableOpacity 
+              style={[styles.runBtn, { backgroundColor: submitted ? '#16a34a' : '#2563eb' }]} 
+              onPress={submitReport}
+              disabled={loading || submitted}
+            >
+              {loading ? <ActivityIndicator color="#fff" /> : (
+                <>
+                  <Save size={20} color="#fff" />
+                  <Text style={styles.runBtnText}>{submitted ? 'Report Submitted' : 'Submit Lab Report'}</Text>
+                </>
+              )}
+            </TouchableOpacity>
+          </View>
+          
           <TouchableOpacity 
             style={[styles.runBtn, { marginTop: 12, backgroundColor: '#1e293b' }]}
             onPress={() => router.push({

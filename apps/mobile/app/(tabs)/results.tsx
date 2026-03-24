@@ -16,11 +16,10 @@ export default function ResultsScreen() {
 
   const fetchResults = async () => {
     try {
-      const { data } = await api.get('/results');
+      const { data } = await api.get('/results/me');
       setResults(data);
     } catch (error) {
       console.error('Error fetching results:', error);
-      // For now, if API fails or is empty, we show a friendly empty state
       setResults([]);
     } finally {
       setLoading(false);
@@ -53,16 +52,17 @@ export default function ResultsScreen() {
               <Award size={24} color="#2563eb" />
             </View>
             <View style={styles.content}>
-               <Text style={styles.courseCode}>{item.courseCode || 'PHM-101'}</Text>
-               <Text style={styles.courseName}>{item.courseName || 'Pharmaceutics-I'}</Text>
+               <Text style={styles.courseCode}>{item.course?.code || 'COURSE'}</Text>
+               <Text style={styles.courseName}>{item.course?.name || 'Loading...'}</Text>
                <View style={styles.metaRow}>
                  <Calendar size={14} color="#64748b" />
-                 <Text style={styles.metaText}>{item.semester || 'Spring 2026'}</Text>
+                 <Text style={styles.metaText}>Semester {item.semester || '-'}</Text>
+                 <Text style={styles.metaText}>• {item.academicYear || ''}</Text>
                </View>
             </View>
             <View style={styles.gradeContainer}>
-               <Text style={styles.gradeText}>{item.grade || 'A'}</Text>
-               <Text style={styles.gpaText}>{item.gpa || '4.00'}</Text>
+               <Text style={styles.gradeText}>{item.grade || '-'}</Text>
+               <Text style={styles.gpaText}>{item.marks || '0'} Marks</Text>
             </View>
             <ChevronRight size={18} color="#cbd5e1" />
           </TouchableOpacity>

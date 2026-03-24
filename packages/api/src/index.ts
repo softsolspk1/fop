@@ -52,7 +52,9 @@ app.use(cors({
     const allowedOrigins = [
       'http://localhost:3000',
       'https://fop-web.vercel.app',
-      'https://fopwebsite.vercel.app'
+      'https://fopwebsite.vercel.app',
+      'https://fopps-uok.online',
+      'http://fopps-uok.online'
     ];
     // Allow requests with no origin (like mobile apps or curl)
     if (!origin || allowedOrigins.indexOf(origin) !== -1) {

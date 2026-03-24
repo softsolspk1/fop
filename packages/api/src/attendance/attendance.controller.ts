@@ -146,6 +146,41 @@ router.post('/mark-end', authenticateToken, authorizeRoles('STUDENT'), async (re
   }
 });
 
+// Simple self-mark for mobile live sessions
+router.post('/self-mark', authenticateToken, authorizeRoles('STUDENT'), async (req: AuthRequest, res: Response) => {
+  try {
+    const { classId } = req.body;
+    const userId = req.user!.userId;
+
+    const existing = await prisma.attendance.findFirst({
+      where: { classId, userId }
+    });
+
+    if (existing) {
+      if (existing.status === 'PRESENT') {
+        return res.status(200).json({ message: 'Attendance already marked as PRESENT', record: existing });
+      }
+      await prisma.attendance.update({
+        where: { id: existing.id },
+        data: { status: 'PRESENT', markedStartAt: new Date() }
+      });
+    } else {
+      await prisma.attendance.create({
+        data: {
+          classId,
+          userId,
+          status: 'PRESENT',
+          markedStartAt: new Date()
+        }
+      });
+    }
+
+    res.status(201).json({ message: 'Attendance marked successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Internal server error', error });
+  }
+});
+
 // Get Cumulative Attendance (YTD)
 router.get('/cumulative', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {

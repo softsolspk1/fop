@@ -28,6 +28,26 @@ router.post('/', authenticateToken, authorizeRoles('SUPER_ADMIN', 'DEPT_ADMIN', 
   }
 });
 
+// Get current user's results
+router.get('/me', authenticateToken, async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.user!.userId;
+    const results = await prisma.result.findMany({
+      where: { studentId: userId },
+      include: {
+        course: {
+          select: { name: true, code: true }
+        },
+        teacher: { select: { name: true } }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+    res.json(results);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching personal results', error });
+  }
+});
+
 // Get results for a student (Self, Teacher, HOD, Admin)
 router.get('/student/:studentId', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {

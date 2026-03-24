@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl, Image } from 'react-native';
-import { Calendar, Clock, BookOpen, GraduationCap, Users, FileText, Bell, FlaskConical, Video, Sparkles } from 'lucide-react-native';
+import { Calendar, Clock, BookOpen, GraduationCap, Users, FileText, Bell, FlaskConical, Video, Sparkles, MessageSquare } from 'lucide-react-native';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../lib/api';
 import { useRouter } from 'expo-router';
@@ -131,7 +131,11 @@ export default function DashboardScreen() {
             <Text style={styles.welcome}>Welcome back,</Text>
             <Text style={styles.userName}>{user?.name || 'User'}</Text>
             <View style={styles.roleBadge}>
-               <Text style={styles.roleText}>{user?.role?.replace('_', ' ')}</Text>
+               <Text style={styles.roleText}>
+                 {user?.role === 'DEPT_ADMIN' || user?.role === 'HOD' ? 'HOD / DEPT ADMIN' : 
+                  user?.role === 'TEACHER' || user?.role === 'FACULTY' ? 'FACULTY MEMBER' : 
+                  user?.role?.replace('_', ' ')}
+               </Text>
             </View>
           </View>
         </View>
@@ -142,8 +146,8 @@ export default function DashboardScreen() {
 
       <View style={styles.content}>
         {user?.role === 'STUDENT' && renderStudentStats()}
-        {user?.role === 'FACULTY' && renderFacultyStats()}
-        {(user?.role === 'HOD' || user?.role === 'DEPT_ADMIN') && renderHODStats()}
+        {(user?.role === 'FACULTY' || user?.role === 'TEACHER') && renderFacultyStats()}
+        {(user?.role === 'HOD' || user?.role === 'DEPT_ADMIN' || user?.role === 'SUPER_ADMIN') && renderHODStats()}
 
         <Text style={styles.sectionTitle}>Quick Actions</Text>
         <View style={styles.actionGrid}>
@@ -169,7 +173,13 @@ export default function DashboardScreen() {
                 </View>
                 <Text style={styles.actionLabel}>Live Class</Text>
               </TouchableOpacity>
-
+              
+              <TouchableOpacity style={styles.actionItem} onPress={() => router.push('/(tabs)/results')}>
+                <View style={[styles.actionIcon, { backgroundColor: '#f0fdf4' }]}>
+                  <FileText size={24} color="#16a34a" />
+                </View>
+                <Text style={styles.actionLabel}>My Results</Text>
+              </TouchableOpacity>
             </>
           )}
 
@@ -188,10 +198,17 @@ export default function DashboardScreen() {
                 </View>
                 <Text style={styles.actionLabel}>Attendance</Text>
               </TouchableOpacity>
+
+              <TouchableOpacity style={styles.actionItem} onPress={() => router.push('/(tabs)/chat')}>
+                <View style={[styles.actionIcon, { backgroundColor: '#fdf2f8' }]}>
+                  <MessageSquare size={24} color="#db2777" />
+                </View>
+                <Text style={styles.actionLabel}>Messages</Text>
+              </TouchableOpacity>
             </>
           )}
 
-          {(user?.role === 'HOD' || user?.role === 'DEPT_ADMIN') && (
+          {(user?.role === 'HOD' || user?.role === 'DEPT_ADMIN' || user?.role === 'SUPER_ADMIN') && (
             <>
               <TouchableOpacity style={styles.actionItem} onPress={() => router.push('/faculty-directory')}>
                 <View style={[styles.actionIcon, { backgroundColor: '#eff6ff' }]}>
@@ -205,6 +222,13 @@ export default function DashboardScreen() {
                   <Calendar size={24} color="#16a34a" />
                 </View>
                 <Text style={styles.actionLabel}>Dept Schedule</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity style={styles.actionItem} onPress={() => router.push('/attendance-logs')}>
+                <View style={[styles.actionIcon, { backgroundColor: '#fff7ed' }]}>
+                   <Bell size={24} color="#ea580c" />
+                </View>
+                <Text style={styles.actionLabel}>Logs</Text>
               </TouchableOpacity>
             </>
           )}

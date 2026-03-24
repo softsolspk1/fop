@@ -51,3 +51,8 @@ logs/
 
 .vercel
 .env*.local
+
+# Sensitive/User Data
+65999.txt
+scripts/
+*.pdf
