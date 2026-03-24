@@ -31,6 +31,7 @@ import {
 import { Line, Bar } from 'react-chartjs-2';
 import api from '../../../../../lib/api';
 import { motion, AnimatePresence } from 'framer-motion';
+import { use } from 'react';
 
 ChartJS.register(
   CategoryScale,
@@ -43,8 +44,8 @@ ChartJS.register(
   Legend
 );
 
-export default function LabSimulationPage({ params }: { params: { type: string } }) {
-  const labType = params.type; // dissolution, tablet, emulsion
+export default function LabSimulationPage({ params }: { params: Promise<{ type: string }> }) {
+  const { type: labType } = use(params); // dissolution, tablet, emulsion
   const [step, setStep] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
   const [results, setResults] = useState<any>(null);

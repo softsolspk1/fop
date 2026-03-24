@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import DashboardLayout from '../../../components/dashboard/DashboardLayout';
-import { Video, Calendar, Clock, User, AlertCircle, Play, Users, MapPin } from 'lucide-react';
+import { Video, Calendar, Clock, User, AlertCircle, Play, Users, MapPin, Trash2 } from 'lucide-react';
 import api from '../../../lib/api';
 import { useAuth } from '../../../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -73,6 +73,17 @@ export default function LiveClassesPage() {
     } catch (err) {
       console.error(err);
       alert('Failed to create class session');
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this session?')) return;
+    try {
+      await api.delete(`/classes/${id}`);
+      fetchClasses();
+    } catch (err) {
+      console.error('Error deleting class:', err);
+      alert('Failed to delete session');
     }
   };
 
@@ -207,6 +218,12 @@ export default function LiveClassesPage() {
                             Stop Session
                           </button>
                         )}
+                        <button 
+                          onClick={() => handleDelete(cls.id)}
+                          className="p-4 bg-red-50 text-red-600 rounded-2xl hover:bg-red-100 transition-all"
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </button>
                       </div>
                     )}
 

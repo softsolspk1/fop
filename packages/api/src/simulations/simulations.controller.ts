@@ -120,4 +120,15 @@ router.post('/submit', authenticateToken, async (req: AuthRequest, res: Response
     }
 });
 
+// Delete a lab submission
+router.delete('/experiments/:id', authenticateToken, async (req: AuthRequest, res: Response) => {
+    try {
+        const { id } = req.params;
+        await prisma.experiment.delete({ where: { id: String(id) } });
+        res.json({ message: "Lab submission deleted successfully" });
+    } catch (error: any) {
+        res.status(500).json({ message: "Error deleting experiment", error: error.message });
+    }
+});
+
 export default router;

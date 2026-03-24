@@ -156,4 +156,15 @@ router.post('/:id/attendance', authenticateToken, async (req: AuthRequest, res: 
   }
 });
 
+// Delete a class session
+router.delete('/:id', authenticateToken, authorizeRoles('SUPER_ADMIN', 'TEACHER'), async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    await prisma.class.delete({ where: { id: String(id) } });
+    res.json({ message: 'Class session deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error deleting class session', error });
+  }
+});
+
 export default router;

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import DashboardLayout from '../../../../components/dashboard/DashboardLayout';
-import { Beaker, FlaskConical, Users, Search, CheckCircle, XCircle, Clock, Info, ArrowLeft, MessageSquare, Star, Send, Loader2 } from 'lucide-react';
+import { Beaker, FlaskConical, Users, Search, CheckCircle, XCircle, Clock, Info, ArrowLeft, MessageSquare, Star, Send, Loader2, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../../../lib/api';
 
@@ -47,6 +47,17 @@ export default function LabSubmissionsPage() {
       alert('Failed to submit grade.');
     } finally {
       setGrading(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this submission?')) return;
+    try {
+      await api.delete(`/api/experiments/${id}`);
+      fetchSubmissions();
+    } catch (err) {
+      console.error('Error deleting submission:', err);
+      alert('Failed to delete submission');
     }
   };
 
@@ -130,6 +141,12 @@ export default function LabSubmissionsPage() {
                    >
                      View & Grade
                    </button>
+                   <button 
+                      onClick={() => handleDelete(sub.id)}
+                      className="p-3 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition-all shadow-sm"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                 </div>
               </motion.div>
             ))}
