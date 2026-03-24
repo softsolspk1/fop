@@ -24,15 +24,18 @@ export default function CoursesScreen() {
   const fetchCourses = async () => {
     try {
       const { data } = await api.get('/courses');
+      if (!data || !Array.isArray(data)) {
+        setCourses([]);
+        return;
+      }
+
       let filteredCourses = data;
-      
       if (user?.role === 'STUDENT' && user?.year) {
         const requiredProf = yearToProfessional[user.year];
         if (requiredProf) {
-          filteredCourses = data.filter((c: any) => c.professional === requiredProf);
+          filteredCourses = data.filter((c: any) => c && c.professional === requiredProf);
         }
       }
-      
       setCourses(filteredCourses);
     } catch (err) {
       console.error(err);

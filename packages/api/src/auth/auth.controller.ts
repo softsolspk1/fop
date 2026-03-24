@@ -11,7 +11,7 @@ const router = Router();
 const registerSchema = z.object({
   body: z.object({
     email: z.string().email(),
-    password: z.string().min(8),
+    password: z.string().min(6),
     name: z.string().min(2),
     role: z.enum(['SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER', 'STUDENT']),
     departmentId: z.string().optional(),
@@ -57,12 +57,12 @@ router.post('/register', validate(registerSchema), async (req, res, next) => {
         password: hashedPassword,
         name,
         role,
-        departmentId,
-        shift,
-        year,
-        rollNumber,
-        enrollmentNumber,
-        phoneNumber,
+        departmentId: departmentId || undefined,
+        shift: shift || undefined,
+        year: year || undefined,
+        rollNumber: rollNumber || null,
+        enrollmentNumber: enrollmentNumber || null,
+        phoneNumber: phoneNumber || null,
         status: role === 'STUDENT' ? 'PENDING' : 'APPROVED'
       },
     });

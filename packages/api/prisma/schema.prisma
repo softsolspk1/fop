@@ -20,7 +20,7 @@ model User {
   rollNumber        String?
   shift             String?
   status            EnrollmentStatus   @default(PENDING)
-  year              Int?
+  year              String?
   enrollmentNumber  String?
   phoneNumber       String?
   assessmentResults AssessmentResult[]

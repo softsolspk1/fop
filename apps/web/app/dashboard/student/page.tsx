@@ -6,16 +6,26 @@ import { BookOpen, Video, FileText, Award, Clock, ArrowRight, Play, Download, Se
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useAuth } from '../../../context/AuthContext';
-
-const studentStats = [
-  { label: 'Enrolled Courses', value: '6', icon: BookOpen, color: 'text-blue-600', bg: 'bg-blue-100' },
-  { label: 'Attendance', value: '94%', icon: Clock, color: 'text-purple-600', bg: 'bg-purple-100' },
-  { label: 'GPA', value: '3.8', icon: Award, color: 'text-orange-600', bg: 'bg-orange-100' },
-  { label: 'Pending Tasks', value: '3', icon: FileText, color: 'text-red-600', bg: 'bg-red-100' },
-];
+import api from '../../../lib/api';
 
 export default function StudentDashboard() {
   const { user } = useAuth();
+  const [courses, setCourses] = React.useState<any[]>([]);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        const { data } = await api.get('/courses');
+        setCourses(data);
+      } catch (err) {
+        console.error('Failed to fetch courses', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCourses();
+  }, []);
 
   return (
     <DashboardLayout>
@@ -23,7 +33,10 @@ export default function StudentDashboard() {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-bold text-slate-800">Student Portal</h2>
-            <p className="text-slate-500">Welcome back, {user?.name || 'Student'}. You are enrolled in the <span className="text-blue-600 font-bold">{user?.shift || 'Morning'}</span> shift.</p>
+            <p className="text-slate-500 font-medium">
+              Welcome back, <span className="text-slate-900 font-black">{user?.name}</span>. 
+              You are currently enrolled in the <span className="text-blue-600 font-black uppercase">{user?.shift || 'Morning'}</span> shift, <span className="text-purple-600 font-black uppercase">{user?.year || '1st Year'}</span>.
+            </p>
           </div>
           <button className="flex items-center gap-2 px-6 py-3 bg-green-600 text-white font-bold rounded-xl shadow-lg hover:bg-green-700 transition-all hover:-translate-y-0.5 animate-pulse">
             <Video className="w-5 h-5" />
@@ -32,7 +45,12 @@ export default function StudentDashboard() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {studentStats.map((stat, idx) => (
+          {[
+            { label: 'Enrolled Courses', value: loading ? '...' : courses.length.toString(), icon: BookOpen, color: 'text-blue-600', bg: 'bg-blue-100' },
+            { label: 'Attendance', value: '94%', icon: Clock, color: 'text-purple-600', bg: 'bg-purple-100' },
+            { label: 'GPA', value: '3.8', icon: Award, color: 'text-orange-600', bg: 'bg-orange-100' },
+            { label: 'Pending Tasks', value: '3', icon: FileText, color: 'text-red-600', bg: 'bg-red-100' },
+          ].map((stat, idx) => (
             <motion.div 
               key={idx}
               initial={{ opacity: 0, y: 10 }}
@@ -53,32 +71,32 @@ export default function StudentDashboard() {
           <div className="lg:col-span-2 space-y-8">
             <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm">
               <div className="flex items-center justify-between mb-8">
-                <h3 className="text-xl font-bold text-slate-800">Class for Today</h3>
-                <span className="text-sm font-bold text-slate-400">March 16, 2026</span>
+                <h3 className="text-xl font-bold text-slate-800">My Assigned Courses</h3>
+                <Link href="/dashboard/courses" className="text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors uppercase tracking-widest">View Catalogue</Link>
               </div>
               <div className="space-y-4">
-                {[
-                  { title: 'Advanced Pharmacology I', time: '10:00 AM', status: 'In Progress', type: 'Live' },
-                  { title: 'Pharmaceutical Microbiology', time: '12:30 PM', status: 'Scheduled', type: 'Live' },
-                  { title: 'Biostatistics', time: '03:00 PM', status: 'Scheduled', type: 'Recorded' },
-                ].map((item, idx) => (
-                  <div key={idx} className={`flex items-center justify-between p-5 rounded-2xl border transition-all ${item.status === 'In Progress' ? 'bg-blue-50/50 border-blue-200' : 'bg-white border-slate-50 hover:border-slate-200'}`}>
-                    <div className="flex items-center gap-4">
-                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${item.type === 'Live' ? 'bg-blue-100 text-blue-600' : 'bg-slate-100 text-slate-600'}`}>
-                        <Video className="w-6 h-6" />
+                {loading ? (
+                  <div className="py-10 text-center text-slate-400 font-bold uppercase tracking-widest text-xs">Loading academic records...</div>
+                ) : courses.length === 0 ? (
+                  <div className="py-10 text-center text-slate-400 font-medium">No courses assigned yet.</div>
+                ) : (
+                  courses.slice(0, 4).map((course, idx) => (
+                    <div key={course.id} className="flex items-center justify-between p-5 rounded-2xl border border-slate-50 hover:border-blue-200 hover:bg-blue-50/10 transition-all group">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                          <BookOpen className="w-6 h-6" />
+                        </div>
+                        <div>
+                          <h4 className="font-bold text-slate-800">{course.name}</h4>
+                          <p className="text-sm text-slate-500">{course.code} • {course.teacher?.name}</p>
+                        </div>
                       </div>
-                      <div>
-                        <h4 className="font-bold text-slate-800">{item.title}</h4>
-                        <p className="text-sm text-slate-500">{item.time} • {item.type} Session</p>
-                      </div>
+                      <Link href={`/dashboard/courses`} className="p-2 text-slate-300 hover:text-blue-600 transition-colors">
+                        <ArrowRight className="w-5 h-5" />
+                      </Link>
                     </div>
-                    {item.status === 'In Progress' ? (
-                      <button className="px-5 py-2.5 bg-blue-600 text-white font-bold rounded-lg shadow-sm hover:bg-blue-700 transition-colors">Join Now</button>
-                    ) : (
-                      <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">{item.status}</span>
-                    )}
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </div>
 

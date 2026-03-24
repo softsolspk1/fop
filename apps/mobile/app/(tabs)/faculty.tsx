@@ -14,9 +14,10 @@ export default function FacultyScreen() {
   const fetchFaculty = async () => {
     try {
       const { data } = await api.get('/faculty');
-      setFaculty(data);
+      setFaculty(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error(err);
+      setFaculty([]);
     } finally {
       setLoading(false);
     }
@@ -39,7 +40,7 @@ export default function FacultyScreen() {
           <View style={styles.card}>
             <View style={styles.avatarRow}>
               <View style={styles.avatar}>
-                <Text style={styles.avatarText}>{item.name.charAt(0)}</Text>
+                <Text style={styles.avatarText}>{item.name?.charAt(0) || '?'}</Text>
               </View>
               <View style={styles.content}>
                 <Text style={styles.name}>{item.name}</Text>

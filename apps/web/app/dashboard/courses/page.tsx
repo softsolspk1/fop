@@ -148,13 +148,15 @@ export default function CoursesPage() {
             <h2 className="text-2xl font-bold text-slate-800 tracking-tight">Course Catalog</h2>
             <p className="text-slate-500 font-medium">Manage academic courses, assign instructors, and monitor student enrollment.</p>
           </div>
-          <button 
-            onClick={() => handleOpenModal()}
-            className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white font-black rounded-xl shadow-lg border-b-4 border-blue-800 active:border-b-0 active:translate-y-1 transition-all"
-          >
-            <Plus className="w-5 h-5" />
-            Create Course
-          </button>
+          {currentUser?.role !== 'STUDENT' && (
+            <button 
+              onClick={() => handleOpenModal()}
+              className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white font-black rounded-xl shadow-lg border-b-4 border-blue-800 active:border-b-0 active:translate-y-1 transition-all"
+            >
+              <Plus className="w-5 h-5" />
+              Create Course
+            </button>
+          )}
         </div>
 
         {loading ? (
@@ -255,10 +257,12 @@ export default function CoursesPage() {
                   <div className="p-4 bg-blue-50 text-blue-600 rounded-2xl group-hover:bg-blue-600 group-hover:text-white transition-colors">
                     <BookOpen className="w-6 h-6" />
                   </div>
-                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={() => handleOpenModal(course)} className="p-2 text-slate-400 hover:text-blue-600 transition-colors"><Edit2 className="w-4 h-4" /></button>
-                    <button onClick={() => handleDelete(course.id)} className="p-2 text-slate-400 hover:text-red-600 transition-colors"><Trash2 className="w-4 h-4" /></button>
-                  </div>
+                  {currentUser?.role !== 'STUDENT' && (
+                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button onClick={() => handleOpenModal(course)} className="p-2 text-slate-400 hover:text-blue-600 transition-colors"><Edit2 className="w-4 h-4" /></button>
+                      <button onClick={() => handleDelete(course.id)} className="p-2 text-slate-400 hover:text-red-600 transition-colors"><Trash2 className="w-4 h-4" /></button>
+                    </div>
+                  )}
                 </div>
                 
                 <div className="mb-6 flex-1">
@@ -293,12 +297,14 @@ export default function CoursesPage() {
                         <span className="font-bold text-[10px] uppercase tracking-widest">{course._count?.students || 0} Students</span>
                       </div>
                     <div className="flex gap-2">
-                      <button 
-                        onClick={() => setManagingMaterials(course)}
-                        className="flex items-center gap-1 text-slate-600 font-black text-[10px] uppercase tracking-widest hover:text-blue-600 transition-all border border-slate-200 px-3 py-1.5 rounded-lg"
-                      >
-                        Materials
-                      </button>
+                      {currentUser?.role !== 'STUDENT' && (
+                        <button 
+                          onClick={() => setManagingMaterials(course)}
+                          className="flex items-center gap-1 text-slate-600 font-black text-[10px] uppercase tracking-widest hover:text-blue-600 transition-all border border-slate-200 px-3 py-1.5 rounded-lg"
+                        >
+                          Materials
+                        </button>
+                      )}
                       <button 
                         onClick={() => setViewingCourse(course)}
                         className="flex items-center gap-1 text-blue-600 font-black text-[10px] uppercase tracking-widest hover:gap-2 transition-all"

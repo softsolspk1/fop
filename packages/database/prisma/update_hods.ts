@@ -9,7 +9,7 @@ const prisma = new PrismaClient();
 async function main() {
   // 1. Pharmacognosy
   const dept3 = await prisma.department.update({
-    where: { id: "cb1960da-1380-4560-af60-01d78216dc75" },
+    where: { id: "847eb108-8e6f-4cb1-80e3-6a23a3fef3c1" },
     data: { hodId: "139d9ab8-2f5c-40d7-ad78-c0c1a7526345" }
   });
   console.log('Updated Pharmacognosy:', dept3.name);

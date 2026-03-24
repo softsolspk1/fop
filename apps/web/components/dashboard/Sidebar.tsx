@@ -35,15 +35,14 @@ const navItems = [
   { icon: Building2, label: 'Departments', href: '/dashboard/departments', roles: ['SUPER_ADMIN'] },
   { icon: Users, label: 'User Management', href: '/dashboard/users', roles: ['SUPER_ADMIN', 'DEPT_ADMIN'] },
   { icon: UserPlus, label: 'Enrollments', href: '/dashboard/enrollments', roles: ['SUPER_ADMIN', 'DEPT_ADMIN'] },
-  { icon: BookOpen, label: 'Course Catalog', href: '/dashboard/courses', roles: ['SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER', 'STUDENT'] },
-  {icon: MessageSquare, label: 'Live Chat', href: '/dashboard/chat', roles: ['SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER', 'STUDENT'] },
+  { icon: BookOpen, label: 'Course Catalogue', href: '/dashboard/courses', roles: ['SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER', 'STUDENT'] },
+  { icon: MessageSquare, label: 'Live Chat', href: '/dashboard/chat', roles: ['SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER', 'STUDENT'] },
   { icon: Video, label: 'Live Classes', href: '/dashboard/classes', roles: ['SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER', 'STUDENT'] },
-  { icon: Beaker, label: 'Virtual Lab', href: '/dashboard/labs', roles: ['SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER', 'STUDENT'] },
-  { icon: ClipboardList, label: 'Lab Submissions', href: '/dashboard/labs/submissions', roles: ['SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER'] },
-  { icon: BarChart, label: 'Academic Reports', href: '/dashboard/reports', roles: ['SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER', 'STUDENT'] },
+  { icon: Beaker, label: 'Visual Lab', href: '/dashboard/labs', roles: ['SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER', 'STUDENT'] },
+  { icon: ClipboardList, label: 'Academic Reports', href: '/dashboard/reports', roles: ['SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER', 'STUDENT'] },
   { icon: CreditCard, label: 'Fee Management', href: '/dashboard/fees', roles: ['SUPER_ADMIN', 'DEPT_ADMIN', 'STUDENT'] },
   { icon: ClipboardList, label: 'Examination', href: '/dashboard/exams', roles: ['SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER', 'STUDENT'] },
-  { icon: FileText, label: 'Results', href: '/dashboard/results', roles: ['SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER', 'STUDENT'] },
+  { icon: FileText, label: 'Results', href: '/dashboard/results', roles: ['SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER'] },
   { icon: Users, label: 'Faculty', href: '/dashboard/faculty', roles: ['SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER', 'STUDENT'] },
   { icon: Calendar, label: 'Time Table', href: '/dashboard/calendar', roles: ['SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER', 'STUDENT'] },
   { icon: CheckCircle, label: 'Pending Approvals', href: '/dashboard/approvals', roles: ['SUPER_ADMIN', 'DEPT_ADMIN'] },
@@ -55,9 +54,30 @@ const Sidebar = () => {
   const pathname = usePathname();
   const { logout, user } = useAuth();
 
-  const filteredNavItems = navItems.filter(item => 
-    item.roles.includes(user?.role || '')
-  );
+  const filteredNavItems = navItems.filter(item => {
+    // Basic role check
+    if (!item.roles.includes(user?.role || '')) return false;
+
+    // Strict list for students as per request
+    if (user?.role === 'STUDENT') {
+      const allowedForStudent = [
+        'Dashboard', 
+        'Course Catalogue', 
+        'Live Chat', 
+        'Live Classes', 
+        'Visual Lab', 
+        'Academic Reports', 
+        'Fee Management', 
+        'Examination', 
+        'Faculty', 
+        'Time Table', 
+        'Settings'
+      ];
+      return allowedForStudent.includes(item.label);
+    }
+
+    return true;
+  });
 
   return (
     <div className="w-72 bg-white h-screen border-r border-slate-100 flex flex-col fixed left-0 top-0 z-40">

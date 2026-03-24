@@ -17,10 +17,10 @@ export default function LiveScreen() {
   const fetchClasses = async () => {
     try {
       const { data } = await api.get('/classes');
-      // Filter for classes happening now or today
-      setActiveClasses(data);
+      setActiveClasses(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error(error);
+      setActiveClasses([]);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -42,8 +42,9 @@ export default function LiveScreen() {
     >
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Live Now</Text>
-        {activeClasses.length > 0 ? (
+        {activeClasses && activeClasses.length > 0 ? (
             activeClasses.map(cls => (
+                cls && (
                 <TouchableOpacity 
                     key={cls.id} 
                     style={styles.activeCard}
@@ -83,6 +84,7 @@ export default function LiveScreen() {
                         </TouchableOpacity>
                     </View>
                 </TouchableOpacity>
+                )
             ))
         ) : (
             <View style={styles.emptyCard}>

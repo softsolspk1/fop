@@ -5,8 +5,10 @@ import DashboardLayout from '../../../components/dashboard/DashboardLayout';
 import { Plus, Search, User, Filter, GraduationCap, Building2, MoreVertical, Edit2, Trash2, Loader2, Mail, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../../lib/api';
+import { useAuth } from '../../../context/AuthContext';
 
 export default function FacultyPage() {
+  const { user } = useAuth();
   const [faculty, setFaculty] = useState<any[]>([]);
   const [departments, setDepartments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -110,13 +112,15 @@ export default function FacultyPage() {
             <h2 className="text-2xl font-bold text-slate-800 tracking-tight">Faculty Directory</h2>
             <p className="text-slate-500 font-medium">Manage faculty members, designations, and department assignments.</p>
           </div>
-          <button 
-            onClick={() => setIsModalOpen(true)}
-            className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white font-black rounded-xl shadow-lg border-b-4 border-blue-800 active:border-b-0 active:translate-y-1 transition-all"
-          >
-            <Plus className="w-5 h-5" />
-            Add Faculty Member
-          </button>
+          {user?.role !== 'STUDENT' && (
+            <button 
+              onClick={() => setIsModalOpen(true)}
+              className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white font-black rounded-xl shadow-lg border-b-4 border-blue-800 active:border-b-0 active:translate-y-1 transition-all"
+            >
+              <Plus className="w-5 h-5" />
+              Add Faculty Member
+            </button>
+          )}
         </div>
 
         {/* ... (rest of the table code remains the same) ... */}
@@ -259,11 +263,13 @@ export default function FacultyPage() {
                       </div>
                     </td>
                     <td className="px-8 py-5 text-right">
-                      <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-all duration-300">
-                        <button onClick={() => handleOpenModal(f)} className="p-2.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"><Edit2 className="w-4 h-4" /></button>
-                        <button onClick={() => handleDelete(f.id)} className="p-2.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"><Trash2 className="w-4 h-4" /></button>
-                        <button className="p-2.5 text-slate-400 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition-all"><MoreVertical className="w-4 h-4" /></button>
-                      </div>
+                      {user?.role !== 'STUDENT' && (
+                        <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                          <button onClick={() => handleOpenModal(f)} className="p-2.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"><Edit2 className="w-4 h-4" /></button>
+                          <button onClick={() => handleDelete(f.id)} className="p-2.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"><Trash2 className="w-4 h-4" /></button>
+                          <button className="p-2.5 text-slate-400 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition-all"><MoreVertical className="w-4 h-4" /></button>
+                        </div>
+                      )}
                     </td>
                   </motion.tr>
                 ))

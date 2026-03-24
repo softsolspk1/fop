@@ -108,12 +108,12 @@ export default function SignupScreen() {
 
         {/* Roll & Enrollment */}
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Roll Number</Text>
+          <Text style={styles.label}>Roll Number / Form Number</Text>
           <View style={styles.inputWrapper}>
             <Hash size={20} color="#64748b" style={styles.icon} />
             <TextInput 
               style={styles.input}
-              placeholder="e.g. 23-PHA-124"
+              placeholder="e.g. 23-PHA-124 or Form #1234"
               value={formData.rollNumber}
               onChangeText={(text) => setFormData({...formData, rollNumber: text})}
             />
@@ -121,12 +121,12 @@ export default function SignupScreen() {
         </View>
 
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Enrollment Number</Text>
+          <Text style={styles.label}>Enrollment Number (Optional)</Text>
           <View style={styles.inputWrapper}>
             <Hash size={20} color="#64748b" style={styles.icon} />
             <TextInput 
               style={styles.input}
-              placeholder="e.g. UOK-EN-2023-144"
+              placeholder="e.g. UOK-EN-2023-144 (Optional)"
               value={formData.enrollmentNumber}
               onChangeText={(text) => setFormData({...formData, enrollmentNumber: text})}
             />

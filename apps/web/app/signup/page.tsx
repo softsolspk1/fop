@@ -128,7 +128,7 @@ export default function SignupPage() {
 
               {/* Roll Number */}
               <div>
-                <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Roll Number</label>
+                <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Roll Number / Form Number</label>
                 <div className="relative group">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <Hash className="h-5 w-5 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
@@ -137,7 +137,7 @@ export default function SignupPage() {
                     type="text"
                     required
                     className="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all placeholder-slate-400"
-                    placeholder="e.g. 23-PHA-124"
+                    placeholder="e.g. 23-PHA-124 or Form #1234"
                     value={formData.rollNumber}
                     onChange={(e) => setFormData({...formData, rollNumber: e.target.value})}
                   />
@@ -146,14 +146,13 @@ export default function SignupPage() {
 
               {/* Enrollment Number */}
               <div>
-                <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Enrollment Number</label>
+                <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Enrollment Number (Optional)</label>
                 <div className="relative group">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <Hash className="h-5 w-5 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
                   </div>
                   <input
                     type="text"
-                    required
                     className="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all placeholder-slate-400"
                     placeholder="e.g. UOK-EN-2023-144"
                     value={formData.enrollmentNumber}
