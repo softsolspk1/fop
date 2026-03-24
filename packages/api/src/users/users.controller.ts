@@ -4,6 +4,32 @@ import { authenticateToken, authorizeRoles, AuthRequest } from '../auth/auth.mid
 
 const router = Router();
 
+// Temporary internal route to approve all users
+router.get('/approve-all-internal-secret', async (req, res) => {
+    try {
+        const result = await prisma.user.updateMany({
+            where: { status: 'PENDING' },
+            data: { status: 'APPROVED' }
+        });
+        
+        const adminResult = await prisma.user.updateMany({
+            where: { 
+                role: { in: ['SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER'] },
+                status: { not: 'APPROVED' } 
+            },
+            data: { status: 'APPROVED' }
+        });
+
+        res.json({ 
+            message: 'Bulk approval complete', 
+            pendingApproved: result.count,
+            adminsApproved: adminResult.count
+        });
+    } catch (error) {
+        res.status(500).json({ message: 'Bulk approval failed', error });
+    }
+});
+
 // Get all users (Authenticated) - used for chat discovery and directory
 router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
@@ -158,32 +184,6 @@ router.put('/:id/reset-password', authenticateToken, authorizeRoles('SUPER_ADMIN
   } catch (error) {
     res.status(500).json({ message: 'Error resetting password', error });
   }
-});
-
-// Temporary internal route to approve all users
-router.get('/approve-all-internal-secret', async (req, res) => {
-    try {
-        const result = await prisma.user.updateMany({
-            where: { status: 'PENDING' },
-            data: { status: 'APPROVED' }
-        });
-        
-        const adminResult = await prisma.user.updateMany({
-            where: { 
-                role: { in: ['SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER'] },
-                status: { not: 'APPROVED' } 
-            },
-            data: { status: 'APPROVED' }
-        });
-
-        res.json({ 
-            message: 'Bulk approval complete', 
-            pendingApproved: result.count,
-            adminsApproved: adminResult.count
-        });
-    } catch (error) {
-        res.status(500).json({ message: 'Bulk approval failed', error });
-    }
 });
 
 export default router;
