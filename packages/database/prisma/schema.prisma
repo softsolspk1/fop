@@ -315,6 +315,7 @@ model Lab {
   assessments Assessment[]
   experiments Experiment[]
   course      Course?      @relation(fields: [courseId], references: [id])
+  multimediaContent Json?
 }
 
 model Experiment {

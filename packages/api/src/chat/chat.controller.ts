@@ -119,4 +119,97 @@ router.post('/groups', authenticateToken, async (req: AuthRequest, res: Response
     }
 });
 
+// ---------------------------------------------------------
+// NEW ALIASED ROUTES FOR FRONTEND COMPATIBILITY
+// ---------------------------------------------------------
+
+// Get all groups for current user
+router.get('/groups', authenticateToken, async (req: AuthRequest, res: Response) => {
+    try {
+        const userId = req.user!.userId;
+        const groups = await prisma.chatGroup.findMany({
+            where: { members: { some: { id: userId } } },
+            include: { course: true }
+        });
+        res.json(groups);
+    } catch (error) {
+        res.status(500).json({ message: 'Error fetching groups', error });
+    }
+});
+
+// Get messages for a specific group
+router.get('/group/:id/messages', authenticateToken, async (req: AuthRequest, res: Response) => {
+    try {
+        const { id } = req.params;
+        const messages = await prisma.message.findMany({
+            where: { groupId: String(id) },
+            orderBy: { createdAt: 'asc' },
+            include: { sender: { select: { id: true, name: true, role: true } } }
+        });
+        res.json(messages);
+    } catch (error) {
+        res.status(500).json({ message: 'Error fetching group messages', error });
+    }
+});
+
+// Get messages for a specific DM
+router.get('/dm/:id/messages', authenticateToken, async (req: AuthRequest, res: Response) => {
+    try {
+        const { id } = req.params; // Partner physical ID
+        const userId = req.user!.userId;
+        const messages = await prisma.message.findMany({
+            where: {
+                OR: [
+                    { senderId: userId, receiverId: String(id) },
+                    { senderId: String(id), receiverId: userId }
+                ],
+                groupId: null
+            },
+            orderBy: { createdAt: 'asc' },
+            include: { sender: { select: { id: true, name: true, role: true } } }
+        });
+        res.json(messages);
+    } catch (error) {
+        res.status(500).json({ message: 'Error fetching DM messages', error });
+    }
+});
+
+// Send message to group
+router.post('/group/:id/send', authenticateToken, async (req: AuthRequest, res: Response) => {
+    try {
+        const { id } = req.params;
+        const { content } = req.body;
+        const message = await prisma.message.create({
+            data: {
+                content,
+                senderId: req.user!.userId,
+                groupId: String(id)
+            },
+            include: { sender: { select: { name: true } } }
+        });
+        res.status(201).json(message);
+    } catch (error) {
+        res.status(500).json({ message: 'Error sending group message', error });
+    }
+});
+
+// Send message to DM
+router.post('/dm/:id/send', authenticateToken, async (req: AuthRequest, res: Response) => {
+    try {
+        const { id } = req.params;
+        const { content } = req.body;
+        const message = await prisma.message.create({
+            data: {
+                content,
+                senderId: req.user!.userId,
+                receiverId: String(id)
+            },
+            include: { sender: { select: { name: true } } }
+        });
+        res.status(201).json(message);
+    } catch (error) {
+        res.status(500).json({ message: 'Error sending DM message', error });
+    }
+});
+
 export default router;
