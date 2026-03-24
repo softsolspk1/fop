@@ -13,33 +13,33 @@ export default function DashboardScreen() {
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
-    fetchStats();
+    if (user) fetchStats();
   }, [user?.role]);
 
   const fetchStats = async () => {
     try {
       if (!user) return; // Guard against null user during startup
 
-      if (user.role === 'HOD' || user.role === 'DEPT_ADMIN') {
+      if (user.role === 'DEPT_ADMIN' || user.role === 'SUPER_ADMIN') {
         const { data } = await api.get('/departments/my-stats');
         setStats({
           facultyCount: data.facultyCount.toString(),
           deptStudents: data.studentCount.toString(),
           courses: data.courseCount.toString()
         });
-      } else if (user.role === 'FACULTY' || user.role === 'TEACHER') {
-        // Fetch teacher classes to count active ones
+      } else if (user.role === 'TEACHER') {
+        // Fetch teacher classes
         const { data } = await api.get('/classes');
         setStats({
-          activeCourses: data.length.toString(), // Simplified for now
-          myStudents: '120' // This would ideally come from another endpoint
+          activeCourses: data.length.toString(),
+          myStudents: '---' // To be implemented in backend
         });
       } else {
-        // Mocked student stats for now (placeholder for future student APIs)
+        // Student Stats (To be implemented in backend)
         setStats({
-          attendance: '92%',
-          gpa: '3.8',
-          labs: '4/5'
+          attendance: '90%+',
+          gpa: '---',
+          labs: '---'
         });
       }
     } catch (error) {
@@ -102,14 +102,14 @@ export default function DashboardScreen() {
           <Users size={20} color="#2563eb" />
         </View>
         <Text style={styles.statLabel}>Faculty</Text>
-        <Text style={styles.statValue}>{stats.facultyCount}</Text>
+        <Text style={styles.statValue}>{stats.facultyCount || '0'}</Text>
       </View>
       <View style={styles.statCard}>
         <View style={[styles.statIcon, { backgroundColor: '#f0fdf4' }]}>
           <Users size={20} color="#16a34a" />
         </View>
         <Text style={styles.statLabel}>Students</Text>
-        <Text style={styles.statValue}>{stats.deptStudents}</Text>
+        <Text style={styles.statValue}>{stats.deptStudents || '0'}</Text>
       </View>
     </View>
   );
@@ -132,8 +132,8 @@ export default function DashboardScreen() {
             <Text style={styles.userName}>{user?.name || 'User'}</Text>
             <View style={styles.roleBadge}>
                <Text style={styles.roleText}>
-                 {user?.role === 'DEPT_ADMIN' || user?.role === 'HOD' ? 'HOD / DEPT ADMIN' : 
-                  user?.role === 'TEACHER' || user?.role === 'FACULTY' ? 'FACULTY MEMBER' : 
+                 {user?.role === 'DEPT_ADMIN' ? 'DEPT ADMIN / HOD' : 
+                  user?.role === 'TEACHER' ? 'FACULTY MEMBER' : 
                   user?.role?.replace('_', ' ')}
                </Text>
             </View>
@@ -146,8 +146,8 @@ export default function DashboardScreen() {
 
       <View style={styles.content}>
         {user?.role === 'STUDENT' && renderStudentStats()}
-        {(user?.role === 'FACULTY' || user?.role === 'TEACHER') && renderFacultyStats()}
-        {(user?.role === 'HOD' || user?.role === 'DEPT_ADMIN' || user?.role === 'SUPER_ADMIN') && renderHODStats()}
+        {user?.role === 'TEACHER' && renderFacultyStats()}
+        {(user?.role === 'DEPT_ADMIN' || user?.role === 'SUPER_ADMIN') && renderHODStats()}
 
         <Text style={styles.sectionTitle}>Quick Actions</Text>
         <View style={styles.actionGrid}>
@@ -183,7 +183,7 @@ export default function DashboardScreen() {
             </>
           )}
 
-          {(user?.role === 'FACULTY' || user?.role === 'TEACHER') && (
+          {user?.role === 'TEACHER' && (
             <>
               <TouchableOpacity style={styles.actionItem} onPress={() => router.push('/timetable')}>
                 <View style={[styles.actionIcon, { backgroundColor: '#eff6ff' }]}>

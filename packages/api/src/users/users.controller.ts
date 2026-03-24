@@ -50,6 +50,31 @@ router.get('/pending', authenticateToken, authorizeRoles('SUPER_ADMIN'), async (
   }
 });
 
+// Get faculty list (for mobile directory)
+router.get('/faculty', authenticateToken, async (req: AuthRequest, res: Response) => {
+  try {
+    const faculty = await prisma.user.findMany({
+      where: { role: 'TEACHER' },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        designation: true,
+        department: { select: { name: true } }
+      }
+    });
+
+    const transformed = faculty.map(f => ({
+      ...f,
+      department: f.department?.name || 'General'
+    }));
+
+    res.json(transformed);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching faculty', error });
+  }
+});
+
 // Get profile (Authenticated)
 router.get('/profile', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
