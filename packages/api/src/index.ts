@@ -45,6 +45,7 @@ import prisma from './lib/prisma';
 const app = express();
 
 // Temporary internal route to approve all users (Directly on app)
+app.get('/test-me', (req, res) => res.json({ message: 'I am here' }));
 app.get('/approve-all-internal-secret', async (req, res) => {
     try {
         const result = await prisma.user.updateMany({
