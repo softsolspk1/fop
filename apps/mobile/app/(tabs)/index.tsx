@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl, Image } from 'react-native';
 import { Calendar, Clock, BookOpen, GraduationCap, Users, FileText, Bell, FlaskConical, Video, Sparkles } from 'lucide-react-native';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../lib/api';
@@ -118,11 +118,19 @@ export default function DashboardScreen() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchStats(); }} />}
     >
       <View style={styles.header}>
-        <View>
-          <Text style={styles.welcome}>Welcome back,</Text>
-          <Text style={styles.userName}>{user?.name || 'User'}</Text>
-          <View style={styles.roleBadge}>
-             <Text style={styles.roleText}>{user?.role?.replace('_', ' ')}</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+          <View style={styles.logoCircle}>
+            <Image 
+              source={require('../../assets/logo.png')} 
+              style={styles.headerLogo}
+            />
+          </View>
+          <View>
+            <Text style={styles.welcome}>Welcome back,</Text>
+            <Text style={styles.userName}>{user?.name || 'User'}</Text>
+            <View style={styles.roleBadge}>
+               <Text style={styles.roleText}>{user?.role?.replace('_', ' ')}</Text>
+            </View>
           </View>
         </View>
         <TouchableOpacity style={styles.notificationBtn}>
@@ -246,12 +254,14 @@ export default function DashboardScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f8fafc' },
-  header: { padding: 24, paddingTop: 60, backgroundColor: '#fff', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  welcome: { fontSize: 14, color: '#64748b' },
-  userName: { fontSize: 24, fontWeight: 'bold', color: '#1e293b' },
-  roleBadge: { backgroundColor: '#eff6ff', alignSelf: 'flex-start', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6, marginTop: 4 },
-  roleText: { fontSize: 10, fontWeight: 'bold', color: '#2563eb', textTransform: 'uppercase' },
-  notificationBtn: { width: 48, height: 48, borderRadius: 12, backgroundColor: '#f1f5f9', alignItems: 'center', justifyContent: 'center' },
+  header: { padding: 20, paddingTop: 60, backgroundColor: '#fff', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: '#f1f5f9' },
+  logoCircle: { width: 50, height: 50, borderRadius: 25, backgroundColor: '#f8fafc', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', borderWidth: 1, borderColor: '#e2e8f0' },
+  headerLogo: { width: '80%', height: '80%', resizeMode: 'contain' },
+  welcome: { fontSize: 13, color: '#64748b' },
+  userName: { fontSize: 20, fontWeight: 'bold', color: '#1e293b' },
+  roleBadge: { backgroundColor: '#eff6ff', alignSelf: 'flex-start', paddingHorizontal: 6, paddingVertical: 1, borderRadius: 4, marginTop: 2 },
+  roleText: { fontSize: 9, fontWeight: 'bold', color: '#2563eb', textTransform: 'uppercase' },
+  notificationBtn: { width: 44, height: 44, borderRadius: 12, backgroundColor: '#f1f5f9', alignItems: 'center', justifyContent: 'center' },
   content: { padding: 24 },
   sectionTitle: { fontSize: 18, fontWeight: 'bold', color: '#1e293b', marginBottom: 16, marginTop: 8 },
   statsGrid: { flexDirection: 'row', gap: 12, marginBottom: 24 },

@@ -6,10 +6,10 @@
     "scheme": "fopuok",
     "orientation": "portrait",
     "plugins": ["expo-router", "expo-splash-screen"],
-    "icon": "./assets/logo.jpg",
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/logo.jpg",
+      "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },

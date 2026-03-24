@@ -33,7 +33,7 @@ export default function LoginScreen() {
       <View style={styles.header}>
         <View style={styles.logoContainer}>
            <Image 
-             source={require('../assets/logo.jpg')} 
+             source={require('../assets/logo.png')} 
              style={styles.logo}
            />
         </View>
