@@ -205,13 +205,19 @@ model Attendance {
   remarks        String?
   class          Class     @relation(fields: [classId], references: [id])
   user           User      @relation(fields: [userId], references: [id])
+
+  @@unique([userId, classId])
 }
 
 model Assignment {
   id          String       @id @default(uuid())
   title       String
   description String
+  startTime   DateTime     @default(now())
   dueDate     DateTime
+  totalMarks  Float        @default(100)
+  fileUrl     String?      // Reference file from teacher
+  publicId    String?      // Cloudinary Public ID for reference file
   courseId    String
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
@@ -222,7 +228,8 @@ model Assignment {
 model Submission {
   id           String     @id @default(uuid())
   fileUrl      String
-  status       String
+  publicId     String?    // Cloudinary Public ID
+  status       String     // SUBMITTED, GRADED
   plagiarism   Float?
   assignmentId String
   studentId    String
@@ -234,18 +241,22 @@ model Submission {
 }
 
 model Quiz {
-  id          String           @id @default(uuid())
-  title       String
-  description String?
-  timeLimit   Int
-  courseId    String
-  isExam      Boolean          @default(false)
-  status      EnrollmentStatus @default(PENDING)
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
-  questions   Question[]
-  course      Course           @relation(fields: [courseId], references: [id])
-  results     QuizResult[]
+  id                String           @id @default(uuid())
+  title             String
+  description       String?
+  startTime         DateTime         @default(now())
+  endTime           DateTime         @default(now())
+  timeLimit         Int              // Total Time in minutes
+  totalMarks        Float            @default(100)
+  passingPercentage Float            @default(40)
+  courseId          String
+  isExam            Boolean          @default(false)
+  status            EnrollmentStatus @default(PENDING)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  questions         Question[]
+  course            Course           @relation(fields: [courseId], references: [id])
+  results           QuizResult[]
 }
 
 model Question {
@@ -253,6 +264,7 @@ model Question {
   text    String
   options String[]
   answer  String
+  points  Float    @default(1)
   quizId  String
   quiz    Quiz     @relation(fields: [quizId], references: [id])
 }
@@ -260,6 +272,7 @@ model Question {
 model QuizResult {
   id        String   @id @default(uuid())
   score     Float
+  passed    Boolean  @default(false)
   userId    String
   quizId    String
   createdAt DateTime @default(now())
@@ -300,6 +313,7 @@ model Lab {
   objectives  String?
   safety      String?
   theory      String?
+  multimediaContent Json? // Array of { type: 'PDF' | 'PPTX' | 'VIDEO' | 'DOCX' | 'YOUTUBE' | 'IMAGE', url: string, title: string }
   courseId    String?
   year        Int?
   assessments Assessment[]
@@ -314,6 +328,8 @@ model Experiment {
   status       String
   inputs       Json?
   resultData   Json?
+  studentResult String?
+  studentObservation String?
   grade        Float?
   feedback     String?
   createdAt    DateTime      @default(now())

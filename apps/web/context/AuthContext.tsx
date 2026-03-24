@@ -12,6 +12,8 @@ interface User {
   departmentId?: string;
   shift?: string;
   year?: string;
+  rollNumber?: string;
+  enrollmentNumber?: string;
 }
 
 interface AuthContextType {
@@ -61,14 +63,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem('token', token);
     setUser(userData);
     
-    // Role-based redirection
-    if (userData.role === 'STUDENT') {
-      router.push('/dashboard/student');
-    } else if (userData.role === 'TEACHER') {
-      router.push('/dashboard/teacher');
-    } else {
-      router.push('/dashboard');
-    }
+    // Simplify redirection to central dashboard
+    router.push('/dashboard');
   };
 
   const logout = () => {

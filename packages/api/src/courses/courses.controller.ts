@@ -96,9 +96,33 @@ router.get('/:id', authenticateToken, async (req: AuthRequest, res: Response) =>
       where: { id: String(id) },
       include: {
         materials: true,
-        assignments: true,
+        assignments: {
+          include: req.user?.role === 'STUDENT' ? {
+            submissions: {
+              where: { studentId: req.user.userId },
+              include: { grade: true }
+            }
+          } : {
+            _count: { select: { submissions: true } }
+          }
+        },
+        quizzes: {
+          include: req.user?.role === 'STUDENT' ? {
+            results: {
+              where: { userId: req.user.userId }
+            }
+          } : {
+            _count: { select: { results: true } }
+          }
+        },
         classes: true,
-        labs: true
+        labs: true,
+        teacher: {
+          select: { name: true, designation: true }
+        },
+        department: {
+          select: { name: true }
+        }
       }
     });
     if (!course) return res.status(404).json({ message: 'Course not found' });

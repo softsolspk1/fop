@@ -9,7 +9,20 @@ const router = Router();
 // Get all classes with course details
 router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
+    const isStudent = req.user?.role === 'STUDENT';
+    const userId = req.user?.userId;
+
+    const whereClause: any = {};
+    if (isStudent) {
+      whereClause.course = {
+        students: {
+          some: { id: userId }
+        }
+      };
+    }
+
     const classes = await prisma.class.findMany({
+      where: whereClause,
       include: {
         course: {
           include: {
@@ -127,32 +140,46 @@ router.post('/:id/recordings', authenticateToken, authorizeRoles('TEACHER'), asy
   }
 });
 
-// Mark attendance for a class
-router.post('/:id/attendance', authenticateToken, async (req: AuthRequest, res: Response) => {
+// Mark START attendance (Check-In)
+router.post('/mark-start', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
-    const { id } = req.params;
+    const { classId } = req.body;
     const userId = req.user!.userId;
 
-    // Check if attendance already marked
-    const existing = await prisma.attendance.findFirst({
-      where: { classId: String(id), userId }
-    });
-
-    if (existing) {
-      return res.status(200).json(existing);
-    }
-
-    const attendance = await prisma.attendance.create({
-      data: {
-        classId: String(id),
-        userId,
+    const attendance = await prisma.attendance.upsert({
+      where: { userId_classId: { userId, classId: String(classId) } },
+      update: { markedStartAt: new Date(), status: 'LATE' }, // Initially late if checking in after start, logic can be refined
+      create: { 
+        userId, 
+        classId: String(classId), 
+        markedStartAt: new Date(),
         status: 'PRESENT'
       }
     });
 
-    res.status(201).json(attendance);
+    res.status(200).json(attendance);
   } catch (error) {
-    res.status(500).json({ message: 'Error marking attendance', error });
+    res.status(500).json({ message: 'Error marking start attendance', error });
+  }
+});
+
+// Mark END attendance (Check-Out)
+router.post('/mark-end', authenticateToken, async (req: AuthRequest, res: Response) => {
+  try {
+    const { classId } = req.body;
+    const userId = req.user!.userId;
+
+    const attendance = await prisma.attendance.update({
+      where: { userId_classId: { userId, classId: String(classId) } },
+      data: { 
+        markedEndAt: new Date(),
+        status: 'PRESENT' 
+      }
+    });
+
+    res.status(200).json(attendance);
+  } catch (error) {
+    res.status(500).json({ message: 'Error marking end attendance', error });
   }
 });
 

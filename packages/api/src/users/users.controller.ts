@@ -4,13 +4,12 @@ import { authenticateToken, authorizeRoles, AuthRequest } from '../auth/auth.mid
 
 const router = Router();
 
-// Get all users (Super Admin only)
-router.get('/', authenticateToken, authorizeRoles('SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
+// Get all users (Authenticated) - used for chat discovery and directory
+router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     const users = await prisma.user.findMany({
       select: {
         id: true,
-        email: true,
         name: true,
         role: true,
         departmentId: true,

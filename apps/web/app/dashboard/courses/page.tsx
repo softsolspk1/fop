@@ -2,11 +2,15 @@
 
 import React, { useState, useEffect } from 'react';
 import DashboardLayout from '../../../components/dashboard/DashboardLayout';
-import { Plus, Search, BookOpen, User, Clock, MoreVertical, Filter, ArrowRight, Loader2, X, Edit2, Trash2, FileText, Video, ShieldCheck } from 'lucide-react';
+import { 
+  Plus, Search, BookOpen, User, Clock, MoreVertical, Filter, ArrowRight, 
+  Loader2, X, Edit2, Trash2, FileText, Video as VideoIcon, ShieldCheck, 
+  Video, Upload, Trash, ClipboardList, Zap, CheckCircle, GraduationCap,
+  LayoutGrid, List, ExternalLink 
+} from 'lucide-react';
 
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../../lib/api';
-
 import { useAuth } from '../../../context/AuthContext';
 
 export default function CoursesPage() {
@@ -20,6 +24,14 @@ export default function CoursesPage() {
   const [editingCourse, setEditingCourse] = useState<any>(null);
   const [viewingCourse, setViewingCourse] = useState<any>(null);
   const [managingMaterials, setManagingMaterials] = useState<any>(null);
+  const [activeManagementTab, setActiveManagementTab] = useState<'MATERIALS' | 'ASSIGNMENTS' | 'QUIZZES'>('MATERIALS');
+  const [viewingCourseTab, setViewingCourseTab] = useState<'DETAILS' | 'MATERIALS' | 'ASSIGNMENTS' | 'QUIZZES'>('DETAILS');
+  const [submittingAssignment, setSubmittingAssignment] = useState<any>(null);
+  const [activeQuiz, setActiveQuiz] = useState<any>(null);
+  const [quizQuestions, setQuizQuestions] = useState<any[]>([]);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [quizAnswers, setQuizAnswers] = useState<any>({});
+  const [quizTimer, setQuizTimer] = useState(0);
 
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -139,6 +151,30 @@ export default function CoursesPage() {
       alert('Failed to delete course');
     }
   };
+ 
+  const handleStartQuiz = async (quiz: any) => {
+    try {
+       const res = await api.get(`/quizzes/${quiz.id}`);
+       if (res.data.alreadyAttempted) return alert('You have already attempted this quiz.');
+       setQuizQuestions(res.data.questions);
+       setActiveQuiz(quiz);
+       setCurrentQuestionIndex(0);
+       setQuizAnswers({});
+       setQuizTimer(quiz.timeLimit * 60);
+    } catch (err) { alert('Error starting quiz'); }
+  };
+ 
+  useEffect(() => {
+    if (activeQuiz && quizTimer > 0) {
+      const timer = setInterval(() => setQuizTimer(t => t - 1), 1000);
+      return () => clearInterval(timer);
+    }
+    if (activeQuiz && quizTimer === 0) {
+       // Auto-submit quiz
+       alert('Time is up! Your quiz will be submitted automatically.');
+       // handleQuizSubmit(); // To be implemented
+    }
+  }, [activeQuiz, quizTimer]);
 
   return (
     <DashboardLayout>
@@ -342,8 +378,31 @@ export default function CoursesPage() {
                   </button>
                 </div>
 
+                <div className="flex border-b border-slate-100 bg-slate-50/30">
+                  <button 
+                    onClick={() => setActiveManagementTab('MATERIALS')}
+                    className={`flex-1 py-4 text-[10px] font-black uppercase tracking-widest transition-all ${activeManagementTab === 'MATERIALS' ? 'bg-white text-blue-600 border-b-2 border-blue-600' : 'text-slate-400 hover:text-slate-600'}`}
+                  >
+                    Resources
+                  </button>
+                  <button 
+                    onClick={() => setActiveManagementTab('ASSIGNMENTS')}
+                    className={`flex-1 py-4 text-[10px] font-black uppercase tracking-widest transition-all ${activeManagementTab === 'ASSIGNMENTS' ? 'bg-white text-blue-600 border-b-2 border-blue-600' : 'text-slate-400 hover:text-slate-600'}`}
+                  >
+                    Assignments
+                  </button>
+                  <button 
+                    onClick={() => setActiveManagementTab('QUIZZES')}
+                    className={`flex-1 py-4 text-[10px] font-black uppercase tracking-widest transition-all ${activeManagementTab === 'QUIZZES' ? 'bg-white text-blue-600 border-b-2 border-blue-600' : 'text-slate-400 hover:text-slate-600'}`}
+                  >
+                    Quizzes & Exams
+                  </button>
+                </div>
+
                 <div className="flex-1 overflow-y-auto p-8 space-y-6">
-                  {/* Add Material Form */}
+                  {activeManagementTab === 'MATERIALS' && (
+                    <>
+                      {/* Add Material Form */}
                   <div className="p-10 bg-slate-50/50 rounded-[2.5rem] border border-slate-100/80 space-y-6 shadow-inner">
                     <div className="flex items-center gap-3 mb-2">
                        <div className="p-2 bg-blue-600 rounded-lg text-white">
@@ -462,8 +521,8 @@ export default function CoursesPage() {
                           <button 
                             onClick={async () => {
                               if (!confirm('Delete this material?')) return;
-                              await api.delete(`/lms/materials/${mat.id}`);
-                              setManagingMaterials({...managingMaterials});
+                               await api.delete(`/lms/materials/${mat.id}`);
+                               setManagingMaterials({...managingMaterials});
                             }}
                             className="p-2 text-slate-300 hover:text-red-500 transition-colors"
                           >
@@ -473,6 +532,253 @@ export default function CoursesPage() {
                       ))
                     )}
                   </div>
+                    </>
+                  )}
+
+                  {activeManagementTab === 'ASSIGNMENTS' && (
+                    <div className="space-y-8">
+                      {/* Create Assignment Form */}
+                      <div className="p-8 bg-blue-50/30 rounded-[2.5rem] border border-blue-100/50 space-y-5">
+                        <div className="flex items-center gap-3 mb-2">
+                           <div className="p-2 bg-blue-600 rounded-lg text-white">
+                              <Plus className="w-4 h-4" />
+                           </div>
+                           <h4 className="text-sm font-black text-slate-800 uppercase tracking-widest">Post New Assignment</h4>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="md:col-span-2 space-y-1.5 px-1">
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Assignment Title</label>
+                            <input type="text" id="asgn-title" placeholder="e.g. Clinical Pharmacy Case Study" className="w-full px-5 py-3 bg-white border-2 border-slate-100 rounded-2xl font-bold text-slate-900 outline-none focus:border-blue-400 transition-all" />
+                          </div>
+                          <div className="md:col-span-2 space-y-1.5 px-1">
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Description / Instructions</label>
+                            <textarea id="asgn-desc" rows={3} className="w-full px-5 py-3 bg-white border-2 border-slate-100 rounded-2xl font-bold text-slate-900 outline-none focus:border-blue-400 transition-all" />
+                          </div>
+                          <div className="space-y-1.5 px-1">
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Start Date</label>
+                            <input type="datetime-local" id="asgn-start" className="w-full px-5 py-3 bg-white border-2 border-slate-100 rounded-2xl font-bold text-slate-900 outline-none focus:border-blue-400 transition-all" />
+                          </div>
+                          <div className="space-y-1.5 px-1">
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Due Date</label>
+                            <input type="datetime-local" id="asgn-due" className="w-full px-5 py-3 bg-white border-2 border-slate-100 rounded-2xl font-bold text-slate-900 outline-none focus:border-blue-400 transition-all" />
+                          </div>
+                          <div className="space-y-1.5 px-1">
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Total Marks</label>
+                            <input type="number" id="asgn-marks" defaultValue={100} className="w-full px-5 py-3 bg-white border-2 border-slate-100 rounded-2xl font-bold text-slate-900 outline-none focus:border-blue-400 transition-all" />
+                          </div>
+                          <div className="space-y-1.5 px-1">
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Reference File (Optional)</label>
+                            <input type="file" id="asgn-file" accept=".pdf,.doc,.docx,.ppt,.pptx" className="w-full px-5 py-2.5 bg-white border-2 border-slate-100 rounded-2xl font-bold text-slate-900 outline-none focus:border-blue-400 transition-all file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-[10px] file:font-black file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
+                          </div>
+                        </div>
+                        <button 
+                          onClick={async (e) => {
+                            const btn = e.currentTarget;
+                            const title = (document.getElementById('asgn-title') as HTMLInputElement).value;
+                            const desc = (document.getElementById('asgn-desc') as HTMLTextAreaElement).value;
+                            const start = (document.getElementById('asgn-start') as HTMLInputElement).value;
+                            const due = (document.getElementById('asgn-due') as HTMLInputElement).value;
+                            const marks = (document.getElementById('asgn-marks') as HTMLInputElement).value;
+                            const file = (document.getElementById('asgn-file') as HTMLInputElement).files?.[0];
+
+                            if (!title || !due) return alert('Title and Due Date are required');
+                            try {
+                              btn.disabled = true; btn.innerHTML = 'Posting...';
+                              const fd = new FormData();
+                              fd.append('title', title);
+                              fd.append('description', desc || '');
+                              fd.append('startTime', start || new Date().toISOString());
+                              fd.append('dueDate', due);
+                              fd.append('totalMarks', marks || '100');
+                              fd.append('courseId', managingMaterials.id);
+                              if (file) fd.append('file', file);
+
+                              await api.post('/assignments', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+                              alert('Assignment posted successfully');
+                              location.reload(); 
+                            } catch (err) { alert('Error posting assignment'); }
+                            finally { btn.disabled = false; btn.innerHTML = 'Post Assignment'; }
+                          }}
+                          className="w-full py-4 bg-blue-600 text-white font-black rounded-2xl shadow-xl shadow-blue-200 uppercase text-xs tracking-widest hover:bg-blue-700 transition-all"
+                        >
+                          Post Assignment
+                        </button>
+                      </div>
+
+                      {/* Assignment List */}
+                      <div className="space-y-3">
+                         <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest">Active Assignments</h4>
+                         {(managingMaterials.assignments || []).length === 0 ? (
+                           <p className="text-center py-6 text-slate-400 font-bold text-sm italic">No assignments posted for this course.</p>
+                         ) : (
+                           managingMaterials.assignments.map((asgn: any) => (
+                             <div key={asgn.id} className="p-5 bg-white border border-slate-100 rounded-3xl flex items-center justify-between group hover:border-blue-200 transition-all">
+                                <div className="flex items-center gap-4">
+                                   <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all">
+                                      <ClipboardList className="w-6 h-6" />
+                                   </div>
+                                   <div>
+                                      <p className="font-black text-slate-800 text-base">{asgn.title}</p>
+                                      <div className="flex items-center gap-3 mt-1">
+                                         <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Due: {new Date(asgn.dueDate).toLocaleDateString()}</span>
+                                         <span className="w-1 h-1 bg-slate-200 rounded-full" />
+                                         <span className="text-[10px] font-black text-blue-600 uppercase tracking-tighter">{asgn.totalMarks} Marks</span>
+                                      </div>
+                                   </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                   <button className="px-4 py-2 bg-slate-50 text-slate-600 rounded-xl text-[10px] font-black uppercase hover:bg-blue-50 hover:text-blue-600 transition-all">View Submissions</button>
+                                   <button onClick={async () => {
+                                      if(!confirm('Delete this assignment?')) return;
+                                      await api.delete(`/assignments/${asgn.id}`);
+                                      location.reload();
+                                   }} className="p-2 text-slate-300 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
+                                </div>
+                             </div>
+                           ))
+                         )}
+                      </div>
+                    </div>
+                  )}
+
+                  {activeManagementTab === 'QUIZZES' && (
+                    <div className="space-y-8">
+                       <div className="p-8 bg-purple-50/30 rounded-[2.5rem] border border-purple-100/50 space-y-5">
+                          <div className="flex items-center gap-3 mb-2">
+                             <div className="p-2 bg-purple-600 rounded-lg text-white">
+                                <Plus className="w-4 h-4" />
+                             </div>
+                             <h4 className="text-sm font-black text-slate-800 uppercase tracking-widest">Setup Quiz / Exam</h4>
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                             <div className="md:col-span-2 space-y-1.5"><label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Quiz Title</label><input type="text" id="quiz-title" className="w-full px-5 py-3 bg-white border-2 border-slate-100 rounded-2xl font-bold" /></div>
+                             <div className="space-y-1.5"><label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Start Time</label><input type="datetime-local" id="quiz-start" className="w-full px-5 py-3 bg-white border-2 border-slate-100 rounded-2xl font-bold" /></div>
+                             <div className="space-y-1.5"><label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">End Time</label><input type="datetime-local" id="quiz-end" className="w-full px-5 py-3 bg-white border-2 border-slate-100 rounded-2xl font-bold" /></div>
+                             <div className="space-y-1.5"><label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Time Limit (Mins)</label><input type="number" id="quiz-limit" defaultValue={30} className="w-full px-5 py-3 bg-white border-2 border-slate-100 rounded-2xl font-bold" /></div>
+                             <div className="space-y-1.5"><label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Passing %</label><input type="number" id="quiz-pass" defaultValue={40} className="w-full px-5 py-3 bg-white border-2 border-slate-100 rounded-2xl font-bold" /></div>
+                             <div className="space-y-1.5 md:col-span-2 flex items-center gap-3 bg-white p-4 rounded-2xl border-2 border-slate-50">
+                                <input type="checkbox" id="quiz-exam" className="w-5 h-5 accent-purple-600" />
+                                <label className="text-[10px] font-black text-slate-600 uppercase tracking-widest">Mark as Examination</label>
+                             </div>
+                          </div>
+
+                          <div className="pt-4 space-y-4">
+                             <div className="flex items-center justify-between">
+                                <h5 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Questions Management</h5>
+                                <button onClick={() => {
+                                  const qList = document.getElementById('quiz-q-list');
+                                  if (!qList) return;
+                                  const qDiv = document.createElement('div');
+                                  qDiv.className = "p-6 bg-white border border-slate-100 rounded-[2rem] space-y-4 mt-3 shadow-sm";
+                                  const qId = Date.now();
+                                  qDiv.innerHTML = `
+                                    <div class="flex items-center justify-between mb-2">
+                                       <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Question #\${qList.children.length + 1}</span>
+                                       <button onclick="this.parentElement.parentElement.remove()" class="text-slate-300 hover:text-red-500 transition-colors"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg></button>
+                                    </div>
+                                    <input type="text" placeholder="Type your question here..." class="w-full px-4 py-3 bg-slate-50 border-none rounded-xl font-bold text-sm q-text outline-none focus:ring-2 focus:ring-purple-100" />
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                      <div class="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-xl border border-transparent focus-within:border-purple-200 transition-all">
+                                         <span class="text-[10px] font-bold text-slate-400">A</span>
+                                         <input type="text" placeholder="Option A" class="w-full bg-transparent border-none text-xs font-bold q-opt outline-none" />
+                                      </div>
+                                      <div class="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-xl border border-transparent focus-within:border-purple-200 transition-all">
+                                         <span class="text-[10px] font-bold text-slate-400">B</span>
+                                         <input type="text" placeholder="Option B" class="w-full bg-transparent border-none text-xs font-bold q-opt outline-none" />
+                                      </div>
+                                      <div class="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-xl border border-transparent focus-within:border-purple-200 transition-all">
+                                         <span class="text-[10px] font-bold text-slate-400">C</span>
+                                         <input type="text" placeholder="Option C" class="w-full bg-transparent border-none text-xs font-bold q-opt outline-none" />
+                                      </div>
+                                      <div class="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-xl border border-transparent focus-within:border-purple-200 transition-all">
+                                         <span class="text-[10px] font-bold text-slate-400">D</span>
+                                         <input type="text" placeholder="Option D" class="w-full bg-transparent border-none text-xs font-bold q-opt outline-none" />
+                                      </div>
+                                    </div>
+                                    <div class="space-y-1">
+                                       <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Correct Answer (Exactly as written above)</label>
+                                       <input type="text" placeholder="Paste correct option text here" class="w-full px-4 py-2.5 bg-green-50/50 border-2 border-green-100 rounded-xl font-bold text-xs q-ans text-green-700 outline-none" />
+                                    </div>
+                                  `;
+                                  qList.appendChild(qDiv);
+                                }} className="flex items-center gap-2 px-4 py-2 bg-white text-purple-600 font-black text-[10px] uppercase tracking-widest border-2 border-purple-100 rounded-xl hover:bg-purple-600 hover:text-white transition-all shadow-sm">
+                                   <Plus className="w-3 h-3" /> Add MCQ
+                                </button>
+                             </div>
+                             <div id="quiz-q-list" className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar"></div>
+                          </div>
+
+                          <button onClick={async (e) => {
+                             const btn = e.currentTarget;
+                             const questions: any[] = [];
+                             const qElems = document.querySelectorAll('#quiz-q-list > div');
+                             qElems.forEach(el => {
+                               const text = (el.querySelector('.q-text') as HTMLInputElement).value;
+                               const optInputs = el.querySelectorAll('.q-opt');
+                               const options = Array.from(optInputs).map(i => (i as HTMLInputElement).value).filter(v => !!v);
+                               const answer = (el.querySelector('.q-ans') as HTMLInputElement).value;
+                               if(text && answer && options.length >= 2) questions.push({ text, options, answer });
+                             });
+
+                             if(questions.length === 0) return alert('Please add at least one question');
+
+                             try {
+                               btn.disabled = true; btn.innerHTML = 'Creating Quiz...';
+                               await api.post('/quizzes', {
+                                  title: (document.getElementById('quiz-title') as HTMLInputElement).value,
+                                  startTime: (document.getElementById('quiz-start') as HTMLInputElement).value,
+                                  endTime: (document.getElementById('quiz-end') as HTMLInputElement).value,
+                                  timeLimit: parseInt((document.getElementById('quiz-limit') as HTMLInputElement).value),
+                                  passingPercentage: parseInt((document.getElementById('quiz-pass') as HTMLInputElement).value),
+                                  isExam: (document.getElementById('quiz-exam') as HTMLInputElement).checked,
+                                  courseId: managingMaterials.id,
+                                  questions
+                               });
+                               alert('Quiz created successfully and sent for HOD approval');
+                               location.reload();
+                             } catch (err) { alert('Error creating quiz'); }
+                             finally { btn.disabled = false; btn.innerHTML = 'Create Quiz'; }
+                          }} className="w-full py-5 bg-purple-600 text-white font-black rounded-3xl shadow-xl shadow-purple-100 uppercase text-xs tracking-[0.2em]">Create Quiz & Go Live</button>
+                       </div>
+
+                       <div className="space-y-4">
+                          <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest">Recent Quizzes</h4>
+                          {(managingMaterials.quizzes || []).length === 0 ? (
+                            <p className="text-center py-6 text-slate-400 font-bold text-sm italic">No quizzes created yet.</p>
+                          ) : (
+                            managingMaterials.quizzes.map((qz: any) => (
+                              <div key={qz.id} className="p-5 bg-white border border-slate-100 rounded-3xl flex items-center justify-between group hover:border-purple-200 transition-all shadow-sm">
+                                 <div className="flex items-center gap-4">
+                                    <div className="w-12 h-12 bg-purple-50 rounded-2xl flex items-center justify-center text-purple-600 group-hover:bg-purple-600 group-hover:text-white transition-all">
+                                       <Zap className="w-6 h-6" />
+                                    </div>
+                                    <div>
+                                       <div className="flex items-center gap-2">
+                                          <p className="font-black text-slate-800 text-base">{qz.title}</p>
+                                          {qz.isExam && <span className="px-2 py-0.5 bg-red-50 text-red-600 text-[8px] font-black rounded uppercase">EXAM</span>}
+                                       </div>
+                                       <div className="flex items-center gap-3 mt-1">
+                                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">{qz.questions?.length || 0} MCQs</span>
+                                          <span className="w-1 h-1 bg-slate-200 rounded-full" />
+                                          <span className="text-[10px] font-black text-purple-600 uppercase tracking-tighter">{qz.timeLimit} Mins</span>
+                                          <span className="w-1 h-1 bg-slate-200 rounded-full" />
+                                          <span className={`text-[9px] font-black uppercase tracking-tighter ${qz.status === 'APPROVED' ? 'text-green-600' : 'text-orange-500'}`}>{qz.status}</span>
+                                       </div>
+                                    </div>
+                                 </div>
+                                 <button onClick={async () => {
+                                      if(!confirm('Delete this quiz?')) return;
+                                      await api.delete(`/quizzes/${qz.id}`);
+                                      location.reload();
+                                   }} className="p-2 text-slate-300 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
+                              </div>
+                            ))
+                          )}
+                       </div>
+                    </div>
+                  )}
                 </div>
               </motion.div>
             </div>
@@ -511,113 +817,217 @@ export default function CoursesPage() {
                   </button>
                 </div>
 
+                <div className="flex border-b border-slate-100 bg-slate-50/30">
+                  {['DETAILS', 'MATERIALS', 'ASSIGNMENTS', 'QUIZZES'].map((tab) => (
+                    <button 
+                      key={tab}
+                      onClick={() => setViewingCourseTab(tab as any)}
+                      className={`flex-1 py-4 text-[10px] font-black uppercase tracking-widest transition-all ${viewingCourseTab === tab ? 'bg-white text-blue-600 border-b-2 border-blue-600' : 'text-slate-400 hover:text-slate-600'}`}
+                    >
+                      {tab}
+                    </button>
+                  ))}
+                </div>
+
                 <div className="flex-1 overflow-y-auto p-8 space-y-10 custom-scrollbar">
-                   {viewingCourse.outcomes && (
-                     <section>
-                       <h4 className="text-sm font-black text-blue-600 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
-                         <div className="w-2 h-2 bg-blue-600 rounded-full" />
-                         Learning Outcomes
-                       </h4>
-                       <div className="prose prose-slate max-w-none text-slate-600 font-medium whitespace-pre-line bg-slate-50/50 p-6 rounded-3xl border border-slate-100/50">
-                          {viewingCourse.outcomes}
-                       </div>
-                     </section>
-                   )}
+                   {viewingCourseTab === 'DETAILS' && (
+                     <div className="space-y-10">
+                       {viewingCourse.outcomes && (
+                         <section>
+                           <h4 className="text-sm font-black text-blue-600 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                             <div className="w-2 h-2 bg-blue-600 rounded-full" />
+                             Learning Outcomes
+                           </h4>
+                           <div className="prose prose-slate max-w-none text-slate-600 font-medium whitespace-pre-line bg-slate-50/50 p-6 rounded-3xl border border-slate-100/50">
+                              {viewingCourse.outcomes}
+                           </div>
+                         </section>
+                       )}
 
-                   {viewingCourse.contents && (
-                     <section>
-                       <h4 className="text-sm font-black text-orange-600 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
-                         <div className="w-2 h-2 bg-orange-600 rounded-full" />
-                         Course Contents
-                       </h4>
-                       <div className="prose prose-slate max-w-none text-slate-600 font-medium whitespace-pre-line bg-orange-50/30 p-6 rounded-3xl border border-orange-100/30">
-                          {viewingCourse.contents}
-                       </div>
-                     </section>
-                   )}
+                       {viewingCourse.contents && (
+                         <section>
+                           <h4 className="text-sm font-black text-orange-600 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                             <div className="w-2 h-2 bg-orange-600 rounded-full" />
+                             Course Contents
+                           </h4>
+                           <div className="prose prose-slate max-w-none text-slate-600 font-medium whitespace-pre-line bg-orange-50/30 p-6 rounded-3xl border border-orange-100/30">
+                              {viewingCourse.contents}
+                           </div>
+                         </section>
+                       )}
 
-                   {viewingCourse.readings && (
-                     <section>
-                       <h4 className="text-sm font-black text-purple-600 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
-                         <div className="w-2 h-2 bg-purple-600 rounded-full" />
-                         Recommended Readings
-                       </h4>
-                       <div className="prose prose-slate max-w-none text-slate-600 font-medium whitespace-pre-line bg-purple-50/30 p-6 rounded-3xl border border-purple-100/30">
-                          {viewingCourse.readings}
-                       </div>
-                     </section>
-                   )}
+                       {viewingCourse.readings && (
+                         <section>
+                           <h4 className="text-sm font-black text-purple-600 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                             <div className="w-2 h-2 bg-purple-600 rounded-full" />
+                             Recommended Readings
+                           </h4>
+                           <div className="prose prose-slate max-w-none text-slate-600 font-medium whitespace-pre-line bg-purple-50/30 p-6 rounded-3xl border border-purple-100/30">
+                              {viewingCourse.readings}
+                           </div>
+                         </section>
+                       )}
 
-                    {/* Approved Materials Gallery */}
-                    <section>
-                      <h4 className="text-sm font-black text-green-600 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
-                        <div className="w-2 h-2 bg-green-600 rounded-full" />
-                        Course Resources & Materials
-                      </h4>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        {(viewingCourse.materials || []).filter((m: any) => m.status === 'APPROVED').length === 0 ? (
-                          <div className="col-span-full p-8 bg-slate-50 rounded-3xl border border-dashed border-slate-200 text-center">
-                            <p className="text-slate-400 font-bold text-xs uppercase tracking-widest">No verified materials available yet.</p>
-                          </div>
-                        ) : (
-                          viewingCourse.materials.filter((m: any) => m.status === 'APPROVED').map((mat: any) => (
-                            <a 
-                              key={mat.id} 
-                              href={mat.url} 
-                              target="_blank" 
-                              rel="noopener noreferrer"
-                              className="p-5 bg-white border border-slate-100 rounded-2xl flex items-center gap-4 hover:border-green-200 hover:shadow-lg hover:shadow-green-100/20 transition-all group"
-                            >
-                              <div className="p-3 bg-green-50 text-green-600 rounded-xl group-hover:bg-green-600 group-hover:text-white transition-all">
-                                 {mat.type === 'VIDEO' || mat.type === 'YOUTUBE' ? <Video className="w-5 h-5" /> : <FileText className="w-5 h-5" />}
-                              </div>
-                              <div className="overflow-hidden">
-                                <p className="font-black text-slate-800 text-sm truncate">{mat.title}</p>
-                                <div className="flex items-center gap-2 mt-0.5">
-                                   <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{mat.type}</span>
-                                   <div className="w-1 h-1 bg-slate-200 rounded-full" />
-                                   <span className="text-[9px] font-black text-green-600 uppercase tracking-widest flex items-center gap-1">
-                                      <ShieldCheck className="w-2.5 h-2.5" /> Verified
-                                   </span>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6">
+                           <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100">
+                              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Academic Info</p>
+                              <div className="space-y-2">
+                                <div className="flex justify-between font-bold text-sm">
+                                  <span className="text-slate-500">Credit Hours:</span>
+                                  <span className="text-slate-800">{viewingCourse.creditHours}</span>
+                                </div>
+                                <div className="flex justify-between font-bold text-sm">
+                                  <span className="text-slate-500">Semester:</span>
+                                  <span className="text-slate-800">{viewingCourse.semesterName}</span>
+                                </div>
+                                <div className="flex justify-between font-bold text-sm">
+                                  <span className="text-slate-500">Category:</span>
+                                  <span className="text-slate-800">{viewingCourse.category}</span>
                                 </div>
                               </div>
-                            </a>
+                           </div>
+                           <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100">
+                              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Assigned Faculty</p>
+                              <div className="flex items-center gap-4">
+                                 <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white text-xl font-black">
+                                    {viewingCourse.teacher?.name?.charAt(0)}
+                                 </div>
+                                 <div>
+                                    <p className="font-bold text-slate-800">{viewingCourse.teacher?.name}</p>
+                                    <p className="text-xs text-slate-500 font-medium">{viewingCourse.teacher?.designation || 'Faculty Member'}</p>
+                                 </div>
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+                   )}
+
+                   {viewingCourseTab === 'MATERIALS' && (
+                     <section>
+                       <h4 className="text-sm font-black text-green-600 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                         <div className="w-2 h-2 bg-green-600 rounded-full" />
+                         Course Resources & Materials
+                       </h4>
+                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                         {(viewingCourse.materials || []).filter((m: any) => m.status === 'APPROVED').length === 0 ? (
+                           <div className="col-span-full p-8 bg-slate-50 rounded-3xl border border-dashed border-slate-200 text-center">
+                             <p className="text-slate-400 font-bold text-xs uppercase tracking-widest">No verified materials available yet.</p>
+                           </div>
+                         ) : (
+                           viewingCourse.materials.filter((m: any) => m.status === 'APPROVED').map((mat: any) => (
+                             <a 
+                               key={mat.id} 
+                               href={mat.url} 
+                               target="_blank" 
+                               rel="noopener noreferrer"
+                               className="p-5 bg-white border border-slate-100 rounded-2xl flex items-center gap-4 hover:border-green-200 hover:shadow-lg hover:shadow-green-100/20 transition-all group"
+                             >
+                               <div className="p-3 bg-green-50 text-green-600 rounded-xl group-hover:bg-green-600 group-hover:text-white transition-all">
+                                  {mat.type === 'VIDEO' || mat.type === 'YOUTUBE' ? <Video className="w-5 h-5" /> : <FileText className="w-5 h-5" />}
+                               </div>
+                               <div className="overflow-hidden">
+                                 <p className="font-black text-slate-800 text-sm truncate">{mat.title}</p>
+                                 <div className="flex items-center gap-2 mt-0.5">
+                                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{mat.type}</span>
+                                    <div className="w-1 h-1 bg-slate-200 rounded-full" />
+                                    <span className="text-[9px] font-black text-green-600 uppercase tracking-widest flex items-center gap-1">
+                                       <ShieldCheck className="w-2.5 h-2.5" /> Verified
+                                    </span>
+                                 </div>
+                               </div>
+                             </a>
+                           ))
+                         )}
+                       </div>
+                     </section>
+                   )}
+
+                   {viewingCourseTab === 'ASSIGNMENTS' && (
+                     <div className="space-y-6">
+                        <h4 className="text-sm font-black text-blue-600 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                          <div className="w-2 h-2 bg-blue-600 rounded-full" />
+                          Assignments & Tasks
+                        </h4>
+                        {(viewingCourse.assignments || []).length === 0 ? (
+                           <p className="text-center py-10 text-slate-400 font-bold italic">No assignments posted for this course.</p>
+                        ) : (
+                          viewingCourse.assignments.map((asgn: any) => (
+                            <div key={asgn.id} className="p-6 bg-white border border-slate-100 rounded-[2rem] flex items-center justify-between group hover:border-blue-200 transition-all shadow-sm">
+                               <div className="flex items-center gap-4">
+                                  <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600">
+                                     <ClipboardList className="w-6 h-6" />
+                                  </div>
+                                  <div>
+                                     <p className="font-black text-slate-800 text-base">{asgn.title}</p>
+                                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter mt-1">Due: {new Date(asgn.dueDate).toLocaleDateString()}</p>
+                                  </div>
+                               </div>
+                               <div className="flex items-center gap-2">
+                                  {asgn.submissions?.[0] ? (
+                                     <div className="flex flex-col items-end gap-1">
+                                        <span className="px-3 py-1 bg-green-50 text-green-600 text-[8px] font-black rounded uppercase tracking-widest flex items-center gap-1">
+                                           <CheckCircle className="w-2.5 h-2.5" /> Submitted
+                                        </span>
+                                        {asgn.submissions[0].grade && (
+                                           <span className="text-[10px] font-black text-slate-800">Grade: {asgn.submissions[0].grade.score}/{asgn.totalMarks}</span>
+                                        )}
+                                     </div>
+                                  ) : (
+                                     <>
+                                        {asgn.fileUrl && (
+                                          <a href={asgn.fileUrl} target="_blank" rel="noopener noreferrer" className="p-2 text-slate-400 hover:text-blue-600 transition-colors">
+                                             <FileText className="w-5 h-5" />
+                                          </a>
+                                        )}
+                                        <button onClick={() => setSubmittingAssignment(asgn)} className="px-5 py-2 bg-blue-600 text-white font-black text-[10px] uppercase tracking-widest rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-100">Submit Now</button>
+                                     </>
+                                  )}
+                               </div>
+                            </div>
                           ))
                         )}
-                      </div>
-                    </section>
+                     </div>
+                   )}
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6">
-                       <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100">
-                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Academic Info</p>
-                          <div className="space-y-2">
-                            <div className="flex justify-between font-bold text-sm">
-                              <span className="text-slate-500">Credit Hours:</span>
-                              <span className="text-slate-800">{viewingCourse.creditHours}</span>
+                   {viewingCourseTab === 'QUIZZES' && (
+                     <div className="space-y-6">
+                        <h4 className="text-sm font-black text-purple-600 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                          <div className="w-2 h-2 bg-purple-600 rounded-full" />
+                          Available Quizzes & Exams
+                        </h4>
+                        {(viewingCourse.quizzes || []).filter((q: any) => q.status === 'APPROVED').length === 0 ? (
+                           <p className="text-center py-10 text-slate-400 font-bold italic">No active quizzes at the moment.</p>
+                        ) : (
+                          viewingCourse.quizzes.filter((q: any) => q.status === 'APPROVED').map((qz: any) => (
+                            <div key={qz.id} className="p-6 bg-white border border-slate-100 rounded-[2rem] flex items-center justify-between group hover:border-purple-200 transition-all shadow-sm">
+                               <div className="flex items-center gap-4">
+                                  <div className="w-12 h-12 bg-purple-50 rounded-2xl flex items-center justify-center text-purple-600">
+                                     <Zap className="w-6 h-6" />
+                                  </div>
+                                  <div>
+                                     <div className="flex items-center gap-2">
+                                        <p className="font-black text-slate-800 text-base">{qz.title}</p>
+                                        {qz.isExam && <span className="px-2 py-0.5 bg-red-50 text-red-600 text-[8px] font-black rounded uppercase tracking-widest">EXAM</span>}
+                                     </div>
+                                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter mt-1">{qz.timeLimit} Minutes • {qz.questions?.length || 0} Questions</p>
+                                  </div>
+                               </div>
+                               {qz.results?.[0] ? (
+                                  <div className="flex flex-col items-end gap-1">
+                                     <span className={`px-3 py-1 ${qz.results[0].passed ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'} text-[8px] font-black rounded uppercase tracking-widest flex items-center gap-1`}>
+                                        {qz.results[0].passed ? <CheckCircle className="w-2.5 h-2.5" /> : <X className="w-2.5 h-2.5" />}
+                                        {qz.results[0].passed ? 'PASSED' : 'FAILED'}
+                                     </span>
+                                     <span className="text-[10px] font-black text-slate-800">Score: {qz.results[0].score}/{qz.totalMarks}</span>
+                                  </div>
+                               ) : (
+                                  <button onClick={() => handleStartQuiz(qz)} className="px-5 py-2 bg-purple-600 text-white font-black text-[10px] uppercase tracking-widest rounded-xl hover:bg-purple-700 transition-all shadow-lg shadow-purple-100">Attempt</button>
+                               )}
                             </div>
-                            <div className="flex justify-between font-bold text-sm">
-                              <span className="text-slate-500">Semester:</span>
-                              <span className="text-slate-800">{viewingCourse.semesterName}</span>
-                            </div>
-                            <div className="flex justify-between font-bold text-sm">
-                              <span className="text-slate-500">Category:</span>
-                              <span className="text-slate-800">{viewingCourse.category}</span>
-                            </div>
-                          </div>
-                       </div>
-                       <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100">
-                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Assigned Faculty</p>
-                          <div className="flex items-center gap-4">
-                             <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white text-xl font-black">
-                                {viewingCourse.teacher?.name?.charAt(0)}
-                             </div>
-                             <div>
-                                <p className="font-bold text-slate-800">{viewingCourse.teacher?.name}</p>
-                                <p className="text-xs text-slate-500 font-medium">{viewingCourse.teacher?.designation || 'Faculty Member'}</p>
-                             </div>
-                          </div>
-                       </div>
-                    </div>
+                          ))
+                        )}
+                     </div>
+                   )}
                 </div>
 
                 <div className="p-8 border-t border-slate-100 bg-slate-50/50 flex justify-end">
@@ -629,6 +1039,145 @@ export default function CoursesPage() {
                    </button>
                 </div>
               </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+
+        {/* Assignment Submission Modal */}
+        <AnimatePresence>
+          {submittingAssignment && (
+            <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setSubmittingAssignment(null)} className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" />
+              <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="relative bg-white w-full max-w-lg rounded-[2.5rem] shadow-2xl overflow-hidden p-8">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h3 className="text-xl font-black text-slate-800 tracking-tight">Submit Assignment</h3>
+                    <p className="text-xs text-slate-500 font-bold uppercase tracking-widest mt-1">{submittingAssignment.title}</p>
+                  </div>
+                  <button onClick={() => setSubmittingAssignment(null)} className="p-2 hover:bg-slate-50 rounded-xl transition-colors"><X className="w-5 h-5" /></button>
+                </div>
+
+                <div className="space-y-6">
+                   <div className="p-6 bg-blue-50/50 rounded-3xl border border-blue-100/50 border-dashed">
+                      <p className="text-[10px] font-black text-blue-600 uppercase tracking-[0.2em] mb-3">Upload your solution</p>
+                      <input type="file" id="sub-file" className="w-full text-xs font-bold text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-[10px] file:font-black file:bg-blue-600 file:text-white hover:file:bg-blue-700 transition-all" />
+                   </div>
+                   <div className="space-y-1.5">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Additional Notes (Optional)</label>
+                      <textarea id="sub-notes" rows={3} className="w-full px-5 py-3 bg-slate-50 border-none rounded-2xl font-bold text-slate-900 outline-none focus:ring-2 focus:ring-blue-100 transition-all" />
+                   </div>
+                   <button onClick={async (e) => {
+                      const btn = e.currentTarget;
+                      const file = (document.getElementById('sub-file') as HTMLInputElement).files?.[0];
+                      if(!file) return alert('Please select a file to upload');
+
+                      try {
+                        btn.disabled = true; btn.innerHTML = 'Uploading...';
+                        const fd = new FormData();
+                        fd.append('file', file);
+                        fd.append('notes', (document.getElementById('sub-notes') as HTMLTextAreaElement).value);
+
+                        await api.post(`/assignments/${submittingAssignment.id}/submit`, fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+                        alert('Assignment submitted successfully!');
+                        setSubmittingAssignment(null);
+                      } catch (err) { alert('Error submitting assignment'); }
+                      finally { btn.disabled = false; btn.innerHTML = 'Confirm Submission'; }
+                   }} className="w-full py-4 bg-blue-600 text-white font-black rounded-2xl shadow-xl shadow-blue-100 uppercase text-xs tracking-widest">Confirm Submission</button>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+
+        {/* Quiz Attempt Overlay */}
+        <AnimatePresence>
+          {activeQuiz && (
+            <div className="fixed inset-0 z-[100] bg-white flex flex-col">
+               <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-white">
+                  <div className="flex items-center gap-4">
+                     <div className="w-10 h-10 bg-purple-600 rounded-xl flex items-center justify-center text-white">
+                        <Zap className="w-5 h-5" />
+                     </div>
+                     <div>
+                        <h3 className="font-black text-slate-800 uppercase tracking-tight">{activeQuiz.title}</h3>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Question {currentQuestionIndex + 1} of {quizQuestions.length}</p>
+                     </div>
+                  </div>
+                  <div className="flex items-center gap-6">
+                     <div className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-xl font-black text-sm">
+                        <Clock className="w-4 h-4" />
+                        {Math.floor(quizTimer / 60)}:{(quizTimer % 60).toString().padStart(2, '0')}
+                     </div>
+                     <button onClick={() => { if(confirm('Exit quiz? Progress will be lost.')) setActiveQuiz(null); }} className="p-2 text-slate-300 hover:text-red-500 transition-colors">
+                        <X className="w-6 h-6" />
+                     </button>
+                  </div>
+               </div>
+
+               <div className="flex-1 overflow-y-auto p-12 bg-slate-50/30">
+                  <div className="max-w-3xl mx-auto space-y-12">
+                     <div className="space-y-6">
+                        <div className="inline-block px-4 py-1.5 bg-purple-100 text-purple-700 rounded-full text-[10px] font-black uppercase tracking-widest">Question #{currentQuestionIndex + 1}</div>
+                        <h2 className="text-3xl font-black text-slate-800 leading-tight">{quizQuestions[currentQuestionIndex]?.text}</h2>
+                     </div>
+
+                     <div className="grid grid-cols-1 gap-4">
+                        {quizQuestions[currentQuestionIndex]?.options.map((opt: string, i: number) => {
+                           const isSelected = quizAnswers[currentQuestionIndex] === opt;
+                           return (
+                              <button 
+                                 key={i}
+                                 onClick={() => setQuizAnswers({...quizAnswers, [currentQuestionIndex]: opt})}
+                                 className={`p-6 rounded-[2rem] border-2 text-left transition-all flex items-center justify-between group ${isSelected ? 'border-purple-600 bg-purple-50/50' : 'border-white bg-white hover:border-purple-200'}`}
+                              >
+                                 <div className="flex items-center gap-4">
+                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black transition-all ${isSelected ? 'bg-purple-600 text-white' : 'bg-slate-50 text-slate-400 group-hover:bg-purple-100 group-hover:text-purple-600'}`}>
+                                       {String.fromCharCode(65 + i)}
+                                    </div>
+                                    <span className={`font-bold ${isSelected ? 'text-purple-900' : 'text-slate-600'}`}>{opt}</span>
+                                 </div>
+                                 {isSelected && <div className="w-6 h-6 bg-purple-600 rounded-full flex items-center justify-center text-white"><CheckCircle className="w-4 h-4" /></div>}
+                              </button>
+                           );
+                        })}
+                     </div>
+                  </div>
+               </div>
+
+               <div className="p-8 border-t border-slate-100 bg-white flex items-center justify-between">
+                  <button 
+                     disabled={currentQuestionIndex === 0}
+                     onClick={() => setCurrentQuestionIndex(prev => prev - 1)}
+                     className="px-8 py-3 bg-slate-100 text-slate-400 font-black rounded-2xl disabled:opacity-30 uppercase text-[10px] tracking-widest"
+                  >
+                     Previous
+                  </button>
+                  {currentQuestionIndex === quizQuestions.length - 1 ? (
+                     <button 
+                        onClick={async (e) => {
+                           const btn = e.currentTarget;
+                           try {
+                              btn.disabled = true; btn.innerHTML = 'Submitting...';
+                              const res = await api.post(`/quizzes/${activeQuiz.id}/submit`, { answers: quizAnswers });
+                              alert(`Quiz submitted! Result: ${res.data.score}/${res.data.totalQuestions} (${res.data.percentage}%) - ${res.data.passed ? 'PASSED' : 'FAILED'}`);
+                              setActiveQuiz(null);
+                              location.reload();
+                           } catch (err) { alert('Error submitting quiz'); }
+                           finally { btn.disabled = false; btn.innerHTML = 'Finish Quiz'; }
+                        }}
+                        className="px-10 py-4 bg-green-600 text-white font-black rounded-2xl shadow-xl shadow-green-100 uppercase text-[10px] tracking-widest hover:bg-green-700 transition-all"
+                     >
+                        Finish Quiz
+                     </button>
+                  ) : (
+                     <button 
+                        onClick={() => setCurrentQuestionIndex(prev => prev + 1)}
+                        className="px-10 py-4 bg-purple-600 text-white font-black rounded-2xl shadow-xl shadow-purple-100 uppercase text-[10px] tracking-widest hover:bg-purple-700 transition-all"
+                     >
+                        Next Question
+                     </button>
+                  )}
+               </div>
             </div>
           )}
         </AnimatePresence>

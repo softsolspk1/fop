@@ -3,24 +3,59 @@ import prisma from '../lib/prisma';
 import { authenticateToken, authorizeRoles, AuthRequest } from '../auth/auth.middleware';
 import { checkPlagiarism } from './plagiarism.service';
 import { upload } from '../middleware/storage.middleware';
-import googleDriveService from '../services/googleDrive.service';
+import cloudinaryService from '../services/cloudinary.service';
 import fs from 'fs';
 
 const router = Router();
 
-// Get all assignments with course details
-router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
+// Get all assignments for a course
+router.get('/course/:courseId', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
+    const { courseId } = req.params;
     const assignments = await prisma.assignment.findMany({
+      where: { courseId: String(courseId) },
       include: {
-        course: {
-          select: { name: true }
-        }
-      }
+        _count: { select: { submissions: true } }
+      },
+      orderBy: { createdAt: 'desc' }
     });
     res.json(assignments);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching assignments', error });
+  }
+});
+
+// Create an assignment (Teacher)
+router.post('/', authenticateToken, authorizeRoles('TEACHER', 'DEPT_ADMIN', 'SUPER_ADMIN'), upload.single('file'), async (req: AuthRequest, res: Response) => {
+  const filePath = req.file?.path;
+  try {
+    const { title, description, startTime, dueDate, totalMarks, courseId } = req.body;
+    let fileUrl = null;
+    let publicId = null;
+
+    if (req.file) {
+      const cloudinaryRes = await cloudinaryService.uploadFile(req.file.path, `courses/${courseId}/assignments`);
+      fileUrl = cloudinaryRes.url;
+      publicId = cloudinaryRes.publicId;
+    }
+
+    const assignment = await prisma.assignment.create({
+      data: {
+        title,
+        description,
+        startTime: startTime ? new Date(startTime) : new Date(),
+        dueDate: new Date(dueDate),
+        totalMarks: parseFloat(totalMarks) || 100,
+        fileUrl,
+        publicId,
+        courseId,
+      }
+    });
+
+    res.status(201).json(assignment);
+  } catch (error) {
+    if (filePath && fs.existsSync(filePath)) fs.unlinkSync(filePath);
+    res.status(500).json({ message: 'Error creating assignment', error });
   }
 });
 // Submit an assignment (Student)
@@ -34,27 +69,21 @@ router.post('/:assignmentId/submit', authenticateToken, authorizeRoles('STUDENT'
       return res.status(400).json({ message: 'No file uploaded' });
     }
 
-    // Upload to Google Drive
-    const driveFile = await googleDriveService.uploadFile(
-      req.file.originalname,
+    // Upload to Cloudinary
+    const cloudinaryRes = await cloudinaryService.uploadFile(
       req.file.path,
-      req.file.mimetype
+      `assignments/${assignmentId}/submissions`
     );
-
-    // Make file public (optional, or restricted to anyone with link)
-    await googleDriveService.makePublic(driveFile.id!);
 
     const submission = await prisma.submission.create({
       data: {
         assignmentId,
         studentId: userId,
-        fileUrl: driveFile.webViewLink!,
+        fileUrl: cloudinaryRes.url,
+        publicId: cloudinaryRes.publicId,
         status: 'SUBMITTED',
       },
     });
-
-    // Cleanup local file
-    fs.unlinkSync(filePath);
 
     // Trigger plagiarism check in the background (mocked)
     checkPlagiarism(submission.id);

@@ -240,18 +240,53 @@ router.post('/experiments/:id/grade', authenticateToken, authorizeRoles('SUPER_A
 router.put('/:id', authenticateToken, authorizeRoles('SUPER_ADMIN', 'TEACHER'), async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
-    const { title, description, department, provider, difficulty, theory, objectives, safety, year } = req.body;
-    console.log(`[Labs]: Updating lab ${id} with:`, req.body);
+    const { title, description, department, provider, difficulty, theory, objectives, safety, year, multimediaContent } = req.body;
     
     const lab = await prisma.lab.update({
       where: { id: String(id) },
-      data: { title, description, department, provider, difficulty, theory, objectives, safety, year }
+      data: { title, description, department, provider, difficulty, theory, objectives, safety, year, multimediaContent }
     });
     
     res.json(lab);
   } catch (error) {
-    console.error(`[Labs]: Update failed for ${req.params.id}:`, error);
     res.status(500).json({ message: 'Error updating lab', error });
+  }
+});
+
+// Create new lab (Super Admin or Teacher)
+router.post('/', authenticateToken, authorizeRoles('SUPER_ADMIN', 'TEACHER'), async (req: AuthRequest, res: Response) => {
+  try {
+    const { title, description, department, provider, difficulty, theory, objectives, safety, year, multimediaContent } = req.body;
+    
+    const lab = await prisma.lab.create({
+      data: { title, description, department, provider, difficulty, theory, objectives, safety, year, multimediaContent }
+    });
+    
+    res.status(201).json(lab);
+  } catch (error) {
+    res.status(500).json({ message: 'Error creating lab', error });
+  }
+});
+
+// Student Manual Submission (Results & Observations)
+router.post('/experiments/:id/submit', authenticateToken, async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { studentResult, studentObservation } = req.body;
+
+    const updated = await prisma.experiment.update({
+      where: { id: String(id) },
+      data: { 
+        studentResult,
+        studentObservation,
+        status: 'SUBMITTED',
+        updatedAt: new Date()
+      }
+    });
+
+    res.json({ message: 'Manual submission recorded', experiment: updated });
+  } catch (error) {
+    res.status(500).json({ message: 'Error recording manual submission', error });
   }
 });
 
