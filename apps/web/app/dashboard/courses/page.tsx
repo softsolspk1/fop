@@ -366,16 +366,18 @@ export default function CoursesPage() {
                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Content Type</label>
                         <select id="mat-type" className="w-full px-5 py-3.5 bg-white border-2 border-slate-100 rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-400 transition-all shadow-sm">
                           <option value="DOCUMENT">Document (PDF/Doc)</option>
+                          <option value="PPT">PowerPoint (PPTX)</option>
                           <option value="IMAGE">Image / Diagram</option>
                           <option value="VIDEO">Video Upload</option>
                           <option value="YOUTUBE">YouTube Link</option>
                         </select>
                       </div>
                       <div className="md:col-span-2 space-y-1.5 px-1">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Upload File (Optional)</label>
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Direct File Upload (Cloudinary)</label>
                         <input 
                           type="file" 
                           id="mat-file"
+                          accept=".pdf,.doc,.docx,.ppt,.pptx,.jpg,.jpeg,.png,.mp4"
                           className="w-full px-5 py-3.5 bg-white border-2 border-slate-100 rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-400 transition-all shadow-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-black file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                         />
                       </div>
