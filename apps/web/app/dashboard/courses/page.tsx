@@ -365,14 +365,22 @@ export default function CoursesPage() {
                       <div className="space-y-1.5 px-1">
                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Content Type</label>
                         <select id="mat-type" className="w-full px-5 py-3.5 bg-white border-2 border-slate-100 rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-400 transition-all shadow-sm">
-                          <option value="PDF">PDF Document</option>
-                          <option value="VIDEO">Uploaded Video</option>
-                          <option value="YOUTUBE">YouTube Link</option>
+                          <option value="DOCUMENT">Document (PDF/Doc)</option>
                           <option value="IMAGE">Image / Diagram</option>
+                          <option value="VIDEO">Video Upload</option>
+                          <option value="YOUTUBE">YouTube Link</option>
                         </select>
                       </div>
                       <div className="md:col-span-2 space-y-1.5 px-1">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">URL / Resource Link</label>
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Upload File (Optional)</label>
+                        <input 
+                          type="file" 
+                          id="mat-file"
+                          className="w-full px-5 py-3.5 bg-white border-2 border-slate-100 rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-400 transition-all shadow-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-black file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                        />
+                      </div>
+                      <div className="md:col-span-2 space-y-1.5 px-1">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">OR URL / Resource Link</label>
                         <input 
                           type="text" 
                           placeholder="https://..."
@@ -382,18 +390,47 @@ export default function CoursesPage() {
                       </div>
                       <div className="md:col-span-2 pt-2">
                         <button 
-                          onClick={async () => {
+                          onClick={async (e) => {
+                            const btn = e.currentTarget;
                             const title = (document.getElementById('mat-title') as HTMLInputElement).value;
                             const type = (document.getElementById('mat-type') as HTMLSelectElement).value;
                             const url = (document.getElementById('mat-url') as HTMLInputElement).value;
-                            if (!title || !url) return alert('Please fill all fields');
+                            const fileInput = document.getElementById('mat-file') as HTMLInputElement;
+                            const file = fileInput.files?.[0];
+
+                            if (!title || (!url && !file)) return alert('Please provide a title and either a file or a URL');
+                            
                             try {
-                              await api.post('/lms/materials', { title, type, url, courseId: managingMaterials.id });
+                              btn.disabled = true;
+                              btn.innerHTML = 'Uploading...';
+                              
+                              const formData = new FormData();
+                              formData.append('title', title);
+                              formData.append('type', type);
+                              formData.append('courseId', managingMaterials.id);
+                              if (file) formData.append('file', file);
+                              if (url) formData.append('url', url);
+
+                              await api.post('/lms/materials', formData, {
+                                headers: { 'Content-Type': 'multipart/form-data' }
+                              });
+
                               alert('Material submitted for HOD approval');
                               (document.getElementById('mat-title') as HTMLInputElement).value = '';
                               (document.getElementById('mat-url') as HTMLInputElement).value = '';
-                              setManagingMaterials({...managingMaterials}); 
-                            } catch (err) { alert('Error uploading material'); }
+                              fileInput.value = '';
+                              // Trigger a re-fetch of course data to show new material
+                              await fetchData();
+                              // Update the specific managingMaterials state to reflect local changes if needed
+                              const updatedCourse = await api.get(`/courses/${managingMaterials.id}`);
+                              setManagingMaterials(updatedCourse.data);
+                            } catch (err: any) { 
+                              console.error('Upload error:', err);
+                              alert('Error uploading material: ' + (err.response?.data?.message || err.message)); 
+                            } finally {
+                              btn.disabled = false;
+                              btn.innerHTML = 'Submit for HOD Approval';
+                            }
                           }}
                           className="w-full py-4.5 bg-blue-600 text-white font-black rounded-2xl shadow-xl shadow-blue-200 uppercase text-xs tracking-[0.2em] border-b-4 border-blue-800 active:border-b-0 active:translate-y-1 hover:bg-blue-700 transition-all flex items-center justify-center gap-3"
                         >

@@ -1,6 +1,9 @@
 import { Router, Response } from 'express';
 import prisma from '../lib/prisma';
 import { authenticateToken, authorizeRoles, AuthRequest } from '../auth/auth.middleware';
+import { upload } from '../middleware/storage.middleware';
+import cloudinaryService from '../services/cloudinary.service';
+import fs from 'fs';
 
 const router = Router();
 
@@ -34,24 +37,45 @@ router.get('/courses/:courseId/materials', authenticateToken, async (req: AuthRe
 });
 
 // 2. Upload Material (Teacher or Admin)
-router.post('/materials', authenticateToken, authorizeRoles('TEACHER', 'SUPER_ADMIN', 'DEPT_ADMIN'), async (req: AuthRequest, res: Response) => {
+router.post('/materials', authenticateToken, authorizeRoles('TEACHER', 'SUPER_ADMIN', 'DEPT_ADMIN'), upload.single('file'), async (req: AuthRequest, res: Response) => {
+  const filePath = req.file?.path;
   try {
-    const { title, url, type, courseId } = req.body;
+    let { title, url, type, courseId } = req.body;
     const userId = req.user?.userId;
+    let publicId = null;
+
+    // If a file is uploaded, use Cloudinary
+    if (req.file) {
+      const cloudinaryResponse = await cloudinaryService.uploadFile(
+        req.file.path,
+        `courses/${courseId}/materials`
+      );
+      url = cloudinaryResponse.url;
+      publicId = cloudinaryResponse.publicId;
+      title = title || req.file.originalname;
+    }
+
+    if (!url) {
+      return res.status(400).json({ message: 'URL or File is required' });
+    }
 
     const material = await prisma.material.create({
       data: {
         title,
         url,
-        type,
+        publicId,
+        type: type || 'LECTURE_NOTE',
         courseId,
         uploadedById: userId,
-        status: 'PENDING' // Always starts as PENDING for approval
+        status: 'PENDING'
       }
     });
 
     res.status(201).json(material);
   } catch (error) {
+    if (filePath && fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
     res.status(500).json({ message: 'Error uploading material', error });
   }
 });

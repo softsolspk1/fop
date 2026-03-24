@@ -2,7 +2,7 @@ import { Router, Response } from 'express';
 import prisma from '../lib/prisma';
 import { authenticateToken, authorizeRoles, AuthRequest } from '../auth/auth.middleware';
 import { upload } from '../middleware/storage.middleware';
-import googleDriveService from '../services/googleDrive.service';
+import cloudinaryService from '../services/cloudinary.service';
 import fs from 'fs';
 
 const router = Router();
@@ -138,30 +138,21 @@ router.post('/:id/materials', authenticateToken, authorizeRoles('TEACHER'), uplo
       return res.status(400).json({ message: 'No file uploaded' });
     }
 
-    // Upload to Google Drive
-    const driveFile = await googleDriveService.uploadFile(
-      title || req.file.originalname,
+    // Upload to Cloudinary
+    const cloudinaryResponse = await cloudinaryService.uploadFile(
       req.file.path,
-      req.file.mimetype
+      `courses/${courseId}/materials`
     );
-
-    // Make file public
-    await googleDriveService.makePublic(driveFile.id!);
-
     const material = await prisma.material.create({
       data: {
         title: title || req.file.originalname,
-        url: driveFile.webViewLink!,
+        url: cloudinaryResponse.url,
+        publicId: cloudinaryResponse.publicId,
         type: type || 'LECTURE_NOTE',
         courseId: String(courseId),
+        uploadedById: req.user?.userId
       },
     });
-
-    // Cleanup local file
-    if (filePath) {
-      fs.unlinkSync(filePath);
-    }
-
     res.status(201).json(material);
   } catch (error) {
     if (filePath && fs.existsSync(filePath)) {
