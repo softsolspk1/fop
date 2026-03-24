@@ -102,9 +102,12 @@ export default function UsersPage() {
   };
 
   const filteredUsers = users.filter(u => {
-    const matchesSearch = u.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                         u.email.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                         (u.rollNumber && u.rollNumber.toLowerCase().includes(searchQuery.toLowerCase()));
+    const searchLow = searchQuery.toLowerCase();
+    const nameMatch = u.name?.toLowerCase().includes(searchLow) ?? false;
+    const emailMatch = u.email?.toLowerCase().includes(searchLow) ?? false;
+    const rollMatch = u.rollNumber?.toLowerCase().includes(searchLow) ?? false;
+    
+    const matchesSearch = nameMatch || emailMatch || rollMatch;
     const matchesRole = filterRole ? u.role === filterRole : true;
     return matchesSearch && matchesRole;
   });

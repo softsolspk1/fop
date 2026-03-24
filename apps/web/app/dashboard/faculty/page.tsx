@@ -39,8 +39,9 @@ export default function FacultyPage() {
   }, []);
 
   const filteredFaculty = faculty.filter(f => {
-    const matchesSearch = f.name.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesSearch &&
+    const searchLow = searchQuery.toLowerCase();
+    const nameMatch = f.name?.toLowerCase().includes(searchLow) ?? false;
+    return nameMatch &&
            (filterDept === '' || f.department === filterDept) &&
            (filterDesignation === '' || f.designation === filterDesignation);
   });

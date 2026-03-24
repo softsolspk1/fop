@@ -138,11 +138,13 @@ export default function VirtualLabsPage() {
       const labsRes = await api.get('/labs');
       // Filter out labs that are already in productionLabs to avoid duplicates
       const prodIds = productionLabs.map(pl => pl.id.toLowerCase());
-      const filtered = labsRes.data.filter((lab: any) => 
-        !prodIds.includes(lab.id.toLowerCase()) && 
-        !prodIds.includes(lab.title.toLowerCase().replace(/\s+/g, '-')) &&
-        !productionLabs.some(pl => pl.title.toLowerCase() === lab.title.toLowerCase())
-      );
+      const filtered = labsRes.data.filter((lab: any) => {
+        const labIdLow = lab.id?.toLowerCase() || '';
+        const labTitleLow = lab.title?.toLowerCase() || '';
+        return !prodIds.includes(labIdLow) && 
+               !prodIds.includes(labTitleLow.replace(/\s+/g, '-')) &&
+               !productionLabs.some(pl => pl.title.toLowerCase() === labTitleLow);
+      });
       setLabs(filtered);
     } catch (err) {
       console.error('Error fetching labs:', err);

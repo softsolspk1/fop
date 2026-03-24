@@ -51,10 +51,12 @@ export default function EnrollmentManagement() {
     }
   };
 
-  const filteredEnrollments = enrollments.filter(e => 
-    (e.name.toLowerCase().includes(search.toLowerCase()) || e.email.toLowerCase().includes(search.toLowerCase())) &&
-    (filter === 'ALL' || e.department?.name === filter)
-  );
+  const filteredEnrollments = enrollments.filter(e => {
+    const searchLow = search.toLowerCase();
+    const nameMatch = e.name?.toLowerCase().includes(searchLow) ?? false;
+    const emailMatch = e.email?.toLowerCase().includes(searchLow) ?? false;
+    return (nameMatch || emailMatch) && (filter === 'ALL' || e.department?.name === filter);
+  });
 
   return (
     <DashboardLayout>

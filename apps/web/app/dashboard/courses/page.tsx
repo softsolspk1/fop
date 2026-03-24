@@ -102,7 +102,10 @@ export default function CoursesPage() {
   };
   
   const filteredCourses = courses.filter(course => {
-    const matchesSearch = course.name.toLowerCase().includes(searchQuery.toLowerCase()) || course.code.toLowerCase().includes(searchQuery.toLowerCase());
+    const searchLow = searchQuery.toLowerCase();
+    const nameMatch = course.name?.toLowerCase().includes(searchLow) ?? false;
+    const codeMatch = course.code?.toLowerCase().includes(searchLow) ?? false;
+    const matchesSearch = nameMatch || codeMatch;
     const matchesProf = filterProfessional ? course.professional === filterProfessional : true;
     const matchesSem = filterSemester ? course.semesterName === filterSemester : true;
     const matchesDept = filterDepartment ? course.departmentId === filterDepartment : true;
