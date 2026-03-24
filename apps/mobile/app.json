@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "scheme": "fopuok",
     "orientation": "portrait",
-    "plugins": ["expo-router"],
+    "plugins": ["expo-router", "expo-splash-screen"],
     "icon": "./assets/logo.jpg",
     "userInterfaceStyle": "light",
     "splash": {

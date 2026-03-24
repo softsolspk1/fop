@@ -2,7 +2,7 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const api = axios.create({
-  baseURL: 'https://api-mu-taupe-16.vercel.app',
+  baseURL: 'https://api-7s67wyxr3-softsolspk1s-projects.vercel.app',
 });
 
 api.interceptors.request.use(async (config) => {

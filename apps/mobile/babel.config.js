@@ -4,7 +4,8 @@ module.exports = function(api) {
   return {
     presets: ['babel-preset-expo'],
     plugins: [
-      ['@babel/plugin-transform-flow-strip-types', { allowDeclareFields: true }]
+      ['@babel/plugin-transform-flow-strip-types', { allowDeclareFields: true }],
+      'react-native-reanimated/plugin'
     ],
   };
 };
