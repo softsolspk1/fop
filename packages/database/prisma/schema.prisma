@@ -210,7 +210,12 @@ model Assignment {
   id          String       @id @default(uuid())
   title       String
   description String
-  dueDate     DateTime
+  startTime   DateTime?
+  endTime     DateTime?
+  dueDate     DateTime?  // Re-adding dueDate for compatibility
+  totalMarks  Float?
+  fileUrl     String?
+  publicId    String?
   courseId    String
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
@@ -221,6 +226,7 @@ model Assignment {
 model Submission {
   id           String     @id @default(uuid())
   fileUrl      String
+  publicId     String?
   status       String
   plagiarism   Float?
   assignmentId String
@@ -234,12 +240,16 @@ model Submission {
 
 model Quiz {
   id          String           @id @default(uuid())
-  title       String
-  description String?
-  timeLimit   Int
-  courseId    String
-  isExam      Boolean          @default(false)
-  status      EnrollmentStatus @default(PENDING)
+  title             String
+  description       String?
+  startTime         DateTime?
+  endTime           DateTime?
+  totalMarks        Float     @default(100)
+  passingPercentage Float     @default(50)
+  timeLimit         Int
+  courseId          String
+  isExam            Boolean          @default(false)
+  status            EnrollmentStatus @default(PENDING)
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
   questions   Question[]
@@ -259,6 +269,7 @@ model Question {
 model QuizResult {
   id        String   @id @default(uuid())
   score     Float
+  passed    Boolean  @default(false)
   userId    String
   quizId    String
   createdAt DateTime @default(now())

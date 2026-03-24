@@ -101,21 +101,21 @@ router.post('/:id/submit', authenticateToken, authorizeRoles('STUDENT'), async (
 
     // Enforce single attempt
     const existingResult = await prisma.quizResult.findFirst({
-      where: { quizId: id, userId }
+      where: { quizId: String(id), userId: String(userId) }
     });
 
     if (existingResult) {
       return res.status(400).json({ message: 'You have already attempted this quiz' });
     }
 
-    const quiz = await prisma.quiz.findUnique({ where: { id } });
+    const quiz = await prisma.quiz.findUnique({ where: { id: String(id) } });
     const passed = quiz ? (score / quiz.totalMarks) * 100 >= quiz.passingPercentage : false;
 
     const result = await prisma.quizResult.create({
       data: {
         score,
         passed,
-        userId,
+        userId: String(userId),
         quizId: String(id)
       }
     });
