@@ -50,6 +50,9 @@ router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
         department: true,
         teacher: {
           select: { name: true, email: true }
+        },
+        _count: {
+          select: { students: true }
         }
       }
     });

@@ -5,7 +5,10 @@
     "version": "1.0.0",
     "scheme": "fopuok",
     "orientation": "portrait",
-    "plugins": ["expo-router", "expo-splash-screen"],
+    "plugins": [
+      "expo-router",
+      "expo-splash-screen"
+    ],
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
@@ -30,7 +33,10 @@
     },
     "extra": {
       "eas": {
-        "projectId": "7490fcf9-78d2-4925-a1ac-7f2a34f81452"
+        "projectId": "926835ba-e059-425f-9848-9a11bf4d377f"
+      },
+      "router": {
+        "origin": false
       }
     }
   }

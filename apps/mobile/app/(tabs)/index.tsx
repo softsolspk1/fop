@@ -18,14 +18,16 @@ export default function DashboardScreen() {
 
   const fetchStats = async () => {
     try {
-      if (user?.role === 'HOD' || user?.role === 'DEPT_ADMIN') {
+      if (!user) return; // Guard against null user during startup
+
+      if (user.role === 'HOD' || user.role === 'DEPT_ADMIN') {
         const { data } = await api.get('/departments/my-stats');
         setStats({
           facultyCount: data.facultyCount.toString(),
           deptStudents: data.studentCount.toString(),
           courses: data.courseCount.toString()
         });
-      } else if (user?.role === 'FACULTY' || user?.role === 'TEACHER') {
+      } else if (user.role === 'FACULTY' || user.role === 'TEACHER') {
         // Fetch teacher classes to count active ones
         const { data } = await api.get('/classes');
         setStats({

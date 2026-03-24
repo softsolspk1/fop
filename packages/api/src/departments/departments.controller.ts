@@ -40,6 +40,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     const departments = await prisma.department.findMany({
       include: {
+        hod: true,
         _count: {
           select: { users: true, courses: true }
         }

@@ -1,14 +1,19 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import * as SplashScreen from 'expo-splash-screen';
 
 import { AuthProvider, useAuth } from '../context/AuthContext';
+
+// Keep the splash screen visible while we fetch resources
+SplashScreen.preventAutoHideAsync();
 
 function InitialLayout() {
   const { token, loading } = useAuth();
   const segments = useSegments();
   const router = useRouter();
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
     if (loading) return;
@@ -16,13 +21,20 @@ function InitialLayout() {
     const inAuthGroup = segments[0] === '(tabs)';
 
     if (!token && inAuthGroup) {
-      // Redirect to the login page if they are trying to access protected pages and are not logged in
       router.replace('/login');
     } else if (token && (segments[0] === 'login' || segments[0] === 'signup')) {
-      // Redirect away from login/signup if they are already logged in
       router.replace('/(tabs)');
     }
+
+    // Hide splash screen once we've decided where to go
+    const hideSplash = async () => {
+      await SplashScreen.hideAsync();
+      setIsReady(true);
+    };
+    hideSplash();
   }, [token, loading, segments]);
+
+  if (!isReady) return null;
 
   return (
     <Stack>

@@ -287,11 +287,11 @@ export default function CoursesPage() {
                       <span className="font-bold text-slate-700 text-xs">{course.teacher?.name}</span>
                     </div>
                   </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-2 text-slate-400">
-                      <Clock className="w-3.5 h-3.5" />
-                      <span className="font-bold text-[10px] uppercase tracking-widest">{course.students?.length || 0} Students</span>
-                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <div className="flex items-center gap-2 text-slate-400">
+                        <Clock className="w-3.5 h-3.5" />
+                        <span className="font-bold text-[10px] uppercase tracking-widest">{course._count?.students || 0} Students</span>
+                      </div>
                     <div className="flex gap-2">
                       <button 
                         onClick={() => setManagingMaterials(course)}

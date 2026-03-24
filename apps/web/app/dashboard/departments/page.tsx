@@ -139,16 +139,16 @@ export default function DepartmentsPage() {
                          </div>
                       </div>
                    </div>
-                   <div className="flex items-center justify-between text-xs font-bold text-slate-400 italic">
+                    <div className="flex items-center justify-between text-xs font-bold text-slate-400 italic">
                       <div className="flex items-center gap-2">
                          <Users className="w-3.5 h-3.5" />
-                         <span>{dept.users?.length || 0} Members</span>
+                         <span>{dept._count?.users || 0} Members</span>
                       </div>
                       <div className="flex items-center gap-2">
                          <BookOpen className="w-3.5 h-3.5" />
-                         <span>{dept.courses?.length || 0} Courses</span>
+                         <span>{dept._count?.courses || 0} Courses</span>
                       </div>
-                   </div>
+                    </div>
                 </div>
               </motion.div>
             ))}
