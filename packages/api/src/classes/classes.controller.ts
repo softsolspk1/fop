@@ -18,25 +18,28 @@ router.get('/active', authenticateToken, async (req: AuthRequest, res: Response)
       actualEndTime: null
     };
 
+    let student: any = null;
+    let enrolledCourses: any[] = [];
+
     if (isStudent) {
-      const student = await prisma.user.findUnique({
+      student = await prisma.user.findUnique({
         where: { id: userId },
         select: { departmentId: true, year: true }
       });
 
-      const enrolledCourses = await prisma.course.findMany({
+      enrolledCourses = await prisma.course.findMany({
         where: {
           OR: [
             { students: { some: { id: userId } } },
             { 
               departmentId: student?.departmentId || undefined,
-              professional: String(student?.year || '') || undefined
+              professional: student?.year || undefined
             }
           ]
         },
         select: { id: true }
       });
-      whereClause.courseId = { in: enrolledCourses.map(c => c.id) };
+      whereClause.courseId = { in: enrolledCourses.map(c => (c as any).id) };
     }
 
     const classes = await prisma.class.findMany({
@@ -49,6 +52,13 @@ router.get('/active', authenticateToken, async (req: AuthRequest, res: Response)
         }
       }
     });
+
+    if (isStudent) {
+      console.log(`[Classes:Active]: Student ${userId} | Dept: ${student?.departmentId} | Year: ${student?.year}`);
+      console.log(`[Classes:Active]: Enrolled Course IDs: ${enrolledCourses.map(c => (c as any).id).join(', ')}`);
+      console.log(`[Classes:Active]: Found ${classes.length} active classes for student.`);
+    }
+
     res.json(classes);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching active classes', error });
@@ -77,13 +87,13 @@ router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
             { students: { some: { id: userId } } },
             { 
               departmentId: student?.departmentId || undefined,
-              professional: String(student?.year || '') || undefined // student.year corresponds to course.professional
+              professional: student?.year || undefined
             }
           ]
         },
         select: { id: true }
       });
-      const enrolledCourseIds = enrolledCourses.map(c => c.id);
+      const enrolledCourseIds = enrolledCourses.map(c => (c as any).id);
       whereClause.courseId = { in: enrolledCourseIds };
     }
 
