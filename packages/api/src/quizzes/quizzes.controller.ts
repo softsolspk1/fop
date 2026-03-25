@@ -57,7 +57,7 @@ router.get('/course/:courseId', authenticateToken, async (req: AuthRequest, res:
 // Create a new quiz or exam (Teacher/Admin)
 router.post('/', authenticateToken, authorizeRoles('TEACHER', 'DEPT_ADMIN', 'SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
   try {
-    const { title, description, timeLimit, courseId, questions, isExam, startTime, endTime, totalMarks, passingPercentage } = req.body;
+    const { title, description, timeLimit, courseId, questions, startTime, endTime, totalMarks, passingPercentage } = req.body;
     
     console.log(`[Quizzes]: Creating quiz "${title}" for course ${courseId}. Questions: ${questions?.length}`);
     
@@ -75,7 +75,6 @@ router.post('/', authenticateToken, authorizeRoles('TEACHER', 'DEPT_ADMIN', 'SUP
         totalMarks: parseFloat(totalMarks) || questions.length,
         passingPercentage: parseFloat(passingPercentage) || 40,
         courseId,
-        isExam: !!isExam,
         status: 'PENDING',
         questions: {
           create: questions.map((q: any) => ({
