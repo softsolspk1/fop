@@ -63,9 +63,14 @@ router.post('/', authenticateToken, authorizeRoles('TEACHER', 'DEPT_ADMIN', 'SUP
     });
 
     res.status(201).json(assignment);
-  } catch (error) {
+  } catch (error: any) {
     if (filePath && fs.existsSync(filePath)) fs.unlinkSync(filePath);
-    res.status(500).json({ message: 'Error creating assignment', error });
+    console.error(`[Assignments]: Error creating assignment for course ${req.body.courseId}:`, error);
+    res.status(500).json({ 
+      message: 'Error creating assignment', 
+      error: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 });
 // Submit an assignment (Student)

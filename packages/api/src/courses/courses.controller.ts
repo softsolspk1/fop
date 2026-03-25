@@ -127,8 +127,13 @@ router.get('/:id', authenticateToken, async (req: AuthRequest, res: Response) =>
     });
     if (!course) return res.status(404).json({ message: 'Course not found' });
     res.json(course);
-  } catch (error) {
-    res.status(500).json({ message: 'Error fetching course details', error });
+  } catch (error: any) {
+    console.error(`[Courses]: Error fetching course details for ID ${req.params.id}:`, error);
+    res.status(500).json({ 
+      message: 'Error fetching course details', 
+      error: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 });
 

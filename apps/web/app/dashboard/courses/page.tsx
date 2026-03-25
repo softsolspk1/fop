@@ -499,12 +499,12 @@ export default function CoursesPage() {
                               alert('Error uploading material: ' + (err.response?.data?.message || err.message)); 
                             } finally {
                               btn.disabled = false;
-                              btn.innerHTML = 'Submit for HOD Approval';
+                              btn.innerHTML = 'Submit';
                             }
                           }}
                           className="w-full py-4.5 bg-blue-600 text-white font-black rounded-2xl shadow-xl shadow-blue-200 uppercase text-xs tracking-[0.2em] border-b-4 border-blue-800 active:border-b-0 active:translate-y-1 hover:bg-blue-700 transition-all flex items-center justify-center gap-3"
                         >
-                          Submit for HOD Approval
+                          Submit
                         </button>
                       </div>
                     </div>
@@ -659,25 +659,46 @@ export default function CoursesPage() {
                     </div>
                   )}
 
-                  {activeManagementTab === 'QUIZZES' && (
-                    <div className="space-y-8">
-                       <div className="p-8 bg-purple-50/30 rounded-[2.5rem] border border-purple-100/50 space-y-5">
-                          <div className="flex items-center gap-3 mb-2">
-                             <div className="p-2 bg-purple-600 rounded-lg text-white">
-                                <Plus className="w-4 h-4" />
+                   {activeManagementTab === 'QUIZZES' && (
+                    <div className="space-y-8 h-full flex flex-col">
+                       <div className="p-10 bg-purple-50/30 rounded-[2.5rem] border border-purple-100/50 space-y-8 shadow-inner">
+                          <div className="flex items-center gap-4 mb-2">
+                             <div className="w-12 h-12 bg-purple-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-purple-200">
+                                <Plus className="w-6 h-6" />
                              </div>
-                             <h4 className="text-sm font-black text-slate-800 uppercase tracking-widest">Setup Quiz / Exam</h4>
+                             <div>
+                                <h4 className="text-xl font-black text-slate-800 uppercase tracking-tight">Setup Quiz / Exam</h4>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5">Define assessment parameters</p>
+                             </div>
                           </div>
 
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                             <div className="md:col-span-2 space-y-1.5"><label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Quiz Title</label><input type="text" id="quiz-title" className="w-full px-5 py-3 bg-white border-2 border-slate-100 rounded-2xl font-bold" /></div>
-                             <div className="space-y-1.5"><label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Start Time</label><input type="datetime-local" id="quiz-start" className="w-full px-5 py-3 bg-white border-2 border-slate-100 rounded-2xl font-bold" /></div>
-                             <div className="space-y-1.5"><label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">End Time</label><input type="datetime-local" id="quiz-end" className="w-full px-5 py-3 bg-white border-2 border-slate-100 rounded-2xl font-bold" /></div>
-                             <div className="space-y-1.5"><label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Time Limit (Mins)</label><input type="number" id="quiz-limit" defaultValue={30} className="w-full px-5 py-3 bg-white border-2 border-slate-100 rounded-2xl font-bold" /></div>
-                             <div className="space-y-1.5"><label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Passing %</label><input type="number" id="quiz-pass" defaultValue={40} className="w-full px-5 py-3 bg-white border-2 border-slate-100 rounded-2xl font-bold" /></div>
-                             <div className="space-y-1.5 md:col-span-2 flex items-center gap-3 bg-white p-4 rounded-2xl border-2 border-slate-50">
-                                <input type="checkbox" id="quiz-exam" className="w-5 h-5 accent-purple-600" />
-                                <label className="text-[10px] font-black text-slate-600 uppercase tracking-widest">Mark as Examination</label>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                             <div className="md:col-span-2 space-y-2 px-1">
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Quiz Title</label>
+                                <input type="text" id="quiz-title" placeholder="e.g. Pharmacology Midterm 2024" className="w-full px-5 py-3.5 bg-white border-2 border-slate-100 rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-purple-100 focus:border-purple-400 transition-all shadow-sm" />
+                             </div>
+                             <div className="space-y-2 px-1">
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Start Time</label>
+                                <input type="datetime-local" id="quiz-start" className="w-full px-5 py-3.5 bg-white border-2 border-slate-100 rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-purple-100 focus:border-purple-400 transition-all shadow-sm" />
+                             </div>
+                             <div className="space-y-2 px-1">
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">End Time</label>
+                                <input type="datetime-local" id="quiz-end" className="w-full px-5 py-3.5 bg-white border-2 border-slate-100 rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-purple-100 focus:border-purple-400 transition-all shadow-sm" />
+                             </div>
+                             <div className="space-y-2 px-1">
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Time Limit (Mins)</label>
+                                <input type="number" id="quiz-limit" defaultValue={30} className="w-full px-5 py-3.5 bg-white border-2 border-slate-100 rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-purple-100 focus:border-purple-400 transition-all shadow-sm" />
+                             </div>
+                             <div className="space-y-2 px-1">
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Passing %</label>
+                                <input type="number" id="quiz-pass" defaultValue={40} className="w-full px-5 py-3.5 bg-white border-2 border-slate-100 rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-purple-100 focus:border-purple-400 transition-all shadow-sm" />
+                             </div>
+                             <div className="space-y-2 md:col-span-2 flex items-center justify-between bg-white p-5 rounded-3xl border-2 border-slate-50 shadow-sm">
+                                <div>
+                                   <p className="text-xs font-black text-slate-800 uppercase tracking-widest">Graded Examination</p>
+                                   <p className="text-[9px] font-bold text-slate-400 uppercase">Increases visibility and importance</p>
+                                </div>
+                                <input type="checkbox" id="quiz-exam" className="w-6 h-6 accent-purple-600 rounded-lg cursor-pointer" />
                              </div>
                           </div>
 
