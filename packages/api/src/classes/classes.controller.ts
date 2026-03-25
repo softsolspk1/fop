@@ -116,7 +116,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
 // Create a new class session
 router.post('/', authenticateToken, authorizeRoles('TEACHER', 'SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
   try {
-    const { title, startTime, endTime, courseId, dayOfWeek, location, classType, isRecurring, recurrentMonths } = req.body;
+    const { title, startTime, endTime, courseId, dayOfWeek, location, classType } = req.body;
     const agoraChannel = `class-${courseId}-${Date.now()}`;
 
     const newClass = await prisma.class.create({
@@ -128,9 +128,7 @@ router.post('/', authenticateToken, authorizeRoles('TEACHER', 'SUPER_ADMIN'), as
         location: location || 'Lecture Hall 1',
         courseId,
         agoraChannel,
-        classType: classType || 'Physical',
-        isRecurring: !!isRecurring,
-        recurrentMonths: recurrentMonths || []
+        classType: classType || 'Physical'
       }
     });
 
@@ -183,42 +181,12 @@ router.get('/:id/join', authenticateToken, async (req: AuthRequest, res: Respons
     const uid = Math.floor(Math.random() * 1000000);
     const token = generateAgoraToken(classSession.agoraChannel, uid);
 
-    // Dynamic Whiteboard Room Management
-    let whiteboardUuid = (classSession as any).whiteboardUuid;
-    let whiteboardToken = null;
-
-    if (!whiteboardUuid) {
-      console.log('[LMS]: Creating new Whiteboard room for session:', id);
-      const room = await createWhiteboardRoom();
-      if (room) {
-        whiteboardUuid = room.uuid;
-        whiteboardToken = room.roomToken;
-        // Attempt to update the class with the new whiteboard UUID if the field exists
-        try {
-          await prisma.class.update({
-            where: { id: String(id) },
-            data: { whiteboardUuid: room.uuid } as any
-          });
-        } catch (dbErr) {
-          console.warn('[LMS]: Could not save whiteboardUuid to DB (schema might not be updated yet):', dbErr);
-        }
-      }
-    } else {
-      whiteboardToken = await generateRoomToken(whiteboardUuid);
-    }
-
-    console.log('[Join]: Whiteboard payload for session:', id, whiteboardUuid ? 'SUCCESS' : 'MISSING');
-    
     res.json({
       token,
       channel: classSession.agoraChannel,
       uid,
       appId: process.env.AGORA_APP_ID,
-      whiteboard: whiteboardUuid ? {
-        uuid: whiteboardUuid,
-        token: whiteboardToken,
-        appId: process.env.NEXT_PUBLIC_AGORA_WHITEBOARD_APP_ID
-      } : null
+      whiteboard: null
     });
   } catch (error) {
     console.error('Error joining class:', error);

@@ -26,9 +26,7 @@ export default function LiveClassesPage() {
     endTime: '',
     dayOfWeek: 'Monday',
     location: 'Lecture Hall 1',
-    classType: 'Physical',
-    isRecurring: false,
-    recurrentMonths: [] as string[]
+    classType: 'Physical'
   });
 
 
@@ -67,9 +65,7 @@ export default function LiveClassesPage() {
         endTime: '',
         dayOfWeek: 'Monday',
         location: 'Lecture Hall 1',
-        classType: 'Physical',
-        isRecurring: false,
-        recurrentMonths: []
+        classType: 'Physical'
       });
       setSelectedDept('');
       setSelectedSem('');
@@ -97,15 +93,6 @@ export default function LiveClassesPage() {
   });
 
   const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-
-  const toggleMonth = (month: string) => {
-    setFormData(prev => ({
-      ...prev,
-      recurrentMonths: prev.recurrentMonths.includes(month)
-        ? prev.recurrentMonths.filter(m => m !== month)
-        : [...prev.recurrentMonths, month]
-    }));
-  };
 
   return (
     <DashboardLayout>
@@ -351,30 +338,6 @@ export default function LiveClassesPage() {
                   </div>
                 </div>
 
-                <div className="space-y-4">
-                   <div className="flex items-center gap-2 p-4 bg-blue-50 rounded-2xl border border-blue-100">
-                    <input type="checkbox" id="isRecurring" checked={formData.isRecurring} onChange={(e) => setFormData({...formData, isRecurring: e.target.checked})} className="w-5 h-5 accent-blue-600" />
-                    <label htmlFor="isRecurring" className="text-sm font-bold text-blue-800 uppercase tracking-widest">Recurring Session (Weekly)</label>
-                  </div>
-
-                  {formData.isRecurring && (
-                    <div className="p-6 bg-slate-50 rounded-2xl border border-slate-200">
-                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 block">Select Months to Recur</label>
-                      <div className="grid grid-cols-3 gap-2">
-                        {months.map(m => (
-                          <button 
-                            key={m} 
-                            type="button" 
-                            onClick={() => toggleMonth(m)}
-                            className={`px-3 py-2 rounded-xl text-[10px] font-bold uppercase transition-all border ${formData.recurrentMonths.includes(m) ? 'bg-blue-600 text-white border-blue-700' : 'bg-white text-slate-400 border-slate-100 hover:border-blue-300'}`}
-                          >
-                            {m.substring(0, 3)}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
                 <button type="submit" className="w-full py-4.5 bg-blue-600 text-white font-black rounded-2xl shadow-xl shadow-blue-200 uppercase text-xs tracking-widest border-b-4 border-blue-800 active:border-b-0 active:translate-y-1 hover:bg-blue-700 transition-all">Launch Session</button>
               </form>
             </motion.div>
