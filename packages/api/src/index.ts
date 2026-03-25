@@ -50,21 +50,7 @@ const port = process.env.PORT || 4000;
 // Security Middlewares
 app.use(helmet());
 app.use(cors({
-  origin: (origin, callback) => {
-    const allowedOrigins = [
-      'http://localhost:3000',
-      'https://fop-web.vercel.app',
-      'https://fopwebsite.vercel.app',
-      'https://fopps-uok.online',
-      'http://fopps-uok.online'
-    ];
-    // Allow requests with no origin (like mobile apps or curl)
-    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
+  origin: true, // Temporarily allow all origins for debugging CORS issues in production
   credentials: true,
 }));
 app.use(morgan('dev'));

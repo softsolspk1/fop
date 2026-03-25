@@ -1,7 +1,9 @@
 import axios from 'axios';
 
+const baseURL = (process.env.NEXT_PUBLIC_API_URL || 'https://fop-backend.vercel.app').replace(/\/$/, '');
+
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'https://fop-backend.vercel.app',
+  baseURL,
   headers: {
     'Content-Type': 'application/json',
   },

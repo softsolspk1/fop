@@ -76,13 +76,16 @@ router.post('/register', validate(registerSchema), async (req, res, next) => {
 router.post('/login', validate(loginSchema), async (req, res, next) => {
   try {
     const { email, password } = req.body;
+    console.log(`[Auth]: Login attempt for ${email}`);
 
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
+      console.warn(`[Auth]: User Not Found - ${email}`);
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
     if (user.status !== 'APPROVED') {
+      console.warn(`[Auth]: User Not Approved - ${email} (Status: ${user.status})`);
       const message = user.status === 'PENDING' 
         ? 'Your registration is pending administrator approval.' 
         : 'Your registration has been rejected. Please contact support.';
@@ -91,6 +94,7 @@ router.post('/login', validate(loginSchema), async (req, res, next) => {
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
+      console.warn(`[Auth]: Password Mismatch - ${email}`);
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
@@ -100,6 +104,7 @@ router.post('/login', validate(loginSchema), async (req, res, next) => {
       { expiresIn: '1d' }
     );
 
+    console.log(`[Auth]: Login Successful - ${email} (${user.role})`);
     res.json({
       token,
       user: {
@@ -110,7 +115,8 @@ router.post('/login', validate(loginSchema), async (req, res, next) => {
       },
     });
   } catch (error) {
-    res.status(500).json({ message: 'Internal server error', error });
+    console.error(`[Auth]: Login Error for ${req.body.email}:`, error);
+    res.status(500).json({ message: 'Internal server error', error: error instanceof Error ? error.message : 'Unknown error' });
   }
 });
 
