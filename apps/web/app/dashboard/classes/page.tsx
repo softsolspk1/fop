@@ -38,22 +38,17 @@ export default function LiveClassesPage() {
 
   const fetchClasses = async () => {
     try {
-      console.log('[LiveClasses]: Fetching required data...');
       const [classesRes, coursesRes, deptsRes] = await Promise.all([
         api.get('/classes'),
         api.get('/courses'),
         api.get('/departments')
       ]);
-      console.log('[LiveClasses]: Classes:', classesRes.data?.length);
-      console.log('[LiveClasses]: Courses:', coursesRes.data?.length);
-      console.log('[LiveClasses]: Departments:', deptsRes.data?.length);
       
       setClasses(classesRes.data || []);
       setCourses(coursesRes.data || []);
       setDepartments(deptsRes.data || []);
-    } catch (err: any) {
-      console.error('[LiveClasses]: Fetch Error:', err);
-      alert('Failed to synchronize session data: ' + (err.response?.data?.message || err.message));
+    } catch (err) {
+      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -304,7 +299,7 @@ export default function LiveClassesPage() {
 
                 <div className="grid grid-cols-2 gap-5">
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Department {departments.length > 0 ? `(${departments.length})` : '(Loading...)'}</label>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Department</label>
                     <select 
                       value={selectedDept} 
                       onChange={(e) => { setSelectedDept(e.target.value); setFormData({...formData, courseId: ''}); }} 
@@ -330,7 +325,7 @@ export default function LiveClassesPage() {
 
                 <div className="grid grid-cols-2 gap-5">
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Course {filteredCourses.length > 0 ? `(${filteredCourses.length})` : '(None Available)'}</label>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Course</label>
                     <select required value={formData.courseId} onChange={(e) => setFormData({...formData, courseId: e.target.value})} className="w-full px-5 py-3.5 bg-white border-2 border-slate-100 rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-400 transition-all shadow-sm">
                       <option value="">Select Course</option>
                       {filteredCourses.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}

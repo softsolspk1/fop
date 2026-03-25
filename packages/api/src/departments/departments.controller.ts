@@ -46,16 +46,9 @@ router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
         }
       }
     });
-    console.log(`[Departments]: Fetched ${departments.length} departments for user ${req.user?.userId}`);
     res.json(departments);
-  } catch (error: any) {
-    console.error('[Departments]: Error fetching departments:', error);
-    res.status(500).json({ 
-      message: 'Error fetching departments', 
-      error: error.message,
-      details: error,
-      stack: error.stack
-    });
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching departments', error });
   }
 });
 
