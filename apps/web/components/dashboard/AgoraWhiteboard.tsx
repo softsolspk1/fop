@@ -1,5 +1,4 @@
-"use client";
-
+import 'regenerator-runtime/runtime';
 import React, { useEffect, useRef, useState } from 'react';
 import { WhiteWebSdk, Room, RoomPhase, ViewMode } from 'white-web-sdk';
 
@@ -35,7 +34,7 @@ export default function AgoraWhiteboard({ appId, uuid, token, uid }: AgoraWhiteb
         room.setViewMode(ViewMode.Broadcaster); // For teachers/hosts
         setPhase(room.phase);
         
-        room.callbacks.on("onPhaseChanged", (p) => {
+        room.callbacks.on("onPhaseChanged", (p: RoomPhase) => {
           setPhase(p);
         });
       } catch (err) {
