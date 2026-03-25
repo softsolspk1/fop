@@ -54,7 +54,9 @@ router.get('/active', authenticateToken, async (req: AuthRequest, res: Response)
       where: whereClause,
       include: {
         course: {
-          include: {
+          select: {
+            id: true,
+            name: true,
             teacher: { select: { name: true } }
           }
         }
@@ -68,8 +70,14 @@ router.get('/active', authenticateToken, async (req: AuthRequest, res: Response)
     }
 
     res.json(classes);
-  } catch (error) {
-    res.status(500).json({ message: 'Error fetching active classes', error });
+  } catch (error: any) {
+    console.error('[Classes:Active]: Error fetching active classes:', error);
+    res.status(500).json({ 
+      message: 'Error fetching active classes', 
+      error: error.message,
+      details: error,
+      stack: error.stack
+    });
   }
 });
 
@@ -115,15 +123,24 @@ router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
       where: whereClause,
       include: {
         course: {
-          include: {
+          select: {
+            id: true,
+            name: true,
             teacher: { select: { name: true } }
           }
         }
       }
     });
+
     res.json(classes);
-  } catch (error) {
-    res.status(500).json({ message: 'Error fetching classes', error });
+  } catch (error: any) {
+    console.error('[Classes:General]: Error fetching classes:', error);
+    res.status(500).json({ 
+      message: 'Error fetching classes', 
+      error: error.message,
+      details: error,
+      stack: error.stack
+    });
   }
 });
 
