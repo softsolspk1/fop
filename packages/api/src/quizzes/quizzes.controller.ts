@@ -59,24 +59,27 @@ router.post('/', authenticateToken, authorizeRoles('TEACHER', 'DEPT_ADMIN', 'SUP
   try {
     const { title, description, timeLimit, courseId, questions, isExam, startTime, endTime, totalMarks, passingPercentage } = req.body;
     
+    if (!questions || !Array.isArray(questions)) {
+      return res.status(400).json({ message: 'Questions array is required' });
+    }
+
     const quiz = await prisma.quiz.create({
       data: {
-        title,
-        description,
+        title: title || 'Untitled Quiz',
+        description: description || '',
         timeLimit: parseInt(timeLimit) || 30,
         startTime: startTime ? new Date(startTime) : new Date(),
         endTime: endTime ? new Date(endTime) : new Date(Date.now() + 3600000),
-        totalMarks: parseFloat(totalMarks) || (questions ? questions.length : 10),
+        totalMarks: parseFloat(totalMarks) || questions.length,
         passingPercentage: parseFloat(passingPercentage) || 40,
         courseId,
         isExam: !!isExam,
         status: 'PENDING',
         questions: {
           create: questions.map((q: any) => ({
-            text: q.text,
-            options: q.options,
-            answer: q.answer,
-            points: parseFloat(q.points) || 1
+            text: q.text || 'Question Text',
+            options: Array.isArray(q.options) ? q.options : [],
+            answer: q.answer || '',
           }))
         }
       },

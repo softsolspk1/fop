@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ChevronLeft, UserCheck, Video, Mic, ShieldCheck } from 'lucide-react-native';
+import { ChevronLeft, UserCheck, Video, Mic, ShieldCheck, Monitor, Edit3 } from 'lucide-react-native';
 import api from '../lib/api';
 
 export default function LiveSessionScreen() {
@@ -47,6 +47,12 @@ export default function LiveSessionScreen() {
       <View style={styles.controls}>
         <TouchableOpacity style={styles.controlBtn}>
           <Mic size={24} color="#fff" />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.controlBtn} onPress={() => Alert.alert('Feature', 'Screen Sharing will be available in the next update')}>
+          <Monitor size={24} color="#fff" />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.controlBtn} onPress={() => Alert.alert('Feature', 'Whiteboard will be available in the next update')}>
+          <Edit3 size={24} color="#fff" />
         </TouchableOpacity>
         <TouchableOpacity style={[styles.controlBtn, { backgroundColor: '#ef4444' }]} onPress={() => router.back()}>
           <Text style={{ color: '#fff', fontWeight: 'bold' }}>Leave</Text>

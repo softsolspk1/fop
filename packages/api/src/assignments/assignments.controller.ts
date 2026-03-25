@@ -34,17 +34,27 @@ router.post('/', authenticateToken, authorizeRoles('TEACHER', 'DEPT_ADMIN', 'SUP
     let publicId = null;
 
     if (req.file) {
-      const cloudinaryRes = await (cloudinaryService.uploadFile as any)(req.file, `courses/${courseId}/assignments`);
-      fileUrl = cloudinaryRes.url;
-      publicId = cloudinaryRes.publicId;
+      console.log(`[Assignments]: Uploading file to Cloudinary for course ${courseId}`);
+      try {
+        const cloudinaryRes = await (cloudinaryService.uploadFile as any)(req.file, `courses/${courseId}/assignments`);
+        fileUrl = cloudinaryRes.url;
+        publicId = cloudinaryRes.publicId;
+      } catch (uploadError) {
+        console.error('[Assignments]: Cloudinary Upload Failed:', uploadError);
+        if (filePath && fs.existsSync(filePath)) fs.unlinkSync(filePath);
+        return res.status(500).json({ 
+          message: 'Failed to upload assignment file', 
+          error: uploadError instanceof Error ? uploadError.message : 'Upload failed' 
+        });
+      }
     }
 
     const assignment = await prisma.assignment.create({
       data: {
-        title,
-        description,
+        title: title || 'New Assignment',
+        description: description || '',
         startTime: startTime ? new Date(startTime) : new Date(),
-        dueDate: new Date(dueDate),
+        dueDate: dueDate ? new Date(dueDate) : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // Default 1 week
         totalMarks: parseFloat(totalMarks) || 100,
         fileUrl,
         publicId,

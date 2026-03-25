@@ -3,7 +3,14 @@ import fs from 'fs';
 
 // Simple config: if CLOUDINARY_URL exists, it's used automatically by the SDK.
 // Otherwise, we use explicit keys.
-if (!process.env.CLOUDINARY_URL) {
+if (process.env.CLOUDINARY_URL) {
+  console.log('[Cloudinary]: Configured with CLOUDINARY_URL');
+} else {
+  console.log('[Cloudinary]: Configuring with explicit keys', {
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME ? 'PRESENT' : 'MISSING',
+    api_key: process.env.CLOUDINARY_API_KEY ? 'PRESENT' : 'MISSING',
+    api_secret: process.env.CLOUDINARY_API_SECRET ? 'PRESENT' : 'MISSING'
+  });
   cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
     api_key: process.env.CLOUDINARY_API_KEY,

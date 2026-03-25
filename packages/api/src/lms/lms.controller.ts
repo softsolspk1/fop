@@ -44,15 +44,35 @@ router.post('/materials', authenticateToken, authorizeRoles('TEACHER', 'SUPER_AD
     const userId = req.user?.userId;
     let publicId = null;
 
+    // YouTube Link Detection
+    const isYoutube = url && (url.includes('youtube.com') || url.includes('youtu.be'));
+    if (isYoutube) {
+      type = 'YOUTUBE';
+    }
+
     // If a file is uploaded, use Cloudinary
     if (req.file) {
-      const cloudinaryResponse = await (cloudinaryService.uploadFile as any)(
-        req.file,
-        `courses/${courseId}/materials`
-      );
-      url = cloudinaryResponse.url;
-      publicId = cloudinaryResponse.publicId;
-      title = title || req.file.originalname;
+      console.log(`[LMS]: Uploading file to Cloudinary for course ${courseId}`);
+      try {
+        const cloudinaryResponse = await (cloudinaryService.uploadFile as any)(
+          req.file,
+          `courses/${courseId}/materials`
+        );
+        url = cloudinaryResponse.url;
+        publicId = cloudinaryResponse.publicId;
+        title = title || req.file.originalname;
+        // If it's a file, we override the type based on the file unless it was already set (e.g. from frontend)
+        if (!type || type === 'YOUTUBE') {
+          type = 'DOCUMENT'; // Default for files if not specified
+        }
+      } catch (uploadError) {
+        console.error('[LMS]: Cloudinary Upload Failed:', uploadError);
+        if (filePath && fs.existsSync(filePath)) fs.unlinkSync(filePath);
+        return res.status(500).json({ 
+          message: 'Failed to upload file to Cloudinary', 
+          error: uploadError instanceof Error ? uploadError.message : 'Upload failed' 
+        });
+      }
     }
 
     if (!url) {

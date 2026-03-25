@@ -6,7 +6,7 @@ import DashboardLayout from '../../../../../components/dashboard/DashboardLayout
 import AgoraVideoPlayer from '../../../../../components/dashboard/AgoraVideoPlayer';
 import api from '../../../../../lib/api';
 import { chatClient, initChat, sendMessage, onMessageReceived } from '../../../../../components/dashboard/AgoraChatService';
-import { Mic, MicOff, Video, VideoOff, ScreenShare, MessageSquare, Users, Settings, X, LogOut, Send } from 'lucide-react';
+import { Mic, MicOff, Video, VideoOff, ScreenShare, MessageSquare, Users, Settings, X, LogOut, Send, PenTool } from 'lucide-react';
 
 export default function LiveClassPage() {
   const params = useParams();
@@ -188,8 +188,19 @@ export default function LiveClassPage() {
             >
               {isCamOn ? <Video className="w-7 h-7" /> : <VideoOff className="w-7 h-7" />}
             </button>
-            <button className="p-5 bg-blue-600 text-white rounded-2xl shadow-xl shadow-blue-900/40 hover:bg-blue-500 transition-all hover:-translate-y-1">
+            <button 
+              className="p-5 bg-blue-600 text-white rounded-2xl shadow-xl shadow-blue-900/40 hover:bg-blue-500 transition-all hover:-translate-y-1"
+              title="Share Screen"
+              onClick={() => alert('Screen sharing will be enabled in the next update')}
+            >
               <ScreenShare className="w-7 h-7" />
+            </button>
+            <button 
+              className="p-5 bg-purple-600 text-white rounded-2xl shadow-xl shadow-purple-900/40 hover:bg-purple-500 transition-all hover:-translate-y-1"
+              title="Open Whiteboard"
+              onClick={() => alert('Interactive Whiteboard will be enabled in the next update')}
+            >
+              <PenTool className="w-7 h-7" />
             </button>
           </div>
 
