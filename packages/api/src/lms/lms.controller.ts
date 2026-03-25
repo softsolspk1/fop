@@ -46,8 +46,8 @@ router.post('/materials', authenticateToken, authorizeRoles('TEACHER', 'SUPER_AD
 
     // If a file is uploaded, use Cloudinary
     if (req.file) {
-      const cloudinaryResponse = await cloudinaryService.uploadFile(
-        req.file.path,
+      const cloudinaryResponse = await (cloudinaryService.uploadFile as any)(
+        req.file,
         `courses/${courseId}/materials`
       );
       url = cloudinaryResponse.url;

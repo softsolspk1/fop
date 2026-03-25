@@ -14,11 +14,24 @@ router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
 
     const whereClause: any = {};
     if (isStudent) {
-      whereClause.course = {
-        students: {
-          some: { id: userId }
-        }
-      };
+      // Get student's department
+      const student = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { departmentId: true }
+      });
+
+      // Show classes for courses the student is explicitly enrolled in OR courses in their department
+      const enrolledCourses = await prisma.course.findMany({
+        where: {
+          OR: [
+            { students: { some: { id: userId } } },
+            { departmentId: student?.departmentId || undefined }
+          ]
+        },
+        select: { id: true }
+      });
+      const enrolledCourseIds = enrolledCourses.map(c => c.id);
+      whereClause.courseId = { in: enrolledCourseIds };
     }
 
     const classes = await prisma.class.findMany({

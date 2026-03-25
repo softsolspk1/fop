@@ -34,7 +34,7 @@ router.post('/', authenticateToken, authorizeRoles('TEACHER', 'DEPT_ADMIN', 'SUP
     let publicId = null;
 
     if (req.file) {
-      const cloudinaryRes = await cloudinaryService.uploadFile(req.file.path, `courses/${courseId}/assignments`);
+      const cloudinaryRes = await (cloudinaryService.uploadFile as any)(req.file, `courses/${courseId}/assignments`);
       fileUrl = cloudinaryRes.url;
       publicId = cloudinaryRes.publicId;
     }
@@ -70,8 +70,8 @@ router.post('/:assignmentId/submit', authenticateToken, authorizeRoles('STUDENT'
     }
 
     // Upload to Cloudinary
-    const cloudinaryRes = await cloudinaryService.uploadFile(
-      req.file.path,
+    const cloudinaryRes = await (cloudinaryService.uploadFile as any)(
+      req.file,
       `assignments/${assignmentId}/submissions`
     );
 

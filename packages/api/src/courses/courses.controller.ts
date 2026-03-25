@@ -163,8 +163,8 @@ router.post('/:id/materials', authenticateToken, authorizeRoles('TEACHER'), uplo
     }
 
     // Upload to Cloudinary
-    const cloudinaryResponse = await cloudinaryService.uploadFile(
-      req.file.path,
+    const cloudinaryResponse = await (cloudinaryService.uploadFile as any)(
+      req.file,
       `courses/${courseId}/materials`
     );
     const material = await prisma.material.create({
