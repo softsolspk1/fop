@@ -22,41 +22,31 @@ router.get('/active', authenticateToken, async (req: AuthRequest, res: Response)
     let enrolledCourses: any[] = [];
 
     if (isStudent) {
-      student = await prisma.user.findUnique({
+      const student = await prisma.user.findUnique({
         where: { id: userId },
         select: { departmentId: true, year: true }
       });
 
-      // Show classes for courses the student is explicitly enrolled in 
-      // OR courses in their department (optionally matching their professional year)
-      const courseFilters: any[] = [
-        { students: { some: { id: userId } } }
-      ];
-
-      if (student?.departmentId) {
-        const deptFilter: any = { departmentId: student.departmentId };
-        if (student.year) {
-          deptFilter.professional = student.year;
-        }
-        courseFilters.push(deptFilter);
-      }
-
-      enrolledCourses = await prisma.course.findMany({
+      const enrolledCourses = await prisma.course.findMany({
         where: {
-          OR: courseFilters
+          OR: [
+            { students: { some: { id: userId } } },
+            { 
+              departmentId: student?.departmentId || undefined,
+              professional: student?.year || undefined
+            }
+          ]
         },
         select: { id: true }
       });
-      whereClause.courseId = { in: enrolledCourses.map(c => (c as any).id) };
+      whereClause.courseId = { in: enrolledCourses.map(c => c.id) };
     }
 
     const classes = await prisma.class.findMany({
       where: whereClause,
       include: {
         course: {
-          select: {
-            id: true,
-            name: true,
+          include: {
             teacher: { select: { name: true } }
           }
         }
@@ -70,14 +60,8 @@ router.get('/active', authenticateToken, async (req: AuthRequest, res: Response)
     }
 
     res.json(classes);
-  } catch (error: any) {
-    console.error('[Classes:Active]: Error fetching active classes:', error);
-    res.status(500).json({ 
-      message: 'Error fetching active classes', 
-      error: error.message,
-      details: error,
-      stack: error.stack
-    });
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching active classes', error });
   }
 });
 
@@ -96,26 +80,20 @@ router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
       });
 
       // Show classes for courses the student is explicitly enrolled in 
-      // OR courses in their department (optionally matching their professional year)
-      const courseFilters: any[] = [
-        { students: { some: { id: userId } } }
-      ];
-
-      if (student?.departmentId) {
-        const deptFilter: any = { departmentId: student.departmentId };
-        if (student.year) {
-          deptFilter.professional = student.year;
-        }
-        courseFilters.push(deptFilter);
-      }
-
+      // OR courses in their department AND matching their professional year
       const enrolledCourses = await prisma.course.findMany({
         where: {
-          OR: courseFilters
+          OR: [
+            { students: { some: { id: userId } } },
+            { 
+              departmentId: student?.departmentId || undefined,
+              professional: student?.year || undefined
+            }
+          ]
         },
         select: { id: true }
       });
-      const enrolledCourseIds = enrolledCourses.map(c => (c as any).id);
+      const enrolledCourseIds = enrolledCourses.map(c => c.id);
       whereClause.courseId = { in: enrolledCourseIds };
     }
 
@@ -123,24 +101,15 @@ router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
       where: whereClause,
       include: {
         course: {
-          select: {
-            id: true,
-            name: true,
+          include: {
             teacher: { select: { name: true } }
           }
         }
       }
     });
-
     res.json(classes);
-  } catch (error: any) {
-    console.error('[Classes:General]: Error fetching classes:', error);
-    res.status(500).json({ 
-      message: 'Error fetching classes', 
-      error: error.message,
-      details: error,
-      stack: error.stack
-    });
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching classes', error });
   }
 });
 

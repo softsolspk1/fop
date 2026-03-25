@@ -27,12 +27,19 @@ function InitialLayout() {
     }
 
     // Hide splash screen once we've decided where to go
+    if (isReady) return;
+
     const hideSplash = async () => {
-      await SplashScreen.hideAsync();
-      setIsReady(true);
+      try {
+        await SplashScreen.hideAsync();
+      } catch (e) {
+        console.warn('Splash hide error:', e);
+      } finally {
+        setIsReady(true);
+      }
     };
     hideSplash();
-  }, [token, loading, segments]);
+  }, [token, loading, segments, isReady]);
 
   if (!isReady) return null;
 

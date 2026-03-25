@@ -23,16 +23,16 @@ export default function DashboardScreen() {
       if (user.role === 'DEPT_ADMIN' || user.role === 'SUPER_ADMIN') {
         const { data } = await api.get('/departments/my-stats');
         setStats({
-          facultyCount: (data.facultyCount ?? 0).toString(),
-          deptStudents: (data.studentCount ?? 0).toString(),
-          courses: (data.courseCount ?? 0).toString()
+          facultyCount: data?.facultyCount?.toString() || '0',
+          deptStudents: data?.studentCount?.toString() || '0',
+          courses: data?.courseCount?.toString() || '0'
         });
       } else if (user.role === 'TEACHER') {
         // Fetch teacher classes
         const { data } = await api.get('/classes');
         setStats({
-          activeCourses: (data.length ?? 0).toString(),
-          myStudents: '---'
+          activeCourses: data?.length?.toString() || '0',
+          myStudents: '---' // To be implemented in backend
         });
       } else {
         // Student Stats (To be implemented in backend)
