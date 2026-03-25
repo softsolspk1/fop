@@ -9,7 +9,7 @@ const SDK_TOKEN = process.env.AGORA_WHITEBOARD_SDK_TOKEN; // This is the task-le
 export const createWhiteboardRoom = async () => {
   try {
     if (!SDK_TOKEN) {
-      console.warn('[Whiteboard]: Missing AGORA_WHITEBOARD_SDK_TOKEN');
+      console.warn('[Whiteboard]: Missing AGORA_WHITEBOARD_SDK_TOKEN - Cannot create room');
       return null;
     }
 
@@ -25,12 +25,16 @@ export const createWhiteboardRoom = async () => {
       }
     );
 
+    console.log('[Whiteboard]: Successfully created room:', response.data.uuid);
     return {
       uuid: response.data.uuid,
       roomToken: await generateRoomToken(response.data.uuid)
     };
   } catch (error: any) {
     console.error('[Whiteboard]: Error creating room:', error.response?.data || error.message);
+    if (error.response) {
+       console.error('[Whiteboard]: API Status:', error.response.status);
+    }
     return null;
   }
 };

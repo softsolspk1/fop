@@ -197,6 +197,8 @@ router.get('/:id/join', authenticateToken, async (req: AuthRequest, res: Respons
       whiteboardToken = await generateRoomToken(whiteboardUuid);
     }
 
+    console.log('[Join]: Whiteboard payload for session:', id, whiteboardUuid ? 'SUCCESS' : 'MISSING');
+    
     res.json({
       token,
       channel: classSession.agoraChannel,
