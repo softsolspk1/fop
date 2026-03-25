@@ -27,15 +27,23 @@ router.get('/active', authenticateToken, async (req: AuthRequest, res: Response)
         select: { departmentId: true, year: true }
       });
 
+      // Show classes for courses the student is explicitly enrolled in 
+      // OR courses in their department (optionally matching their professional year)
+      const courseFilters: any[] = [
+        { students: { some: { id: userId } } }
+      ];
+
+      if (student?.departmentId) {
+        const deptFilter: any = { departmentId: student.departmentId };
+        if (student.year) {
+          deptFilter.professional = student.year;
+        }
+        courseFilters.push(deptFilter);
+      }
+
       enrolledCourses = await prisma.course.findMany({
         where: {
-          OR: [
-            { students: { some: { id: userId } } },
-            { 
-              departmentId: student?.departmentId || undefined,
-              professional: student?.year || undefined
-            }
-          ]
+          OR: courseFilters
         },
         select: { id: true }
       });
@@ -80,16 +88,22 @@ router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
       });
 
       // Show classes for courses the student is explicitly enrolled in 
-      // OR courses in their department AND matching their professional year
+      // OR courses in their department (optionally matching their professional year)
+      const courseFilters: any[] = [
+        { students: { some: { id: userId } } }
+      ];
+
+      if (student?.departmentId) {
+        const deptFilter: any = { departmentId: student.departmentId };
+        if (student.year) {
+          deptFilter.professional = student.year;
+        }
+        courseFilters.push(deptFilter);
+      }
+
       const enrolledCourses = await prisma.course.findMany({
         where: {
-          OR: [
-            { students: { some: { id: userId } } },
-            { 
-              departmentId: student?.departmentId || undefined,
-              professional: student?.year || undefined
-            }
-          ]
+          OR: courseFilters
         },
         select: { id: true }
       });
