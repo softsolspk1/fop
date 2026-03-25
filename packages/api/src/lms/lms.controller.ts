@@ -73,10 +73,8 @@ router.post('/materials', authenticateToken, authorizeRoles('TEACHER', 'SUPER_AD
 
     res.status(201).json(material);
   } catch (error) {
-    if (filePath && fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
-    }
-    res.status(500).json({ message: 'Error uploading material', error });
+    console.error('LMS Upload Error:', error);
+    res.status(500).json({ message: 'Error uploading material', error: error instanceof Error ? error.message : 'Unknown error' });
   }
 });
 

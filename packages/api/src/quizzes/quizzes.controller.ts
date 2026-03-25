@@ -63,10 +63,10 @@ router.post('/', authenticateToken, authorizeRoles('TEACHER', 'DEPT_ADMIN', 'SUP
       data: {
         title,
         description,
-        timeLimit: parseInt(timeLimit),
-        startTime: new Date(startTime),
-        endTime: new Date(endTime),
-        totalMarks: parseFloat(totalMarks),
+        timeLimit: parseInt(timeLimit) || 30,
+        startTime: startTime ? new Date(startTime) : new Date(),
+        endTime: endTime ? new Date(endTime) : new Date(Date.now() + 3600000),
+        totalMarks: parseFloat(totalMarks) || (questions ? questions.length : 10),
         passingPercentage: parseFloat(passingPercentage) || 40,
         courseId,
         isExam: !!isExam,
@@ -86,7 +86,7 @@ router.post('/', authenticateToken, authorizeRoles('TEACHER', 'DEPT_ADMIN', 'SUP
     res.status(201).json(quiz);
   } catch (error) {
     console.error('Quiz creation error:', error);
-    res.status(500).json({ message: 'Error creating quiz', error });
+    res.status(500).json({ message: 'Error creating quiz', error: error instanceof Error ? error.message : 'Unknown error' });
   }
 });
 

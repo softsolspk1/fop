@@ -601,9 +601,17 @@ export default function CoursesPage() {
 
                               await api.post('/assignments', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
                               alert('Assignment posted successfully');
-                              location.reload(); 
-                            } catch (err) { alert('Error posting assignment'); }
-                            finally { btn.disabled = false; btn.innerHTML = 'Post Assignment'; }
+                              // Instead of reload, re-fetch course details to stay in modal
+                              const res = await api.get(`/courses/${managingMaterials.id}`);
+                              setManagingMaterials(res.data);
+                              // Reset form
+                              (document.getElementById('asgn-title') as HTMLInputElement).value = '';
+                              (document.getElementById('asgn-desc') as HTMLTextAreaElement).value = '';
+                              (document.getElementById('asgn-due') as HTMLInputElement).value = '';
+                           } catch (err: any) { 
+                             alert('Error posting assignment: ' + (err.response?.data?.message || err.message)); 
+                           }
+                           finally { btn.disabled = false; btn.innerHTML = 'Post Assignment'; }
                           }}
                           className="w-full py-4 bg-blue-600 text-white font-black rounded-2xl shadow-xl shadow-blue-200 uppercase text-xs tracking-widest hover:bg-blue-700 transition-all"
                         >
@@ -765,13 +773,19 @@ export default function CoursesPage() {
                                   timeLimit: parseInt((document.getElementById('quiz-limit') as HTMLInputElement).value),
                                   passingPercentage: parseInt((document.getElementById('quiz-pass') as HTMLInputElement).value),
                                   isExam: (document.getElementById('quiz-exam') as HTMLInputElement).checked,
+                                  totalMarks: validatedQuestions.length, // Added totalMarks
+                                  description: "Course Quiz", // Added description
                                   courseId: managingMaterials.id,
                                   questions: validatedQuestions
                                });
                                alert('Quiz created successfully and sent for HOD approval');
                                setNewQuizQuestions([]); // Reset state
-                               location.reload();
-                             } catch (err) { alert('Error creating quiz'); }
+                               // Re-fetch course details to stay in modal
+                               const res = await api.get(`/courses/${managingMaterials.id}`);
+                               setManagingMaterials(res.data);
+                             } catch (err: any) { 
+                               alert('Error creating quiz: ' + (err.response?.data?.message || err.message)); 
+                             }
                              finally { btn.disabled = false; btn.innerHTML = 'Create Quiz'; }
                           }} className="w-full py-5 bg-purple-600 text-white font-black rounded-3xl shadow-xl shadow-purple-100 uppercase text-xs tracking-[0.2em]">Create Quiz & Go Live</button>
                        </div>
