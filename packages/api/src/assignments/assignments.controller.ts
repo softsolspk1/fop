@@ -34,16 +34,16 @@ router.post('/', authenticateToken, authorizeRoles('TEACHER', 'DEPT_ADMIN', 'SUP
     let publicId = null;
 
     if (req.file) {
-      console.log(`[Assignments]: Uploading file to Cloudinary for course ${courseId}`);
+      console.log(`[Assignments]: Uploading file to Cloudinary for course ${courseId}. File: ${req.file.originalname}, Size: ${req.file.size}`);
       try {
         const cloudinaryRes = await (cloudinaryService.uploadFile as any)(req.file, `courses/${courseId}/assignments`);
+        console.log(`[Assignments]: Cloudinary Upload Success: ${cloudinaryRes.url}`);
         fileUrl = cloudinaryRes.url;
         publicId = cloudinaryRes.publicId;
       } catch (uploadError) {
         console.error('[Assignments]: Cloudinary Upload Failed:', uploadError);
-        if (filePath && fs.existsSync(filePath)) fs.unlinkSync(filePath);
         return res.status(500).json({ 
-          message: 'Failed to upload assignment file', 
+          message: 'Failed to upload assignment file to Cloudinary', 
           error: uploadError instanceof Error ? uploadError.message : 'Upload failed' 
         });
       }
@@ -100,10 +100,8 @@ router.post('/:assignmentId/submit', authenticateToken, authorizeRoles('STUDENT'
 
     res.status(201).json(submission);
   } catch (error) {
-    if (filePath && fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
-    }
-    res.status(500).json({ message: 'Internal server error', error });
+    console.error('[Assignments]: Submission Error:', error);
+    res.status(500).json({ message: 'Internal server error during submission', error: error instanceof Error ? error.message : 'Unknown' });
   }
 });
 

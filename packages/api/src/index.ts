@@ -54,7 +54,7 @@ app.use(cors({
   credentials: true,
 }));
 app.use(morgan('dev'));
-app.use(express.json({ limit: '10kb' })); // Limit body size
+app.use(express.json({ limit: '10mb' })); // Increased from 10kb to allow large quiz payloads
 // app.use(xss());
 
 // Rate Limiting

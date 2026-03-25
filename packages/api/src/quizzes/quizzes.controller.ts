@@ -59,6 +59,8 @@ router.post('/', authenticateToken, authorizeRoles('TEACHER', 'DEPT_ADMIN', 'SUP
   try {
     const { title, description, timeLimit, courseId, questions, isExam, startTime, endTime, totalMarks, passingPercentage } = req.body;
     
+    console.log(`[Quizzes]: Creating quiz "${title}" for course ${courseId}. Questions: ${questions?.length}`);
+    
     if (!questions || !Array.isArray(questions)) {
       return res.status(400).json({ message: 'Questions array is required' });
     }
@@ -88,7 +90,7 @@ router.post('/', authenticateToken, authorizeRoles('TEACHER', 'DEPT_ADMIN', 'SUP
     
     res.status(201).json(quiz);
   } catch (error) {
-    console.error('Quiz creation error:', error);
+    console.error('[Quizzes]: Execution Error:', error);
     res.status(500).json({ message: 'Error creating quiz', error: error instanceof Error ? error.message : 'Unknown error' });
   }
 });
