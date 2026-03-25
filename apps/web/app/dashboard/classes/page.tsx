@@ -38,16 +38,22 @@ export default function LiveClassesPage() {
 
   const fetchClasses = async () => {
     try {
+      console.log('[LiveClasses]: Fetching required data...');
       const [classesRes, coursesRes, deptsRes] = await Promise.all([
         api.get('/classes'),
         api.get('/courses'),
         api.get('/departments')
       ]);
-      setClasses(classesRes.data);
-      setCourses(coursesRes.data);
-      setDepartments(deptsRes.data);
-    } catch (err) {
-      console.error(err);
+      console.log('[LiveClasses]: Classes:', classesRes.data?.length);
+      console.log('[LiveClasses]: Courses:', coursesRes.data?.length);
+      console.log('[LiveClasses]: Departments:', deptsRes.data?.length);
+      
+      setClasses(classesRes.data || []);
+      setCourses(coursesRes.data || []);
+      setDepartments(deptsRes.data || []);
+    } catch (err: any) {
+      console.error('[LiveClasses]: Fetch Error:', err);
+      alert('Failed to synchronize session data: ' + (err.response?.data?.message || err.message));
     } finally {
       setLoading(false);
     }
