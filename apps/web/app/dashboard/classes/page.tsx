@@ -304,7 +304,7 @@ export default function LiveClassesPage() {
 
                 <div className="grid grid-cols-2 gap-5">
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Department</label>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Department {departments.length > 0 ? `(${departments.length})` : '(Loading...)'}</label>
                     <select 
                       value={selectedDept} 
                       onChange={(e) => { setSelectedDept(e.target.value); setFormData({...formData, courseId: ''}); }} 
@@ -330,7 +330,7 @@ export default function LiveClassesPage() {
 
                 <div className="grid grid-cols-2 gap-5">
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Course</label>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Course {filteredCourses.length > 0 ? `(${filteredCourses.length})` : '(None Available)'}</label>
                     <select required value={formData.courseId} onChange={(e) => setFormData({...formData, courseId: e.target.value})} className="w-full px-5 py-3.5 bg-white border-2 border-slate-100 rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-400 transition-all shadow-sm">
                       <option value="">Select Course</option>
                       {filteredCourses.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}

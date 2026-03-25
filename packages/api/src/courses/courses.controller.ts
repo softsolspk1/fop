@@ -57,9 +57,16 @@ router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
         }
       }
     });
+    console.log(`[Courses]: Fetched ${courses.length} courses for ${req.user?.role} ${req.user?.userId}`);
     res.json(courses);
-  } catch (error) {
-    res.status(500).json({ message: 'Error fetching courses', error });
+  } catch (error: any) {
+    console.error('[Courses]: Error fetching courses:', error);
+    res.status(500).json({ 
+      message: 'Error fetching courses', 
+      error: error.message,
+      details: error,
+      stack: error.stack
+    });
   }
 });
 
