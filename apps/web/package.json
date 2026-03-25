@@ -13,6 +13,7 @@
   "dependencies": {
     "agora-chat": "^1.3.1",
     "agora-rtc-sdk-ng": "^4.24.3",
+    "whiteboard-sdk": "^2.16.51",
     "axios": "^1.13.6",
     "chart.js": "^4.5.1",
     "clsx": "^2.1.1",

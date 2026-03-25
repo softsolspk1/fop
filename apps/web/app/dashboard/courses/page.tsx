@@ -481,7 +481,7 @@ export default function CoursesPage() {
                                 headers: { 'Content-Type': 'multipart/form-data' }
                               });
 
-                              alert('Material submitted for HOD approval');
+                              alert('SUCCESS: Resource submitted for HOD approval! You will see it once it is verified.');
                               (document.getElementById('mat-title') as HTMLInputElement).value = '';
                               (document.getElementById('mat-url') as HTMLInputElement).value = '';
                               fileInput.value = '';
@@ -600,7 +600,7 @@ export default function CoursesPage() {
                               if (file) fd.append('file', file);
 
                               await api.post('/assignments', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
-                              alert('Assignment posted successfully');
+                              alert('SUCCESS: Assignment posted successfully to the course portal!');
                               // Instead of reload, re-fetch course details to stay in modal
                               const res = await api.get(`/courses/${managingMaterials.id}`);
                               setManagingMaterials(res.data);
@@ -778,7 +778,7 @@ export default function CoursesPage() {
                                   courseId: managingMaterials.id,
                                   questions: validatedQuestions
                                });
-                               alert('Quiz created successfully and sent for HOD approval');
+                               alert('SUCCESS: Quiz created successfully and sent for HOD approval!');
                                setNewQuizQuestions([]); // Reset state
                                // Re-fetch course details to stay in modal
                                const res = await api.get(`/courses/${managingMaterials.id}`);
@@ -865,7 +865,7 @@ export default function CoursesPage() {
                 </div>
 
                 <div className="flex border-b border-slate-100 bg-slate-50/30">
-                  {['DETAILS', 'MATERIALS', 'ASSIGNMENTS', 'QUIZZES'].map((tab) => (
+                  {['DETAILS', 'LIVE', 'MATERIALS', 'ASSIGNMENTS', 'QUIZZES'].map((tab) => (
                     <button 
                       key={tab}
                       onClick={() => setViewingCourseTab(tab as any)}
@@ -877,6 +877,54 @@ export default function CoursesPage() {
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-8 space-y-10 custom-scrollbar">
+                   {viewingCourseTab === 'LIVE' && (
+                     <div className="space-y-6">
+                       <h4 className="text-sm font-black text-red-600 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                         <div className="w-2 h-2 bg-red-600 rounded-full animate-ping" />
+                         Live Sessions & Virtual Classrooms
+                       </h4>
+                       
+                       {(() => {
+                         const courseActiveClasses = activeClasses.filter((c: any) => c.courseId === viewingCourse.id);
+                         if (courseActiveClasses.length === 0) {
+                           return (
+                             <div className="p-12 bg-slate-50 rounded-[2.5rem] border border-dashed border-slate-200 text-center">
+                               <Video className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+                               <p className="text-slate-500 font-bold">No active live sessions for this course at the moment.</p>
+                               <p className="text-xs text-slate-400 mt-1 uppercase tracking-widest font-black">Check back during scheduled hours</p>
+                             </div>
+                           );
+                         }
+                         return courseActiveClasses.map((cls: any) => (
+                           <div key={cls.id} className="p-8 bg-white border-2 border-green-100 rounded-[2.5rem] flex items-center justify-between shadow-xl shadow-green-900/5 group">
+                             <div className="flex items-center gap-6">
+                               <div className="w-16 h-16 bg-green-600 rounded-3xl flex items-center justify-center text-white shadow-lg shadow-green-200">
+                                 <Video className="w-8 h-8" />
+                               </div>
+                               <div>
+                                 <h4 className="text-xl font-black text-slate-800">{cls.title}</h4>
+                                 <p className="text-xs text-green-600 font-black uppercase tracking-widest mt-1">Status: LIVE NOW</p>
+                               </div>
+                             </div>
+                             <Link 
+                               href={`/dashboard/courses/${cls.courseId}/live?classId=${cls.id}`}
+                               className="px-10 py-4 bg-green-600 text-white font-black rounded-2xl shadow-xl shadow-green-100 uppercase text-xs tracking-[0.2em] hover:bg-green-700 transition-all hover:scale-105 active:scale-95"
+                             >
+                               Join Classroom
+                             </Link>
+                           </div>
+                         ));
+                       })()}
+                       
+                       <div className="p-6 bg-blue-50/50 rounded-3xl border border-blue-100/50">
+                          <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-2 flex items-center gap-2">
+                             <ShieldCheck className="w-4 h-4" /> Secure Session Info
+                          </p>
+                          <p className="text-xs text-slate-600 font-medium">All sessions are recorded and monitored for quality assurance. Please ensure you have a stable internet connection before joining.</p>
+                       </div>
+                     </div>
+                   )}
+
                    {viewingCourseTab === 'DETAILS' && (
                      <div className="space-y-10">
                        {viewingCourse.outcomes && (

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import DashboardLayout from '../../../../../components/dashboard/DashboardLayout';
 import AgoraVideoPlayer from '../../../../../components/dashboard/AgoraVideoPlayer';
+import AgoraWhiteboard from '../../../../../components/dashboard/AgoraWhiteboard';
 import api from '../../../../../lib/api';
 import { chatClient, initChat, sendMessage, onMessageReceived } from '../../../../../components/dashboard/AgoraChatService';
 import { Mic, MicOff, Video, VideoOff, ScreenShare, MessageSquare, Users, Settings, X, LogOut, Send, PenTool } from 'lucide-react';
@@ -14,6 +15,8 @@ export default function LiveClassPage() {
   const [isMicOn, setIsMicOn] = useState(true);
   const [isCamOn, setIsCamOn] = useState(true);
   const [showChat, setShowChat] = useState(true);
+  const [showWhiteboard, setShowWhiteboard] = useState(false);
+  const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [messages, setMessages] = useState<any[]>([]);
   const [inputMessage, setInputMessage] = useState('');
 
@@ -99,7 +102,45 @@ export default function LiveClassPage() {
                  <p className="text-slate-400 font-black uppercase tracking-widest text-xs">Authenticating Session...</p>
               </div>
             ) : isJoined && agoraConfig ? (
-              <AgoraVideoPlayer {...agoraConfig} />
+              <div className="w-full h-full flex flex-col gap-4">
+                {showWhiteboard && agoraConfig.whiteboard ? (
+                  <div className="flex-1 min-h-0 bg-white rounded-3xl overflow-hidden shadow-2xl relative">
+                    <AgoraWhiteboard 
+                      appId={agoraConfig.whiteboard.appId}
+                      uuid={agoraConfig.whiteboard.uuid}
+                      token={agoraConfig.whiteboard.token}
+                      uid={agoraConfig.uid}
+                    />
+                    <button 
+                      onClick={() => setShowWhiteboard(false)}
+                      className="absolute top-4 right-4 p-2 bg-slate-900/80 text-white rounded-full hover:bg-slate-900 transition-all z-20"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex-1 min-h-0">
+                    <AgoraVideoPlayer 
+                      {...agoraConfig} 
+                      isScreenSharing={isScreenSharing}
+                      onScreenShareEnd={() => setIsScreenSharing(false)}
+                    />
+                  </div>
+                )}
+                
+                {/* Secondary PiP/Grid if Whiteboard is on */}
+                {showWhiteboard && (
+                  <div className="h-48 flex gap-4 overflow-x-auto pb-2">
+                     <div className="aspect-video h-full">
+                        <AgoraVideoPlayer 
+                          {...agoraConfig} 
+                          isScreenSharing={isScreenSharing} 
+                          onScreenShareEnd={() => setIsScreenSharing(false)}
+                        />
+                     </div>
+                  </div>
+                )}
+              </div>
             ) : (
               <div className="w-full h-full bg-slate-900 rounded-3xl flex flex-col items-center justify-center border-2 border-dashed border-white/10">
                 <div className="w-24 h-24 bg-blue-600/20 text-blue-500 rounded-full flex items-center justify-center mb-6">
@@ -189,16 +230,21 @@ export default function LiveClassPage() {
               {isCamOn ? <Video className="w-7 h-7" /> : <VideoOff className="w-7 h-7" />}
             </button>
             <button 
-              className="p-5 bg-blue-600 text-white rounded-2xl shadow-xl shadow-blue-900/40 hover:bg-blue-500 transition-all hover:-translate-y-1"
+              className={`p-5 rounded-2xl shadow-xl transition-all hover:-translate-y-1 ${isScreenSharing ? 'bg-blue-600 text-white ring-4 ring-blue-500/30' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'}`}
               title="Share Screen"
-              onClick={() => alert('Screen sharing will be enabled in the next update')}
+              onClick={() => setIsScreenSharing(!isScreenSharing)}
             >
               <ScreenShare className="w-7 h-7" />
             </button>
             <button 
-              className="p-5 bg-purple-600 text-white rounded-2xl shadow-xl shadow-purple-900/40 hover:bg-purple-500 transition-all hover:-translate-y-1"
+              className={`p-5 rounded-2xl shadow-xl transition-all hover:-translate-y-1 ${showWhiteboard ? 'bg-purple-600 text-white ring-4 ring-purple-500/30' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'}`}
               title="Open Whiteboard"
-              onClick={() => alert('Interactive Whiteboard will be enabled in the next update')}
+              onClick={() => {
+                if (!agoraConfig?.whiteboard) {
+                  return alert('Whiteboard not initialized for this session yet. Please refresh.');
+                }
+                setShowWhiteboard(!showWhiteboard);
+              }}
             >
               <PenTool className="w-7 h-7" />
             </button>

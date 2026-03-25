@@ -1,6 +1,9 @@
 import { PrismaClient } from '@prisma/client';
 
 const prismaClientSingleton = () => {
+  const url = process.env.DATABASE_URL || '';
+  const protocol = url.split(':')[0];
+  console.log(`[Prisma]: Initializing with protocol "${protocol}" (URL Length: ${url.length})`);
   return new PrismaClient();
 };
 

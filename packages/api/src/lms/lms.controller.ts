@@ -40,13 +40,26 @@ router.get('/courses/:courseId/materials', authenticateToken, async (req: AuthRe
 router.post('/materials', authenticateToken, authorizeRoles('TEACHER', 'SUPER_ADMIN', 'DEPT_ADMIN'), upload.single('file'), async (req: AuthRequest, res: Response) => {
   const filePath = req.file?.path;
   try {
+    console.log('[LMS]: Incoming upload request:', { 
+      body: req.body, 
+      hasFile: !!req.file, 
+      fileName: req.file?.originalname,
+      userId: req.user?.userId 
+    });
+
     let { title, url, type, courseId } = req.body;
     const userId = req.user?.userId;
     let publicId = null;
 
+    if (!courseId) {
+      console.error('[LMS]: Missing courseId in request body');
+      return res.status(400).json({ message: 'courseId is required' });
+    }
+
     // YouTube Link Detection
-    const isYoutube = url && (url.includes('youtube.com') || url.includes('youtu.be'));
+    const isYoutube = url && (String(url).includes('youtube.com') || String(url).includes('youtu.be'));
     if (isYoutube) {
+      console.log('[LMS]: YouTube link detected:', url);
       type = 'YOUTUBE';
     }
 

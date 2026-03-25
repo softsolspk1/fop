@@ -178,6 +178,7 @@ model Class {
   actualStartTime  DateTime?    // When the teacher Actually clicks "Start Session"
   actualEndTime    DateTime?    // When the teacher Actually clicks "Stop Session"
   agoraChannel     String?
+  whiteboardUuid   String?
   courseId         String
   createdAt        DateTime     @default(now())
   updatedAt        DateTime     @updatedAt

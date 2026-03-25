@@ -13,18 +13,24 @@ export default function StudentDashboard() {
   const [courses, setCourses] = React.useState<any[]>([]);
   const [loading, setLoading] = React.useState(true);
 
+  const [activeClasses, setActiveClasses] = React.useState<any[]>([]);
+
   React.useEffect(() => {
-    const fetchCourses = async () => {
+    const fetchDashboardData = async () => {
       try {
-        const { data } = await api.get('/courses');
-        setCourses(data);
+        const [coursesRes, activeRes] = await Promise.all([
+          api.get('/courses'),
+          api.get('/classes/active')
+        ]);
+        setCourses(coursesRes.data);
+        setActiveClasses(activeRes.data);
       } catch (err) {
-        console.error('Failed to fetch courses', err);
+        console.error('Failed to fetch dashboard data', err);
       } finally {
         setLoading(false);
       }
     };
-    fetchCourses();
+    fetchDashboardData();
   }, []);
 
   return (
@@ -38,11 +44,56 @@ export default function StudentDashboard() {
               You are currently enrolled in the <span className="text-blue-600 font-black uppercase">{user?.shift || 'Morning'}</span> shift, <span className="text-purple-600 font-black uppercase">{user?.year || '1st Year'}</span>.
             </p>
           </div>
-          <button className="flex items-center gap-2 px-6 py-3 bg-green-600 text-white font-bold rounded-xl shadow-lg hover:bg-green-700 transition-all hover:-translate-y-0.5 animate-pulse">
-            <Video className="w-5 h-5" />
-            Join Active Class
-          </button>
+          {activeClasses.length > 0 ? (
+            <div className="flex gap-2">
+              {activeClasses.length === 1 ? (
+                <Link 
+                  href={`/dashboard/courses/${activeClasses[0].courseId}/live?classId=${activeClasses[0].id}`}
+                  className="flex items-center gap-2 px-6 py-3 bg-green-600 text-white font-bold rounded-xl shadow-lg hover:bg-green-700 transition-all hover:-translate-y-0.5 animate-pulse"
+                >
+                  <Video className="w-5 h-5" />
+                  Join {activeClasses[0].course?.name}
+                </Link>
+              ) : (
+                <div className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-bold rounded-xl shadow-lg animate-pulse">
+                  <Video className="w-5 h-5" />
+                  {activeClasses.length} Live Classes Active
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 px-6 py-3 bg-slate-100 text-slate-400 font-bold rounded-xl border border-slate-200 cursor-not-allowed">
+              <Video className="w-5 h-5" />
+              No Live Classes
+            </div>
+          )}
         </div>
+
+        {activeClasses.length > 0 && (
+          <div className="bg-green-50 border border-green-100 p-6 rounded-2xl">
+            <h3 className="text-lg font-black text-green-800 mb-4 flex items-center gap-2">
+              <span className="w-2 h-2 bg-green-500 rounded-full animate-ping" />
+              Live Now: Active Sessions
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {activeClasses.map((cls) => (
+                <div key={cls.id} className="bg-white p-4 rounded-xl border border-green-200 shadow-sm flex flex-col justify-between">
+                  <div>
+                    <h4 className="font-bold text-slate-800">{cls.title}</h4>
+                    <p className="text-xs text-slate-500">{cls.course?.name}</p>
+                    <p className="text-[10px] font-bold text-green-600 uppercase mt-2">Prof. {cls.course?.teacher?.name}</p>
+                  </div>
+                  <Link 
+                    href={`/dashboard/courses/${cls.courseId}/live?classId=${cls.id}`}
+                    className="mt-4 w-full py-2 bg-green-600 text-white text-center text-xs font-black rounded-lg hover:bg-green-700 transition-all"
+                  >
+                    JOIN SESSION
+                  </Link>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {[

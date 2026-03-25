@@ -3,8 +3,57 @@ import prisma from '../lib/prisma';
 import { authenticateToken, authorizeRoles, AuthRequest } from '../auth/auth.middleware';
 import { generateAgoraToken } from './agora.service';
 import { transcribeAudio } from './ai-transcription.service';
+import { createWhiteboardRoom, generateRoomToken } from './whiteboard.service';
 
 const router = Router();
+
+// Get active (currently running) classes
+router.get('/active', authenticateToken, async (req: AuthRequest, res: Response) => {
+  try {
+    const isStudent = req.user?.role === 'STUDENT';
+    const userId = req.user?.userId;
+
+    const whereClause: any = {
+      actualStartTime: { not: null },
+      actualEndTime: null
+    };
+
+    if (isStudent) {
+      const student = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { departmentId: true, year: true }
+      });
+
+      const enrolledCourses = await prisma.course.findMany({
+        where: {
+          OR: [
+            { students: { some: { id: userId } } },
+            { 
+              departmentId: student?.departmentId || undefined,
+              professional: String(student?.year || '') || undefined
+            }
+          ]
+        },
+        select: { id: true }
+      });
+      whereClause.courseId = { in: enrolledCourses.map(c => c.id) };
+    }
+
+    const classes = await prisma.class.findMany({
+      where: whereClause,
+      include: {
+        course: {
+          include: {
+            teacher: { select: { name: true } }
+          }
+        }
+      }
+    });
+    res.json(classes);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching active classes', error });
+  }
+});
 
 // Get all classes with course details
 router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
@@ -28,7 +77,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
             { students: { some: { id: userId } } },
             { 
               departmentId: student?.departmentId || undefined,
-              professional: student?.year || undefined // student.year corresponds to course.professional
+              professional: String(student?.year || '') || undefined // student.year corresponds to course.professional
             }
           ]
         },
@@ -110,7 +159,7 @@ router.put('/:id/stop', authenticateToken, authorizeRoles('TEACHER', 'SUPER_ADMI
 });
 
 
-// Join a class session (Get Agora Token)
+// Join a class session (Get Agora Token + Whiteboard details)
 router.get('/:id/join', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
@@ -120,17 +169,47 @@ router.get('/:id/join', authenticateToken, async (req: AuthRequest, res: Respons
       return res.status(404).json({ message: 'Class session not found or channel not initialized' });
     }
 
-    // Generate a random UID for the user (or use their DB ID if numeric)
+    // Generate a random UID for the user
     const uid = Math.floor(Math.random() * 1000000);
     const token = generateAgoraToken(classSession.agoraChannel, uid);
+
+    // Dynamic Whiteboard Room Management
+    let whiteboardUuid = (classSession as any).whiteboardUuid;
+    let whiteboardToken = null;
+
+    if (!whiteboardUuid) {
+      console.log('[LMS]: Creating new Whiteboard room for session:', id);
+      const room = await createWhiteboardRoom();
+      if (room) {
+        whiteboardUuid = room.uuid;
+        whiteboardToken = room.roomToken;
+        // Attempt to update the class with the new whiteboard UUID if the field exists
+        try {
+          await prisma.class.update({
+            where: { id: String(id) },
+            data: { whiteboardUuid: room.uuid } as any
+          });
+        } catch (dbErr) {
+          console.warn('[LMS]: Could not save whiteboardUuid to DB (schema might not be updated yet):', dbErr);
+        }
+      }
+    } else {
+      whiteboardToken = await generateRoomToken(whiteboardUuid);
+    }
 
     res.json({
       token,
       channel: classSession.agoraChannel,
       uid,
-      appId: process.env.AGORA_APP_ID
+      appId: process.env.AGORA_APP_ID,
+      whiteboard: whiteboardUuid ? {
+        uuid: whiteboardUuid,
+        token: whiteboardToken,
+        appId: process.env.NEXT_PUBLIC_AGORA_WHITEBOARD_APP_ID
+      } : null
     });
   } catch (error) {
+    console.error('Error joining class:', error);
     res.status(500).json({ message: 'Error joining class', error });
   }
 });
@@ -163,10 +242,20 @@ router.post('/mark-start', authenticateToken, async (req: AuthRequest, res: Resp
     const { classId } = req.body;
     const userId = req.user!.userId;
 
-    const attendance = await prisma.attendance.upsert({
-      where: { userId_classId: { userId, classId: String(classId) } },
-      update: { markedStartAt: new Date(), status: 'LATE' }, // Initially late if checking in after start, logic can be refined
-      create: { 
+    const existing = await prisma.attendance.findFirst({
+      where: { userId, classId: String(classId) }
+    });
+
+    if (existing) {
+      const attendance = await prisma.attendance.update({
+        where: { id: existing.id },
+        data: { markedStartAt: new Date(), status: 'LATE' },
+      });
+      return res.status(200).json(attendance);
+    }
+
+    const attendance = await prisma.attendance.create({
+      data: { 
         userId, 
         classId: String(classId), 
         markedStartAt: new Date(),
@@ -186,8 +275,14 @@ router.post('/mark-end', authenticateToken, async (req: AuthRequest, res: Respon
     const { classId } = req.body;
     const userId = req.user!.userId;
 
+    const existing = await prisma.attendance.findFirst({
+      where: { userId, classId: String(classId) }
+    });
+
+    if (!existing) return res.status(404).json({ message: 'Attendance record not found' });
+
     const attendance = await prisma.attendance.update({
-      where: { userId_classId: { userId, classId: String(classId) } },
+      where: { id: existing.id },
       data: { 
         markedEndAt: new Date(),
         status: 'PRESENT' 
