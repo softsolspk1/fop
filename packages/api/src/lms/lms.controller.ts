@@ -109,8 +109,9 @@ router.post('/materials', authenticateToken, authorizeRoles('TEACHER', 'SUPER_AD
     console.error('[LMS]: Upload Error for course', req.params.id || req.body.courseId, ':', error);
     res.status(500).json({ 
       message: 'Error uploading material', 
-      error: error.message,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      error: error.message || 'Unknown error',
+      details: error,
+      stack: error.stack
     });
   }
 });

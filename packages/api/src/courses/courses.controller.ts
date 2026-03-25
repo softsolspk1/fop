@@ -24,7 +24,8 @@ router.put('/visibility/bulk', authenticateToken, authorizeRoles('SUPER_ADMIN'),
     res.status(500).json({ 
       message: 'Error updating bulk visibility', 
       error: error.message,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      details: error,
+      stack: error.stack
     });
   }
 });
@@ -131,8 +132,9 @@ router.get('/:id', authenticateToken, async (req: AuthRequest, res: Response) =>
     console.error(`[Courses]: Error fetching course details for ID ${req.params.id}:`, error);
     res.status(500).json({ 
       message: 'Error fetching course details', 
-      error: error.message,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      error: error.message || 'Unknown error',
+      details: error, // FOR DEBUGGING
+      stack: error.stack
     });
   }
 });

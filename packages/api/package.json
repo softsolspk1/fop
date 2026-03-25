@@ -5,8 +5,8 @@
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
     "build": "tsc",
-    "postinstall": "prisma generate --schema=./prisma/schema.prisma",
-    "vercel-build": "prisma generate --schema=./prisma/schema.prisma && tsc",
+    "postinstall": "prisma generate --schema=../database/prisma/schema.prisma",
+    "vercel-build": "prisma generate --schema=../database/prisma/schema.prisma && tsc",
     "seed": "ts-node src/seed.ts",
     "seed:labs": "ts-node src/seed-labs.ts",
     "approve-users": "ts-node src/scripts/approve-all-users.ts",

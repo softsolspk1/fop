@@ -93,8 +93,9 @@ router.post('/', authenticateToken, authorizeRoles('TEACHER', 'DEPT_ADMIN', 'SUP
     console.error(`[Quizzes]: Error creating quiz for course ${req.body.courseId}:`, error);
     res.status(500).json({ 
       message: 'Error creating quiz', 
-      error: error.message,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      error: error.message || 'Unknown error',
+      details: error,
+      stack: error.stack
     });
   }
 });
