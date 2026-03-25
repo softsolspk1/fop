@@ -4,7 +4,11 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import DashboardLayout from '../../../../../components/dashboard/DashboardLayout';
 import AgoraVideoPlayer from '../../../../../components/dashboard/AgoraVideoPlayer';
-import AgoraWhiteboard from '../../../../../components/dashboard/AgoraWhiteboard';
+import dynamic from 'next/dynamic';
+
+const AgoraWhiteboard = dynamic(() => import('../../../../../components/dashboard/AgoraWhiteboard'), {
+  ssr: false,
+});
 import api from '../../../../../lib/api';
 import { chatClient, initChat, sendMessage, onMessageReceived } from '../../../../../components/dashboard/AgoraChatService';
 import { Mic, MicOff, Video, VideoOff, ScreenShare, MessageSquare, Users, Settings, X, LogOut, Send, PenTool } from 'lucide-react';

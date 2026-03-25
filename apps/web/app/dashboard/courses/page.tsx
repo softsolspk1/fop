@@ -12,6 +12,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../../lib/api';
 import { useAuth } from '../../../context/AuthContext';
+import Link from 'next/link';
 
 export default function CoursesPage() {
   const { user: currentUser } = useAuth();
@@ -26,12 +27,13 @@ export default function CoursesPage() {
   const [managingMaterials, setManagingMaterials] = useState<any>(null);
   const [activeManagementTab, setActiveManagementTab] = useState<'MATERIALS' | 'ASSIGNMENTS' | 'QUIZZES'>('MATERIALS');
   const [newQuizQuestions, setNewQuizQuestions] = useState<any[]>([]);
-  const [viewingCourseTab, setViewingCourseTab] = useState<'DETAILS' | 'MATERIALS' | 'ASSIGNMENTS' | 'QUIZZES'>('DETAILS');
+  const [viewingCourseTab, setViewingCourseTab] = useState<'DETAILS' | 'LIVE' | 'MATERIALS' | 'ASSIGNMENTS' | 'QUIZZES'>('DETAILS');
   const [submittingAssignment, setSubmittingAssignment] = useState<any>(null);
   const [activeQuiz, setActiveQuiz] = useState<any>(null);
   const [quizQuestions, setQuizQuestions] = useState<any[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [quizAnswers, setQuizAnswers] = useState<any>({});
+  const [activeClasses, setActiveClasses] = useState<any[]>([]);
   const [quizTimer, setQuizTimer] = useState(0);
 
 
@@ -61,13 +63,15 @@ export default function CoursesPage() {
       if (filterSemester) params.semesterName = filterSemester;
       if (filterDepartment) params.departmentId = filterDepartment;
 
-      const [coursesRes, deptsRes, usersRes] = await Promise.all([
+      const [coursesRes, deptsRes, usersRes, activeRes] = await Promise.all([
         api.get('/courses', { params }),
         api.get('/departments'),
-        api.get('/users')
+        api.get('/users'),
+        api.get('/classes/active')
       ]);
       setCourses(coursesRes.data);
       setDepartments(deptsRes.data);
+      setActiveClasses(activeRes.data);
       // Filter only teachers or admins for the teacher selection
       setTeachers(usersRes.data.filter((u: any) => u.role === 'TEACHER' || u.role === 'SUPER_ADMIN'));
     } catch (err) {
