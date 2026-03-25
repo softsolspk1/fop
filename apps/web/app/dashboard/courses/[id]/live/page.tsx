@@ -42,6 +42,7 @@ export default function LiveClassPage() {
           channel: res.data.channel,
           token: res.data.token,
           uid: res.data.uid,
+          whiteboard: res.data.whiteboard,
           userToken: 'mock_chat_token', 
           role: 'host' 
         });
