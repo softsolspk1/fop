@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from 'react';
-import { WhiteWebSdk, Room, RoomPhase, ViewMode } from 'whiteboard-sdk';
+import { WhiteWebSdk, Room, RoomPhase, ViewMode } from 'white-web-sdk';
 
 interface AgoraWhiteboardProps {
   appId: string;
