@@ -25,6 +25,7 @@ export default function CoursesPage() {
   const [viewingCourse, setViewingCourse] = useState<any>(null);
   const [managingMaterials, setManagingMaterials] = useState<any>(null);
   const [activeManagementTab, setActiveManagementTab] = useState<'MATERIALS' | 'ASSIGNMENTS' | 'QUIZZES'>('MATERIALS');
+  const [newQuizQuestions, setNewQuizQuestions] = useState<any[]>([]);
   const [viewingCourseTab, setViewingCourseTab] = useState<'DETAILS' | 'MATERIALS' | 'ASSIGNMENTS' | 'QUIZZES'>('DETAILS');
   const [submittingAssignment, setSubmittingAssignment] = useState<any>(null);
   const [activeQuiz, setActiveQuiz] = useState<any>(null);
@@ -427,7 +428,8 @@ export default function CoursesPage() {
                       <div className="space-y-1.5 px-1">
                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Content Type</label>
                         <select id="mat-type" className="w-full px-5 py-3.5 bg-white border-2 border-slate-100 rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-400 transition-all shadow-sm">
-                          <option value="DOCUMENT">Document (PDF/Doc)</option>
+                          <option value="DOCUMENT">Document (PDF)</option>
+                          <option value="WORD">Word Document (DOC/DOCX)</option>
                           <option value="PPT">PowerPoint (PPTX)</option>
                           <option value="IMAGE">Image / Diagram</option>
                           <option value="VIDEO">Video Upload</option>
@@ -670,62 +672,89 @@ export default function CoursesPage() {
                           <div className="pt-4 space-y-4">
                              <div className="flex items-center justify-between">
                                 <h5 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Questions Management</h5>
-                                <button onClick={() => {
-                                  const qList = document.getElementById('quiz-q-list');
-                                  if (!qList) return;
-                                  const qDiv = document.createElement('div');
-                                  qDiv.className = "p-6 bg-white border border-slate-100 rounded-[2rem] space-y-4 mt-3 shadow-sm";
-                                  const qId = Date.now();
-                                  qDiv.innerHTML = `
-                                    <div class="flex items-center justify-between mb-2">
-                                       <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Question #\${qList.children.length + 1}</span>
-                                       <button onclick="this.parentElement.parentElement.remove()" class="text-slate-300 hover:text-red-500 transition-colors"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg></button>
-                                    </div>
-                                    <input type="text" placeholder="Type your question here..." class="w-full px-4 py-3 bg-slate-50 border-none rounded-xl font-bold text-sm q-text outline-none focus:ring-2 focus:ring-purple-100" />
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                      <div class="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-xl border border-transparent focus-within:border-purple-200 transition-all">
-                                         <span class="text-[10px] font-bold text-slate-400">A</span>
-                                         <input type="text" placeholder="Option A" class="w-full bg-transparent border-none text-xs font-bold q-opt outline-none" />
-                                      </div>
-                                      <div class="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-xl border border-transparent focus-within:border-purple-200 transition-all">
-                                         <span class="text-[10px] font-bold text-slate-400">B</span>
-                                         <input type="text" placeholder="Option B" class="w-full bg-transparent border-none text-xs font-bold q-opt outline-none" />
-                                      </div>
-                                      <div class="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-xl border border-transparent focus-within:border-purple-200 transition-all">
-                                         <span class="text-[10px] font-bold text-slate-400">C</span>
-                                         <input type="text" placeholder="Option C" class="w-full bg-transparent border-none text-xs font-bold q-opt outline-none" />
-                                      </div>
-                                      <div class="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-xl border border-transparent focus-within:border-purple-200 transition-all">
-                                         <span class="text-[10px] font-bold text-slate-400">D</span>
-                                         <input type="text" placeholder="Option D" class="w-full bg-transparent border-none text-xs font-bold q-opt outline-none" />
-                                      </div>
-                                    </div>
-                                    <div class="space-y-1">
-                                       <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Correct Answer (Exactly as written above)</label>
-                                       <input type="text" placeholder="Paste correct option text here" class="w-full px-4 py-2.5 bg-green-50/50 border-2 border-green-100 rounded-xl font-bold text-xs q-ans text-green-700 outline-none" />
-                                    </div>
-                                  `;
-                                  qList.appendChild(qDiv);
-                                }} className="flex items-center gap-2 px-4 py-2 bg-white text-purple-600 font-black text-[10px] uppercase tracking-widest border-2 border-purple-100 rounded-xl hover:bg-purple-600 hover:text-white transition-all shadow-sm">
+                                <button 
+                                  onClick={() => {
+                                    setNewQuizQuestions([...newQuizQuestions, { text: '', options: ['', '', '', ''], answer: '' }]);
+                                  }} 
+                                  className="flex items-center gap-2 px-4 py-2 bg-white text-purple-600 font-black text-[10px] uppercase tracking-widest border-2 border-purple-100 rounded-xl hover:bg-purple-600 hover:text-white transition-all shadow-sm"
+                                >
                                    <Plus className="w-3 h-3" /> Add MCQ
                                 </button>
                              </div>
-                             <div id="quiz-q-list" className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar"></div>
+                             
+                             <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                                {newQuizQuestions.map((q, qIdx) => (
+                                  <div key={qIdx} className="p-6 bg-white border border-slate-100 rounded-[2rem] space-y-4 shadow-sm relative group/q">
+                                     <div className="flex items-center justify-between mb-2">
+                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Question #{qIdx + 1}</span>
+                                        <button 
+                                          onClick={() => {
+                                            const updated = [...newQuizQuestions];
+                                            updated.splice(qIdx, 1);
+                                            setNewQuizQuestions(updated);
+                                          }}
+                                          className="text-slate-300 hover:text-red-500 transition-colors"
+                                        >
+                                          <Trash2 className="w-4 h-4" />
+                                        </button>
+                                     </div>
+                                     <input 
+                                       type="text" 
+                                       placeholder="Type your question here..." 
+                                       value={q.text}
+                                       onChange={(e) => {
+                                         const updated = [...newQuizQuestions];
+                                         updated[qIdx].text = e.target.value;
+                                         setNewQuizQuestions(updated);
+                                       }}
+                                       className="w-full px-4 py-3 bg-slate-50 border-none rounded-xl font-bold text-sm outline-none focus:ring-2 focus:ring-purple-100" 
+                                     />
+                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                       {['A', 'B', 'C', 'D'].map((optLabel, optIdx) => (
+                                         <div key={optIdx} className="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-xl border border-transparent focus-within:border-purple-200 transition-all">
+                                            <span className="text-[10px] font-bold text-slate-400">{optLabel}</span>
+                                            <input 
+                                              type="text" 
+                                              placeholder={`Option ${optLabel}`} 
+                                              value={q.options[optIdx]}
+                                              onChange={(e) => {
+                                                const updated = [...newQuizQuestions];
+                                                updated[qIdx].options[optIdx] = e.target.value;
+                                                setNewQuizQuestions(updated);
+                                              }}
+                                              className="w-full bg-transparent border-none text-xs font-bold outline-none" 
+                                            />
+                                         </div>
+                                       ))}
+                                     </div>
+                                     <div className="space-y-1">
+                                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Correct Answer (Must match one of the options)</label>
+                                        <select 
+                                          value={q.answer}
+                                          onChange={(e) => {
+                                            const updated = [...newQuizQuestions];
+                                            updated[qIdx].answer = e.target.value;
+                                            setNewQuizQuestions(updated);
+                                          }}
+                                          className="w-full px-4 py-2.5 bg-green-50/50 border-2 border-green-100 rounded-xl font-bold text-xs text-green-700 outline-none"
+                                        >
+                                          <option value="">Select Correct Option</option>
+                                          {q.options.filter((o: string) => o.trim() !== '').map((o: string, i: number) => (
+                                            <option key={i} value={o}>{o}</option>
+                                          ))}
+                                        </select>
+                                     </div>
+                                  </div>
+                                ))}
+                             </div>
                           </div>
 
                           <button onClick={async (e) => {
                              const btn = e.currentTarget;
-                             const questions: any[] = [];
-                             const qElems = document.querySelectorAll('#quiz-q-list > div');
-                             qElems.forEach(el => {
-                               const text = (el.querySelector('.q-text') as HTMLInputElement).value;
-                               const optInputs = el.querySelectorAll('.q-opt');
-                               const options = Array.from(optInputs).map(i => (i as HTMLInputElement).value).filter(v => !!v);
-                               const answer = (el.querySelector('.q-ans') as HTMLInputElement).value;
-                               if(text && answer && options.length >= 2) questions.push({ text, options, answer });
-                             });
-
-                             if(questions.length === 0) return alert('Please add at least one question');
+                             if(newQuizQuestions.length === 0) return alert('Please add at least one question');
+                             
+                             const validatedQuestions = newQuizQuestions.filter(q => q.text && q.answer && q.options.filter((o: any) => o !== '').length >= 2);
+                             if(validatedQuestions.length !== newQuizQuestions.length) return alert('Please fill all questions, options, and select correct answers.');
 
                              try {
                                btn.disabled = true; btn.innerHTML = 'Creating Quiz...';
@@ -737,9 +766,10 @@ export default function CoursesPage() {
                                   passingPercentage: parseInt((document.getElementById('quiz-pass') as HTMLInputElement).value),
                                   isExam: (document.getElementById('quiz-exam') as HTMLInputElement).checked,
                                   courseId: managingMaterials.id,
-                                  questions
+                                  questions: validatedQuestions
                                });
                                alert('Quiz created successfully and sent for HOD approval');
+                               setNewQuizQuestions([]); // Reset state
                                location.reload();
                              } catch (err) { alert('Error creating quiz'); }
                              finally { btn.disabled = false; btn.innerHTML = 'Create Quiz'; }

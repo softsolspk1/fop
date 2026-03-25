@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import DashboardLayout from '../../../../../components/dashboard/DashboardLayout';
 import AgoraVideoPlayer from '../../../../../components/dashboard/AgoraVideoPlayer';
+import api from '../../../../../lib/api';
 import { chatClient, initChat, sendMessage, onMessageReceived } from '../../../../../components/dashboard/AgoraChatService';
 import { Mic, MicOff, Video, VideoOff, ScreenShare, MessageSquare, Users, Settings, X, LogOut, Send } from 'lucide-react';
 
@@ -16,18 +17,38 @@ export default function LiveClassPage() {
   const [messages, setMessages] = useState<any[]>([]);
   const [inputMessage, setInputMessage] = useState('');
 
-  // Mock data for token and channel (In real app, fetch from API)
-  const agoraConfig = {
-    appId: process.env.NEXT_PUBLIC_AGORA_APP_ID || '876dc55e0241436fb6c63433afeb9563',
-    channel: `class-${params.id}`,
-    token: 'mock_token',
-    userToken: 'mock_chat_token',
-    uid: Math.floor(Math.random() * 1000000),
-    role: 'host' as 'host' | 'audience' 
-  };
+  const searchParams = useSearchParams();
+  const sessionId = searchParams.get('sessionId');
+  
+  const [agoraConfig, setAgoraConfig] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (isJoined) {
+    const fetchJoinData = async () => {
+      try {
+        setLoading(true);
+        // If sessionId is provided, join that specific session, else fallback to course-based (if supported by backend)
+        const idToJoin = sessionId || (params.id as string);
+        const res = await (api as any).get(`/classes/${idToJoin}/join`);
+        setAgoraConfig({
+          appId: res.data.appId,
+          channel: res.data.channel,
+          token: res.data.token,
+          uid: res.data.uid,
+          userToken: 'mock_chat_token', 
+          role: 'host' 
+        });
+      } catch (err) {
+        console.error('Error fetching join data:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchJoinData();
+  }, [params.id, sessionId]);
+
+  useEffect(() => {
+    if (isJoined && agoraConfig) {
       // Initialize Chat
       initChat(agoraConfig.uid.toString(), agoraConfig.userToken);
       
@@ -35,10 +56,10 @@ export default function LiveClassPage() {
         setMessages((prev) => [...prev, { from: msg.from, msg: msg.msg, time: new Date().toLocaleTimeString() }]);
       });
     }
-  }, [isJoined]);
+  }, [isJoined, agoraConfig]);
 
   const handleSendMessage = () => {
-    if (inputMessage.trim()) {
+    if (inputMessage.trim() && agoraConfig) {
       sendMessage(agoraConfig.channel, inputMessage);
       setMessages((prev) => [...prev, { from: 'Me', msg: inputMessage, time: new Date().toLocaleTimeString() }]);
       setInputMessage('');
@@ -72,7 +93,12 @@ export default function LiveClassPage() {
         {/* Video Area */}
         <div className="flex-1 p-6 overflow-hidden flex gap-6">
           <div className="flex-1 min-w-0">
-            {isJoined ? (
+            {loading ? (
+              <div className="w-full h-full flex flex-col items-center justify-center">
+                 <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4" />
+                 <p className="text-slate-400 font-black uppercase tracking-widest text-xs">Authenticating Session...</p>
+              </div>
+            ) : isJoined && agoraConfig ? (
               <AgoraVideoPlayer {...agoraConfig} />
             ) : (
               <div className="w-full h-full bg-slate-900 rounded-3xl flex flex-col items-center justify-center border-2 border-dashed border-white/10">
@@ -83,10 +109,11 @@ export default function LiveClassPage() {
                 <p className="text-slate-400 mb-8 max-w-sm text-center">Ensure your camera and microphone are working. You are joining as a **Lecturer**.</p>
                 <div className="flex gap-4">
                   <button 
+                    disabled={!agoraConfig}
                     onClick={() => setIsJoined(true)}
-                    className="px-10 py-4 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-2xl shadow-xl shadow-blue-900/20 transition-all hover:-translate-y-1"
+                    className="px-10 py-4 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-2xl shadow-xl shadow-blue-900/20 transition-all hover:-translate-y-1 disabled:opacity-50 disabled:translate-y-0"
                   >
-                    Start Your Lecture
+                    {!agoraConfig ? 'Connection Failed' : 'Start Your Lecture'}
                   </button>
                 </div>
               </div>

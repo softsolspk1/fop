@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import DashboardLayout from '../../../components/dashboard/DashboardLayout';
 import { Video, Calendar, Clock, User, AlertCircle, Play, Users, MapPin, Trash2 } from 'lucide-react';
 import api from '../../../lib/api';
@@ -8,6 +9,7 @@ import { useAuth } from '../../../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function LiveClassesPage() {
+  const router = useRouter();
   const { user } = useAuth();
   const [classes, setClasses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -188,7 +190,10 @@ export default function LiveClassesPage() {
                   </div>
 
                   <div className="flex items-center gap-4">
-                    <button className="flex-1 py-4 bg-blue-600 text-white font-black rounded-2xl shadow-xl shadow-blue-200 hover:bg-blue-700 active:scale-95 transition-all flex items-center justify-center gap-3 border-b-4 border-blue-800 uppercase text-xs tracking-[0.2em]">
+                    <button 
+                      onClick={() => router.push(`/dashboard/courses/${cls.courseId}/live?sessionId=${cls.id}`)}
+                      className="flex-1 py-4 bg-blue-600 text-white font-black rounded-2xl shadow-xl shadow-blue-200 hover:bg-blue-700 active:scale-95 transition-all flex items-center justify-center gap-3 border-b-4 border-blue-800 uppercase text-xs tracking-[0.2em]"
+                    >
                       <Play className="w-4 h-4 fill-current" />
                       Enter Session
                     </button>
