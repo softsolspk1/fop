@@ -80,7 +80,7 @@ router.post('/', authenticateToken, authorizeRoles('TEACHER', 'DEPT_ADMIN', 'SUP
         totalMarks: parseFloat(totalMarks) || questions.length,
         passingPercentage: parseFloat(passingPercentage) || 40,
         courseId,
-        status: 'PENDING',
+        status: 'APPROVED',
         isExam: Boolean(isExam || false),
         questions: {
           create: questions.map((q: any) => ({

@@ -107,7 +107,7 @@ router.post('/materials', authenticateToken, authorizeRoles('TEACHER', 'SUPER_AD
         type: type || 'LECTURE_NOTE',
         courseId,
         uploadedById: userId,
-        status: 'PENDING'
+        status: 'APPROVED'
       }
     });
 
