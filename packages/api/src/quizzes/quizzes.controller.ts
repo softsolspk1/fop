@@ -105,11 +105,48 @@ router.post('/', authenticateToken, authorizeRoles('TEACHER', 'DEPT_ADMIN', 'SUP
   }
 });
 
+// Get a single quiz for attempt
+router.get('/:id', authenticateToken, async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user?.userId;
+    const userRole = req.user?.role;
+
+    const quiz = await prisma.quiz.findUnique({
+      where: { id: String(id) },
+      include: {
+        questions: userRole === 'STUDENT',
+        results: { where: { userId: userId } }
+      }
+    });
+
+    if (!quiz) return res.status(404).json({ message: 'Quiz not found' });
+
+    if (userRole === 'STUDENT') {
+      if (quiz.results.length > 0) {
+        return res.json({ alreadyAttempted: true });
+      }
+
+      const shuffledQuestions = shuffleArray(quiz.questions).map(q => ({
+        ...q,
+        options: shuffleArray(q.options),
+        answer: undefined // Hide answer
+      }));
+
+      return res.json({ ...quiz, questions: shuffledQuestions, attempted: false });
+    }
+
+    res.json(quiz);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching quiz', error });
+  }
+});
+
 // Submit quiz results (Student)
 router.post('/:id/submit', authenticateToken, authorizeRoles('STUDENT'), async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
-    const { score } = req.body; // Score calculated on frontend for now, or could be verified here
+    const { answers } = req.body; 
     const userId = req.user?.userId;
 
     if (!userId) return res.status(401).json({ message: 'User not authenticated' });
@@ -123,8 +160,23 @@ router.post('/:id/submit', authenticateToken, authorizeRoles('STUDENT'), async (
       return res.status(400).json({ message: 'You have already attempted this quiz' });
     }
 
-    const quiz = await prisma.quiz.findUnique({ where: { id: String(id) } });
-    const passed = quiz ? (score / quiz.totalMarks) * 100 >= quiz.passingPercentage : false;
+    const quiz = await prisma.quiz.findUnique({ 
+      where: { id: String(id) },
+      include: { questions: true } 
+    });
+
+    if (!quiz) return res.status(404).json({ message: 'Quiz not found' });
+
+    let score = 0;
+    if (answers && typeof answers === 'object') {
+       quiz.questions.forEach((q) => {
+          if (answers[q.id] === q.answer) {
+             score += (quiz.totalMarks / quiz.questions.length);
+          }
+       });
+    }
+
+    const passed = (score / quiz.totalMarks) * 100 >= quiz.passingPercentage;
 
     const result = await prisma.quizResult.create({
       data: {
@@ -135,7 +187,7 @@ router.post('/:id/submit', authenticateToken, authorizeRoles('STUDENT'), async (
       }
     });
 
-    res.status(201).json(result);
+    res.status(201).json({ ...result, totalQuestions: quiz.questions.length, percentage: ((score / quiz.totalMarks) * 100).toFixed(2) });
   } catch (error) {
     res.status(500).json({ message: 'Error submitting quiz', error });
   }

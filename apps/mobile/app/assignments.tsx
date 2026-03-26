@@ -1,99 +1,123 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
-import { useRouter } from 'expo-router';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Alert, RefreshControl } from 'react-native';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { ChevronLeft, FileText, Download, CheckCircle2, Clock } from 'lucide-react-native';
 import api from '../lib/api';
+import { Colors, Card, Button } from '../components/UI';
 
 export default function AssignmentsScreen() {
   const router = useRouter();
+  const { courseId } = useLocalSearchParams();
   const [loading, setLoading] = useState(true);
   const [assignments, setAssignments] = useState<any[]>([]);
-
-  useEffect(() => {
-    fetchAssignments();
-  }, []);
+  const [refreshing, setRefreshing] = useState(false);
 
   const fetchAssignments = async () => {
     try {
-      const { data } = await api.get('/assignments');
-      setAssignments(data);
+      const url = courseId ? `/assignments/course/${courseId}` : '/assignments';
+      const { data } = await api.get(url);
+      setAssignments(Array.isArray(data) ? data : []);
     } catch (error) {
-      console.error(error);
+      console.error('[Assignments Fetch Error]:', error);
+      setAssignments([]);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
+
+  useEffect(() => {
+    fetchAssignments();
+  }, [courseId]);
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchAssignments();
+  };
+
+  const renderAssignment = ({ item }: { item: any }) => (
+    <Card style={styles.card}>
+      <View style={styles.cardHeader}>
+        <View style={styles.courseBadge}>
+          <Text style={styles.courseText}>{item.course?.name || 'General'}</Text>
+        </View>
+        <View style={styles.deadlineRow}>
+          <Clock size={12} color={Colors.danger} />
+          <Text style={styles.deadlineText}>{new Date(item.dueDate).toLocaleDateString()}</Text>
+        </View>
+      </View>
+
+      <Text style={styles.assTitle}>{item.title}</Text>
+      <Text style={styles.assDesc} numberOfLines={2}>{item.description}</Text>
+
+      <View style={styles.footer}>
+        <Button 
+          title="Resources" 
+          icon={Download} 
+          variant="surface" 
+          onPress={() => Alert.alert('Download', 'Resource download started...')}
+          style={styles.actionBtn}
+        />
+        <Button 
+          title="Submit" 
+          icon={CheckCircle2} 
+          onPress={() => Alert.alert('Submit', 'Submission portal opening...')}
+          style={styles.actionBtn}
+        />
+      </View>
+    </Card>
+  );
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <ChevronLeft size={24} color="#1e293b" />
+          <ChevronLeft size={24} color={Colors.text} />
         </TouchableOpacity>
-        <Text style={styles.title}>Assignments</Text>
+        <View>
+          <Text style={styles.title}>Assignments</Text>
+          <Text style={styles.subtitle}>{courseId ? 'Filtered by Course' : 'All Pending Tasks'}</Text>
+        </View>
       </View>
 
-      {loading ? (
-        <ActivityIndicator size="large" color="#2563eb" style={{ marginTop: 40 }} />
-      ) : (
-        <FlatList
-          data={assignments}
-          contentContainerStyle={styles.list}
-          renderItem={({ item }) => (
-            <View style={styles.card}>
-              <View style={styles.courseBadge}>
-                <Text style={styles.courseText}>{item.course?.name || 'General'}</Text>
-              </View>
-              <Text style={styles.assTitle}>{item.title}</Text>
-              <Text style={styles.assDesc} numberOfLines={2}>{item.description}</Text>
-              
-              <View style={styles.deadlineRow}>
-                <Clock size={14} color="#ef4444" />
-                <Text style={styles.deadlineText}>Due: {new Date(item.dueDate).toLocaleDateString()}</Text>
-              </View>
-
-              <View style={styles.footer}>
-                <TouchableOpacity style={styles.actionBtn} onPress={() => Alert.alert('Download', 'File download started...')}>
-                  <Download size={18} color="#2563eb" />
-                  <Text style={styles.actionBtnText}>Download task</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={[styles.actionBtn, styles.submitBtn]} onPress={() => Alert.alert('Submit', 'Submission portal opening...')}>
-                  <CheckCircle2 size={18} color="#fff" />
-                  <Text style={[styles.actionBtnText, { color: '#fff' }]}>Submit Work</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          )}
-          keyExtractor={item => item.id}
-          ListEmptyComponent={
+      <FlatList
+        data={assignments}
+        renderItem={renderAssignment}
+        keyExtractor={item => item.id}
+        contentContainerStyle={styles.list}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        ListEmptyComponent={
+          loading ? (
+            <ActivityIndicator size="large" color={Colors.primary} style={{ marginTop: 40 }} />
+          ) : (
             <View style={styles.empty}>
-              <FileText size={48} color="#cbd5e1" />
+              <FileText size={48} color={Colors.border} />
               <Text style={styles.emptyText}>No pending assignments</Text>
             </View>
-          }
-        />
-      )}
+          )
+        }
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f8fafc' },
-  header: { padding: 16, paddingTop: 60, flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#f1f5f9' },
-  backBtn: { marginRight: 12 },
-  title: { fontSize: 20, fontWeight: 'bold', color: '#1e293b' },
-  list: { padding: 16 },
-  card: { backgroundColor: '#fff', borderRadius: 24, padding: 20, marginBottom: 16, borderWidth: 1, borderColor: '#f1f5f9' },
-  courseBadge: { backgroundColor: '#eff6ff', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, alignSelf: 'flex-start', marginBottom: 12 },
-  courseText: { fontSize: 10, fontWeight: 'bold', color: '#2563eb', textTransform: 'uppercase' },
-  assTitle: { fontSize: 18, fontWeight: 'bold', color: '#1e293b' },
-  assDesc: { fontSize: 14, color: '#64748b', marginTop: 8 },
-  deadlineRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 12 },
-  deadlineText: { fontSize: 12, color: '#ef4444', fontWeight: 'bold' },
-  footer: { flexDirection: 'row', gap: 12, marginTop: 20, paddingTop: 16, borderTopWidth: 1, borderTopColor: '#f1f5f9' },
-  actionBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, padding: 12, borderRadius: 12, backgroundColor: '#eff6ff' },
-  submitBtn: { backgroundColor: '#2563eb' },
-  actionBtnText: { fontSize: 14, fontWeight: 'bold', color: '#2563eb' },
+  container: { flex: 1, backgroundColor: Colors.background },
+  header: { padding: 24, paddingTop: 60, flexDirection: 'row', alignItems: 'center', gap: 16, backgroundColor: Colors.surface, borderBottomLeftRadius: 32, borderBottomRightRadius: 32 },
+  backBtn: { width: 44, height: 44, borderRadius: 12, backgroundColor: Colors.white, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: Colors.border },
+  title: { fontSize: 24, fontWeight: 'bold', color: Colors.text },
+  subtitle: { fontSize: 13, color: Colors.textSecondary },
+  list: { padding: 24, gap: 16, paddingBottom: 100 },
+  card: { padding: 20 },
+  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
+  courseBadge: { backgroundColor: Colors.primary + '10', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
+  courseText: { fontSize: 10, fontWeight: 'bold', color: Colors.primary, textTransform: 'uppercase' },
+  deadlineRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  deadlineText: { fontSize: 12, color: Colors.danger, fontWeight: 'bold' },
+  assTitle: { fontSize: 18, fontWeight: 'bold', color: Colors.text },
+  assDesc: { fontSize: 14, color: Colors.textSecondary, marginTop: 8 },
+  footer: { flexDirection: 'row', gap: 12, marginTop: 20, paddingTop: 16, borderTopWidth: 1, borderTopColor: Colors.border },
+  actionBtn: { flex: 1, height: 48 },
   empty: { alignItems: 'center', marginTop: 100 },
-  emptyText: { color: '#94a3b8', fontSize: 16, marginTop: 16 },
+  emptyText: { color: Colors.textSecondary, fontSize: 16, marginTop: 16 },
 });

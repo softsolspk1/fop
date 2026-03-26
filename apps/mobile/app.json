@@ -2,7 +2,7 @@
   "expo": {
     "name": "Faculty of Pharmacy and Pharmaceutical Sciences UOK",
     "slug": "fop-uok",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "scheme": "fopuok",
     "orientation": "portrait",
     "plugins": [

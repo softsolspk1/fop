@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
   headerSubtitle: { fontSize: 12, color: '#64748b' },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   list: { padding: 16 },
-  studentCard: { backgroundColor: '#fff', borderRadius: 16, padding: 16, marginBottom: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderWidh: 1, borderColor: '#f1f5f9' },
+  studentCard: { backgroundColor: '#fff', borderRadius: 16, padding: 16, marginBottom: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderWidth: 1, borderColor: '#f1f5f9' },
   studentInfo: { flexDirection: 'row', alignItems: 'center' },
   avatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#f1f5f9', alignItems: 'center', justifyContent: 'center', marginRight: 12 },
   studentName: { fontSize: 16, fontWeight: '600', color: '#1e293b' },
@@ -101,4 +101,3 @@ const styles = StyleSheet.create({
   empty: { alignItems: 'center', marginTop: 100 },
   emptyText: { color: '#94a3b8', fontSize: 16, marginTop: 16 },
 });
- Jonah

@@ -13,41 +13,48 @@ function InitialLayout() {
   const { token, loading } = useAuth();
   const segments = useSegments();
   const router = useRouter();
-  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
+    // Wait until Auth is loaded
     if (loading) return;
 
-    const inAuthGroup = segments[0] === '(tabs)';
-
-    if (!token && inAuthGroup) {
-      router.replace('/login');
-    } else if (token && (segments[0] === 'login' || segments[0] === 'signup')) {
-      router.replace('/(tabs)');
-    }
-
-    // Hide splash screen once we've decided where to go
-    if (isReady) return;
-
-    const hideSplash = async () => {
+    const initialize = async () => {
       try {
-        await SplashScreen.hideAsync();
-      } catch (e) {
-        console.warn('Splash hide error:', e);
-      } finally {
-        setIsReady(true);
+        const inAuthGroup = segments?.[0] === '(tabs)';
+
+        // Logic to decide where to go
+        if (!token && inAuthGroup) {
+          router.replace('/login');
+        } else if (!token && !segments?.length) {
+          router.replace('/login');
+        } else if (token && (segments?.[0] === 'login' || segments?.[0] === 'signup' || !segments?.length)) {
+          router.replace('/(tabs)');
+        }
+
+        // Only hide splash once we've signaled where to go
+        // Small delay to ensure navigation is processed
+        setTimeout(async () => {
+          try {
+            await SplashScreen.hideAsync();
+          } catch (error) {
+            console.warn('[Layout] Failed to hide splash:', error);
+          }
+        }, 100);
+      } catch (err) {
+        console.error('[Layout] Initialization error:', err);
       }
     };
-    hideSplash();
-  }, [token, loading, segments, isReady]);
 
-  if (!isReady) return null;
+    initialize();
+  }, [loading, token, segments]);
 
+  // Ensure the navigator is always mounted, otherwise router.replace() crashes the app before rendering
   return (
-    <Stack>
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen name="login" options={{ title: 'Login', headerShown: false }} />
-      <Stack.Screen name="signup" options={{ title: 'Signup', headerShown: false }} />
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="index" />
+      <Stack.Screen name="(tabs)" />
+      <Stack.Screen name="login" options={{ title: 'Login' }} />
+      <Stack.Screen name="signup" options={{ title: 'Signup' }} />
     </Stack>
   );
 }

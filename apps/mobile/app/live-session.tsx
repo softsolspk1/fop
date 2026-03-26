@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert, StatusBar } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ChevronLeft, UserCheck, Video, Mic, ShieldCheck, Monitor, Edit3 } from 'lucide-react-native';
 import api from '../lib/api';
+import { Colors, Card, Button } from '../components/UI';
 
 export default function LiveSessionScreen() {
   const router = useRouter();
@@ -17,8 +18,8 @@ export default function LiveSessionScreen() {
       setMarked(true);
       Alert.alert('Success', 'Attendance marked successfully!');
     } catch (error) {
-      console.error(error);
-      Alert.alert('Error', 'Failed to mark attendance.');
+      console.error('[Attendance Error]:', error);
+      Alert.alert('Error', 'Failed to mark attendance. Please try again.');
     } finally {
       setMarking(false);
     }
@@ -26,82 +27,129 @@ export default function LiveSessionScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <ChevronLeft size={24} color="#fff" />
-        </TouchableOpacity>
-        <View style={styles.headerInfo}>
-          <Text style={styles.title}>{title}</Text>
-          <Text style={styles.subtitle}>Channel: {channel || 'Standard'}</Text>
-        </View>
-      </View>
-
-      {/* Video Mock/Placeholder */}
-      <View style={styles.videoPlaceholder}>
-        <Video size={64} color="rgba(255,255,255,0.3)" />
-        <Text style={styles.videoText}>Connecting to Live Stream...</Text>
-      </View>
-
-      {/* Controls */}
-      <View style={styles.controls}>
-        <TouchableOpacity style={styles.controlBtn}>
-          <Mic size={24} color="#fff" />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.controlBtn} onPress={() => Alert.alert('Feature', 'Screen Sharing will be available in the next update')}>
-          <Monitor size={24} color="#fff" />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.controlBtn} onPress={() => Alert.alert('Feature', 'Whiteboard will be available in the next update')}>
-          <Edit3 size={24} color="#fff" />
-        </TouchableOpacity>
-        <TouchableOpacity style={[styles.controlBtn, { backgroundColor: '#ef4444' }]} onPress={() => router.back()}>
-          <Text style={{ color: '#fff', fontWeight: 'bold' }}>Leave</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Attendance Section */}
-      <View style={styles.attendanceCard}>
-        <View style={styles.attendanceInfo}>
-          <ShieldCheck size={24} color="#2563eb" />
-          <View>
-            <Text style={styles.attTitle}>Attendance Verification</Text>
-            <Text style={styles.attSub}>Mark your presence for this session</Text>
+      <StatusBar barStyle="light-content" />
+      
+      {/* Premium Video Header */}
+      <View style={styles.videoContainer}>
+        <View style={styles.headerOverlay}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+            <ChevronLeft size={24} color={Colors.white} />
+          </TouchableOpacity>
+          <View style={styles.headerText}>
+            <Text style={styles.sessionTitle} numberOfLines={1}>{title || 'Live Session'}</Text>
+            <Text style={styles.sessionChannel}>Channel: {channel || 'Standard'}</Text>
           </View>
         </View>
-        
-        <TouchableOpacity 
-          style={[styles.markBtn, marked && styles.markedBtn]} 
-          onPress={markAttendance}
-          disabled={marking || marked}
-        >
-          {marking ? <ActivityIndicator color="#fff" /> : (
-            <>
-              <UserCheck size={20} color="#fff" />
-              <Text style={styles.markBtnText}>{marked ? 'Attendance Marked' : 'Mark Attendance'}</Text>
-            </>
-          )}
-        </TouchableOpacity>
+
+        <View style={styles.videoPlaceholder}>
+          <Video size={64} color="rgba(255,255,255,0.2)" />
+          <Text style={styles.videoText}>Connecting to Secure Link...</Text>
+          <ActivityIndicator color={Colors.white} style={{ marginTop: 20 }} />
+        </View>
+
+        <View style={styles.controls}>
+          <TouchableOpacity style={styles.controlBtn}>
+            <Mic size={24} color={Colors.white} />
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.controlBtn} 
+            onPress={() => Alert.alert('Feature', 'Screen Sharing is currently restricted to Web portal.')}
+          >
+            <Monitor size={24} color={Colors.white} />
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.controlBtn} 
+            onPress={() => Alert.alert('Feature', 'Interactive Whiteboard is currently restricted to Web portal.')}
+          >
+            <Edit3 size={24} color={Colors.white} />
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.controlBtn, { backgroundColor: Colors.danger }]} 
+            onPress={() => router.back()}
+          >
+            <Text style={styles.leaveBtnText}>Leave</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <View style={styles.content}>
+        <Card style={styles.attendanceCard}>
+          <View style={styles.attHeader}>
+            <View style={[styles.attIconBox, { backgroundColor: Colors.primary + '10' }]}>
+              <ShieldCheck size={28} color={Colors.primary} />
+            </View>
+            <View>
+              <Text style={styles.attTitle}>Attendance Verification</Text>
+              <Text style={styles.attDesc}>Verify your presence for this credit hour</Text>
+            </View>
+          </View>
+
+          <Button 
+            title={marked ? "Attendance Verified" : "Mark My Attendance"}
+            icon={UserCheck}
+            onPress={markAttendance}
+            loading={marking}
+            style={[styles.markBtn, marked && { backgroundColor: Colors.success }]}
+            disabled={marked}
+          />
+        </Card>
+
+        <View style={styles.tipsSection}>
+          <Text style={styles.tipsTitle}>Quick Tips</Text>
+          <View style={styles.tipRow}>
+            <View style={styles.tipDot} />
+            <Text style={styles.tipText}>Keep the app open during the entire session.</Text>
+          </View>
+          <View style={styles.tipRow}>
+            <View style={styles.tipDot} />
+            <Text style={styles.tipText}>Use a stable Wi-Fi connection for best quality.</Text>
+          </View>
+        </View>
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#1e293b' },
-  header: { padding: 16, paddingTop: 60, flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.3)' },
-  backBtn: { padding: 8 },
-  headerInfo: { marginLeft: 12 },
-  title: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
-  subtitle: { color: 'rgba(255,255,255,0.6)', fontSize: 12 },
+  container: { flex: 1, backgroundColor: Colors.background },
+  videoContainer: { height: '55%', backgroundColor: '#0f172a', position: 'relative' },
+  headerOverlay: { 
+    position: 'absolute', 
+    top: 60, 
+    left: 24, 
+    right: 24, 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    gap: 16, 
+    zIndex: 10 
+  },
+  backBtn: { width: 44, height: 44, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' },
+  headerText: { flex: 1 },
+  sessionTitle: { color: Colors.white, fontSize: 18, fontWeight: 'bold' },
+  sessionChannel: { color: 'rgba(255,255,255,0.5)', fontSize: 12, marginTop: 4 },
   videoPlaceholder: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  videoText: { color: 'rgba(255,255,255,0.5)', marginTop: 16, fontSize: 14 },
-  controls: { flexDirection: 'row', justifyContent: 'center', padding: 40, gap: 24, backgroundColor: 'rgba(0,0,0,0.5)' },
+  videoText: { color: 'rgba(255,255,255,0.4)', fontSize: 14, marginTop: 16, fontWeight: '500' },
+  controls: { 
+    position: 'absolute', 
+    bottom: 30, 
+    left: 0, 
+    right: 0, 
+    flexDirection: 'row', 
+    justifyContent: 'center', 
+    gap: 20 
+  },
   controlBtn: { width: 56, height: 56, borderRadius: 28, backgroundColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' },
-  attendanceCard: { margin: 24, padding: 20, backgroundColor: '#fff', borderRadius: 24 },
-  attendanceInfo: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 20 },
-  attTitle: { fontSize: 16, fontWeight: 'bold', color: '#1e293b' },
-  attSub: { fontSize: 12, color: '#64748b' },
-  markBtn: { backgroundColor: '#2563eb', height: 56, borderRadius: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 12 },
-  markedBtn: { backgroundColor: '#16a34a' },
-  markBtnText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
+  leaveBtnText: { color: Colors.white, fontWeight: 'bold', fontSize: 12 },
+  content: { flex: 1, padding: 24, marginTop: -32, backgroundColor: Colors.background, borderTopLeftRadius: 32, borderTopRightRadius: 32 },
+  attendanceCard: { padding: 24 },
+  attHeader: { flexDirection: 'row', alignItems: 'center', gap: 16, marginBottom: 24 },
+  attIconBox: { width: 56, height: 56, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
+  attTitle: { fontSize: 18, fontWeight: 'bold', color: Colors.text },
+  attDesc: { fontSize: 13, color: Colors.textSecondary, marginTop: 4 },
+  markBtn: { height: 64 },
+  tipsSection: { marginTop: 32 },
+  tipsTitle: { fontSize: 16, fontWeight: 'bold', color: Colors.text, marginBottom: 16 },
+  tipRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 12 },
+  tipDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: Colors.primary },
+  tipText: { flex: 1, fontSize: 14, color: Colors.textSecondary, lineHeight: 20 },
 });

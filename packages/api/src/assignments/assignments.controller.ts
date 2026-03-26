@@ -8,6 +8,28 @@ import fs from 'fs';
 
 const router = Router();
 
+// Get all assignments (For mobile list)
+router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
+  try {
+    const userRole = req.user?.role;
+    const userId = req.user?.userId;
+
+    const assignments = await prisma.assignment.findMany({
+      include: {
+        course: { select: { name: true, code: true } },
+        submissions: userRole === 'STUDENT' ? {
+          where: { studentId: userId },
+          include: { grade: true }
+        } : false
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+    res.json(assignments);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching global assignments', error });
+  }
+});
+
 // Get all assignments for a course
 router.get('/course/:courseId', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {

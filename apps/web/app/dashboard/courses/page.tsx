@@ -1298,11 +1298,12 @@ export default function CoursesPage() {
 
                      <div className="grid grid-cols-1 gap-4">
                         {quizQuestions[currentQuestionIndex]?.options.map((opt: string, i: number) => {
-                           const isSelected = quizAnswers[currentQuestionIndex] === opt;
+                           const qId = quizQuestions[currentQuestionIndex]?.id;
+                           const isSelected = quizAnswers[qId] === opt;
                            return (
                               <button 
                                  key={i}
-                                 onClick={() => setQuizAnswers({...quizAnswers, [currentQuestionIndex]: opt})}
+                                 onClick={() => setQuizAnswers({...quizAnswers, [qId]: opt})}
                                  className={`p-6 rounded-[2rem] border-2 text-left transition-all flex items-center justify-between group ${isSelected ? 'border-purple-600 bg-purple-50/50' : 'border-white bg-white hover:border-purple-200'}`}
                               >
                                  <div className="flex items-center gap-4">

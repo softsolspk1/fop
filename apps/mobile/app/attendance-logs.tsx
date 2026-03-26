@@ -118,4 +118,3 @@ const styles = StyleSheet.create({
   empty: { alignItems: 'center', marginTop: 100 },
   emptyText: { color: '#94a3b8', fontSize: 16, marginTop: 16 },
 });
- Jonah

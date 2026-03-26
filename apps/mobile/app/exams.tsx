@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
 import { useRouter } from 'expo-router';
-import { ChevronLeft, GraduationCap, Calendar, Award, MapPin } from 'lucide-react-native';
+import { ChevronLeft, GraduationCap, Calendar, Award, MapPin, Clock } from 'lucide-react-native';
 import api from '../lib/api';
 
 export default function ExamsScreen() {
@@ -155,4 +155,3 @@ const styles = StyleSheet.create({
   empty: { alignItems: 'center', marginTop: 100 },
   emptyText: { color: '#94a3b8', fontSize: 16, marginTop: 16 },
 });
- Jonah

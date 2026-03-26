@@ -28,20 +28,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (storedToken && storedUser) {
         setToken(storedToken);
-        setUser(JSON.parse(storedUser));
+        try {
+          setUser(JSON.parse(storedUser));
+        } catch (parseError) {
+          console.error('Failed to parse stored user:', parseError);
+          await logout();
+          return;
+        }
         
         // Verify token and refresh user data
         try {
-          const { data } = await api.get('/auth/me');
+          // Add a 10s timeout to prevent hanging on splash screen
+          const { data } = await api.get('/auth/me', { timeout: 10000 });
           setUser(data);
           await AsyncStorage.setItem('user', JSON.stringify(data));
         } catch (error) {
-          console.error('Session expired or invalid');
+          console.error('[AuthContext] Session verification failed:', error);
           await logout();
         }
       }
     } catch (e) {
-      console.error('Failed to load auth data');
+      console.error('[AuthContext] Failed to load auth data:', e);
     } finally {
       setLoading(false);
     }
