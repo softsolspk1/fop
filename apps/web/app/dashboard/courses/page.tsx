@@ -184,6 +184,13 @@ export default function CoursesPage() {
     }
   }, [activeQuiz, quizTimer]);
 
+  const parseToItems = (text: string) => {
+    if (!text) return [];
+    let collapsed = text.replace(/\s+/g, ' ');
+    const items = collapsed.split(/\s*(?=\d+\.)/).map(i => i.trim()).filter(i => i !== '');
+    return items;
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-8">
@@ -958,9 +965,19 @@ export default function CoursesPage() {
                              <div className="w-2 h-2 bg-blue-600 rounded-full" />
                              Learning Outcomes
                            </h4>
-                           <div className="prose prose-slate max-w-none text-slate-600 font-medium whitespace-pre-line bg-slate-50/50 p-6 rounded-3xl border border-slate-100/50">
-                              {viewingCourse.outcomes}
-                           </div>
+                            <div className="space-y-3 bg-slate-50/50 p-6 rounded-3xl border border-slate-100/50">
+                               {parseToItems(viewingCourse.outcomes).map((item, idx) => (
+                                 <div key={idx} className="flex gap-3 text-slate-600 font-medium text-sm leading-relaxed">
+                                   <div className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-2 shrink-0" />
+                                   <p>{item.replace(/^\d+\.\s*/, '')}</p>
+                                 </div>
+                               ))}
+                               {!viewingCourse.outcomes.includes('1.') && (
+                                 <p className="text-slate-600 font-medium whitespace-pre-line text-sm leading-relaxed">
+                                   {viewingCourse.outcomes}
+                                 </p>
+                               )}
+                            </div>
                          </section>
                        )}
 
@@ -970,9 +987,19 @@ export default function CoursesPage() {
                              <div className="w-2 h-2 bg-orange-600 rounded-full" />
                              Course Contents
                            </h4>
-                           <div className="prose prose-slate max-w-none text-slate-600 font-medium whitespace-pre-line bg-orange-50/30 p-6 rounded-3xl border border-orange-100/30">
-                              {viewingCourse.contents}
-                           </div>
+                            <div className="space-y-3 bg-orange-50/30 p-6 rounded-3xl border border-orange-100/30">
+                               {parseToItems(viewingCourse.contents).map((item, idx) => (
+                                 <div key={idx} className="flex gap-3 text-slate-600 font-medium text-sm leading-relaxed">
+                                   <div className="w-1.5 h-1.5 bg-orange-400 rounded-full mt-2 shrink-0" />
+                                   <p>{item.replace(/^\d+\.\s*/, '')}</p>
+                                 </div>
+                               ))}
+                               {!viewingCourse.contents.includes('1.') && (
+                                 <p className="text-slate-600 font-medium whitespace-pre-line text-sm leading-relaxed">
+                                   {viewingCourse.contents}
+                                 </p>
+                               )}
+                            </div>
                          </section>
                        )}
 
@@ -982,9 +1009,19 @@ export default function CoursesPage() {
                              <div className="w-2 h-2 bg-purple-600 rounded-full" />
                              Recommended Readings
                            </h4>
-                           <div className="prose prose-slate max-w-none text-slate-600 font-medium whitespace-pre-line bg-purple-50/30 p-6 rounded-3xl border border-purple-100/30">
-                              {viewingCourse.readings}
-                           </div>
+                            <div className="space-y-3 bg-purple-50/30 p-6 rounded-3xl border border-purple-100/30">
+                               {parseToItems(viewingCourse.readings).map((item, idx) => (
+                                 <div key={idx} className="flex gap-3 text-slate-600 font-medium text-sm leading-relaxed">
+                                   <div className="w-1.5 h-1.5 bg-purple-400 rounded-full mt-2 shrink-0" />
+                                   <p>{item.replace(/^\d+\.\s*/, '')}</p>
+                                 </div>
+                               ))}
+                               {!viewingCourse.readings.includes('1.') && (
+                                 <p className="text-slate-600 font-medium whitespace-pre-line text-sm leading-relaxed">
+                                   {viewingCourse.readings}
+                                 </p>
+                               )}
+                            </div>
                          </section>
                        )}
 
