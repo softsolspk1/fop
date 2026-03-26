@@ -30,6 +30,12 @@ router.post('/', authenticateToken, authorizeRoles('TEACHER', 'DEPT_ADMIN', 'SUP
   const filePath = req.file?.path;
   try {
     const { title, description, startTime, dueDate, totalMarks, courseId } = req.body;
+    console.log('[Assignments]: Incoming upload request:', { 
+      body: req.body, 
+      hasFile: !!req.file, 
+      fileName: req.file?.originalname,
+      userId: req.user?.userId 
+    });
     let fileUrl = null;
     let publicId = null;
 
@@ -80,6 +86,13 @@ router.post('/:assignmentId/submit', authenticateToken, authorizeRoles('STUDENT'
   try {
     const { assignmentId } = req.params;
     const userId = req.user.userId;
+
+    console.log('[Assignments]: Incoming submission request:', { 
+      params: req.params,
+      hasFile: !!req.file, 
+      fileName: req.file?.originalname,
+      userId
+    });
 
     if (!req.file) {
       return res.status(400).json({ message: 'No file uploaded' });

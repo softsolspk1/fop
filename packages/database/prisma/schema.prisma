@@ -178,12 +178,17 @@ model Class {
   actualStartTime  DateTime?    // When the teacher Actually clicks "Start Session"
   actualEndTime    DateTime?    // When the teacher Actually clicks "Stop Session"
   agoraChannel     String?
+  whiteboardUuid   String?
   courseId         String
   createdAt        DateTime     @default(now())
   updatedAt        DateTime     @updatedAt
   dayOfWeek        String       @default("Monday")
   location         String       @default("Lecture Hall 1")
   classType        String       @default("Physical") // Online, Physical
+
+  // Recurrence
+  isRecurring      Boolean      @default(false)
+  recurrentMonths  String[]     // ["January", "February"]
   
   attendance   Attendance[]
   course       Course       @relation(fields: [courseId], references: [id])
@@ -247,6 +252,7 @@ model Quiz {
   passingPercentage Float     @default(50)
   timeLimit         Int
   courseId          String
+  isExam            Boolean          @default(false)
   status            EnrollmentStatus @default(PENDING)
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt

@@ -20,7 +20,7 @@ export default function DashboardScreen() {
     try {
       if (!user) return; // Guard against null user during startup
 
-      if (user.role === 'DEPT_ADMIN' || user.role === 'SUPER_ADMIN') {
+      if (user.role === 'DEPT_ADMIN' || user.role === 'SUPER_ADMIN' || user.role === 'HOD') {
         const { data } = await api.get('/departments/my-stats');
         setStats({
           facultyCount: data?.facultyCount?.toString() || '0',

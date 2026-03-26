@@ -47,6 +47,13 @@ router.post('/materials', authenticateToken, authorizeRoles('TEACHER', 'SUPER_AD
       userId: req.user?.userId 
     });
 
+    console.log('[LMS]: Incoming upload request:', { 
+      body: req.body, 
+      hasFile: !!req.file, 
+      fileName: req.file?.originalname,
+      userId: req.user?.userId 
+    });
+
     let { title, url, type, courseId } = req.body;
     const userId = req.user?.userId;
     let publicId = null;

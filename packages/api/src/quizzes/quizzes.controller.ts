@@ -57,9 +57,14 @@ router.get('/course/:courseId', authenticateToken, async (req: AuthRequest, res:
 // Create a new quiz or exam (Teacher/Admin)
 router.post('/', authenticateToken, authorizeRoles('TEACHER', 'DEPT_ADMIN', 'SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
   try {
-    const { title, description, timeLimit, courseId, questions, startTime, endTime, totalMarks, passingPercentage } = req.body;
+    const { title, description, timeLimit, courseId, questions, startTime, endTime, totalMarks, passingPercentage, isExam } = req.body;
     
-    console.log(`[Quizzes]: Creating quiz "${title}" for course ${courseId}. Questions: ${questions?.length}`);
+    console.log(`[Quizzes]: Incoming create request for "${title}"`, {
+      courseId,
+      questionCount: questions?.length,
+      body: req.body,
+      userId: req.user?.userId
+    });
     
     if (!questions || !Array.isArray(questions)) {
       return res.status(400).json({ message: 'Questions array is required' });
@@ -76,6 +81,7 @@ router.post('/', authenticateToken, authorizeRoles('TEACHER', 'DEPT_ADMIN', 'SUP
         passingPercentage: parseFloat(passingPercentage) || 40,
         courseId,
         status: 'PENDING',
+        isExam: Boolean(isExam || false),
         questions: {
           create: questions.map((q: any) => ({
             text: q.text || 'Question Text',

@@ -7,6 +7,18 @@ import { createWhiteboardRoom, generateRoomToken } from './whiteboard.service';
 
 const router = Router();
 
+// Year to Professional Mapping
+const normalizeYear = (year: string | null | undefined): string | undefined => {
+  if (!year) return undefined;
+  const y = year.toLowerCase();
+  if (y.includes('1st') || y.includes('first')) return 'First';
+  if (y.includes('2nd') || y.includes('second')) return 'Second';
+  if (y.includes('3rd') || y.includes('third')) return 'Third';
+  if (y.includes('4th') || y.includes('fourth')) return 'Fourth';
+  if (y.includes('5th') || y.includes('fifth') || y.includes('final')) return 'Fifth';
+  return year; // Fallback to original if no match
+};
+
 // Get active (currently running) classes
 router.get('/active', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
@@ -33,7 +45,7 @@ router.get('/active', authenticateToken, async (req: AuthRequest, res: Response)
             { students: { some: { id: userId } } },
             { 
               departmentId: student?.departmentId || undefined,
-              professional: student?.year || undefined
+              professional: normalizeYear(student?.year) || undefined
             }
           ]
         },
@@ -87,7 +99,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
             { students: { some: { id: userId } } },
             { 
               departmentId: student?.departmentId || undefined,
-              professional: student?.year || undefined
+              professional: normalizeYear(student?.year) || undefined
             }
           ]
         },
@@ -116,7 +128,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
 // Create a new class session
 router.post('/', authenticateToken, authorizeRoles('TEACHER', 'SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
   try {
-    const { title, startTime, endTime, courseId, dayOfWeek, location, classType } = req.body;
+    const { title, startTime, endTime, courseId, dayOfWeek, location, classType, isRecurring, recurrentMonths } = req.body;
     const agoraChannel = `class-${courseId}-${Date.now()}`;
 
     const newClass = await prisma.class.create({
@@ -128,7 +140,9 @@ router.post('/', authenticateToken, authorizeRoles('TEACHER', 'SUPER_ADMIN'), as
         location: location || 'Lecture Hall 1',
         courseId,
         agoraChannel,
-        classType: classType || 'Physical'
+        classType: classType || 'Physical',
+        isRecurring: !!isRecurring,
+        recurrentMonths: recurrentMonths || []
       }
     });
 
@@ -142,9 +156,21 @@ router.post('/', authenticateToken, authorizeRoles('TEACHER', 'SUPER_ADMIN'), as
 router.put('/:id/start', authenticateToken, authorizeRoles('TEACHER', 'SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
+    // Create Whiteboard Room if not exists
+    const classSession = await prisma.class.findUnique({ where: { id: String(id) } });
+    let whiteboardUuid = classSession?.whiteboardUuid;
+
+    if (!whiteboardUuid) {
+      const room = await createWhiteboardRoom();
+      if (room) whiteboardUuid = room.uuid;
+    }
+
     const session = await prisma.class.update({
       where: { id: String(id) },
-      data: { actualStartTime: new Date() }
+      data: { 
+        actualStartTime: new Date(),
+        whiteboardUuid
+      }
     });
     res.json({ message: 'Session started successfully', session });
   } catch (error) {
@@ -186,7 +212,11 @@ router.get('/:id/join', authenticateToken, async (req: AuthRequest, res: Respons
       channel: classSession.agoraChannel,
       uid,
       appId: process.env.AGORA_APP_ID,
-      whiteboard: null
+      whiteboard: classSession.whiteboardUuid ? {
+        uuid: classSession.whiteboardUuid,
+        token: await generateRoomToken(classSession.whiteboardUuid),
+        appId: process.env.NEXT_PUBLIC_AGORA_WHITEBOARD_APP_ID
+      } : null
     });
   } catch (error) {
     console.error('Error joining class:', error);
