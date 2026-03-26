@@ -103,7 +103,7 @@ export default function LiveClassesPage() {
             <p className="text-slate-500 font-medium">Join real-time lectures and mark your attendance automatically.</p>
           </div>
           <div className="flex items-center gap-4">
-            {(user?.role === 'SUPER_ADMIN' || user?.role === 'TEACHER') && (
+            {(['MAIN_ADMIN', 'SUPER_ADMIN'].includes(user?.role || '') || user?.role === 'FACULTY') && (
               <button 
                 onClick={() => setIsModalOpen(true)}
                 className="px-6 py-3 bg-blue-600 text-white rounded-2xl shadow-lg border-b-4 border-blue-800 hover:bg-blue-700 transition-all active:border-b-0 active:translate-y-1 font-black uppercase text-xs tracking-widest"
@@ -187,7 +187,7 @@ export default function LiveClassesPage() {
                     </button>
                     
                     {/* Teacher Controls */}
-                    {(user?.role === 'TEACHER' || user?.role === 'SUPER_ADMIN') && (
+                    {(user?.role === 'FACULTY' || ['MAIN_ADMIN', 'SUPER_ADMIN'].includes(user?.role || '')) && (
                       <div className="flex gap-2">
                         {!cls.actualStartTime && (
                           <button 

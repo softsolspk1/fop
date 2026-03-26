@@ -366,7 +366,7 @@ export default function LabSimulationPage({ params }: { params: Promise<{ type: 
                       <Archive className="w-5 h-5 text-blue-600" />
                       Experiment Documentation & Formulas
                    </h3>
-                   {(user?.role === 'SUPER_ADMIN' || user?.role === 'TEACHER') && (
+                   {(['MAIN_ADMIN', 'SUPER_ADMIN'].includes(user?.role || '') || user?.role === 'FACULTY') && (
                      <button 
                       onClick={() => isEditingTheory ? handleUpdateTheory() : setIsEditingTheory(true)}
                       className="flex items-center gap-2 px-6 py-2.5 bg-slate-900 text-white font-black rounded-xl text-[10px] uppercase tracking-widest hover:bg-black transition-all"

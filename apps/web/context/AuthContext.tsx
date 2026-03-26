@@ -8,7 +8,7 @@ interface User {
   id: string;
   email: string;
   name: string;
-  role: 'SUPER_ADMIN' | 'DEPT_ADMIN' | 'TEACHER' | 'STUDENT';
+  role: 'MAIN_ADMIN' | 'SUPER_ADMIN' | 'SUB_ADMIN' | 'HOD' | 'FACULTY' | 'STUDENT';
   departmentId?: string;
   shift?: string;
   year?: string;

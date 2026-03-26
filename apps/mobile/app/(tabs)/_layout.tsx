@@ -7,8 +7,8 @@ export default function TabLayout() {
   const rawRole = user?.role || 'STUDENT';
   
   // Alignment: Map legacy FACULTY to TEACHER and HOD to DEPT_ADMIN if needed
-  const role = (rawRole === 'FACULTY' ? 'TEACHER' : 
-                rawRole === 'HOD' ? 'DEPT_ADMIN' : 
+  const role = (rawRole === 'FACULTY' ? 'FACULTY' : 
+                rawRole === 'HOD' ? 'HOD' : 
                 rawRole);
 
   return (
@@ -38,7 +38,7 @@ export default function TabLayout() {
         }}
       />
       
-      {(role === 'STUDENT' || role === 'TEACHER' || role === 'SUPER_ADMIN') && (
+      {(role === 'STUDENT' || role === 'FACULTY' || role === 'SUPER_ADMIN') && (
         <Tabs.Screen
           name="courses"
           options={{
@@ -48,7 +48,7 @@ export default function TabLayout() {
         />
       )}
 
-      {(role === 'STUDENT' || role === 'TEACHER' || role === 'SUPER_ADMIN') && (
+      {(role === 'STUDENT' || role === 'FACULTY' || role === 'SUPER_ADMIN') && (
         <Tabs.Screen
           name="live"
           options={{
@@ -58,7 +58,7 @@ export default function TabLayout() {
         />
       )}
 
-      {(role === 'DEPT_ADMIN' || role === 'TEACHER' || role === 'SUPER_ADMIN') && (
+      {(role === 'HOD' || role === 'FACULTY' || role === 'SUPER_ADMIN') && (
         <Tabs.Screen
           name="faculty"
           options={{
@@ -76,7 +76,7 @@ export default function TabLayout() {
         }}
       />
 
-      {(role === 'STUDENT' || role === 'TEACHER' || role === 'SUPER_ADMIN') && (
+      {(role === 'STUDENT' || role === 'FACULTY' || role === 'SUPER_ADMIN') && (
         <Tabs.Screen
           name="chat"
           options={{

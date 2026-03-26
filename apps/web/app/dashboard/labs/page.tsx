@@ -231,7 +231,7 @@ export default function VirtualLabsPage() {
                   <option value="Pharmacology">Pharmacology</option>
                   <option value="Pharmaceutical Chemistry">Pharmaceutical Chemistry</option>
                 </select>
-                {(user?.role === 'SUPER_ADMIN' || user?.role === 'TEACHER') && (
+                {(['MAIN_ADMIN', 'SUPER_ADMIN'].includes(user?.role || '') || user?.role === 'FACULTY') && (
                   <button 
                     onClick={() => handleOpenModal()}
                     className="p-4 bg-blue-600 text-white rounded-2xl shadow-xl shadow-blue-200 border-b-4 border-blue-800 hover:bg-blue-700 transition-all active:border-b-0 active:translate-y-1"

@@ -13,7 +13,7 @@ export default function ExamsPage() {
   const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'SCHEDULE' | 'RESULTS'>('SCHEDULE');
-  const isAdmin = user?.role === 'SUPER_ADMIN' || user?.role === 'DEPT_ADMIN' || user?.role === 'TEACHER';
+  const isAdmin = ['MAIN_ADMIN', 'SUPER_ADMIN'].includes(user?.role || '') || user?.role === 'HOD' || user?.role === 'FACULTY';
 
   useEffect(() => {
     fetchData();

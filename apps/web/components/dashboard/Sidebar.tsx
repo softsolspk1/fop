@@ -31,23 +31,22 @@ import { useAuth } from '../../context/AuthContext';
 import { motion } from 'framer-motion';
 
 const navItems = [
-  { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard', roles: ['SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER', 'STUDENT'] },
-  { icon: Building2, label: 'Departments', href: '/dashboard/departments', roles: ['SUPER_ADMIN'] },
-  { icon: Users, label: 'User Management', href: '/dashboard/users', roles: ['SUPER_ADMIN', 'DEPT_ADMIN'] },
-  { icon: UserPlus, label: 'Enrollments', href: '/dashboard/enrollments', roles: ['SUPER_ADMIN', 'DEPT_ADMIN'] },
-  { icon: BookOpen, label: 'Course Catalogue', href: '/dashboard/courses', roles: ['SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER', 'STUDENT'] },
-  { icon: MessageSquare, label: 'Live Chat', href: '/dashboard/chat', roles: ['SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER', 'STUDENT'] },
-  { icon: Video, label: 'Live Classes', href: '/dashboard/classes', roles: ['SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER', 'STUDENT'] },
-  { icon: Beaker, label: 'Visual Lab', href: '/dashboard/labs', roles: ['SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER', 'STUDENT'] },
-  { icon: ClipboardList, label: 'Academic Reports', href: '/dashboard/reports', roles: ['SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER', 'STUDENT'] },
-  { icon: CreditCard, label: 'Fee Management', href: '/dashboard/fees', roles: ['SUPER_ADMIN', 'DEPT_ADMIN', 'STUDENT'] },
-  { icon: ClipboardList, label: 'Examination', href: '/dashboard/exams', roles: ['SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER', 'STUDENT'] },
-  { icon: FileText, label: 'Results', href: '/dashboard/results', roles: ['SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER'] },
-  { icon: Users, label: 'Faculty', href: '/dashboard/faculty', roles: ['SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER', 'STUDENT'] },
-  { icon: Calendar, label: 'Time Table', href: '/dashboard/calendar', roles: ['SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER', 'STUDENT'] },
-  { icon: CheckCircle, label: 'Pending Approvals', href: '/dashboard/approvals', roles: ['SUPER_ADMIN', 'DEPT_ADMIN'] },
-  { icon: Settings, label: 'Settings', href: '/dashboard/settings', roles: ['SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER', 'STUDENT'] },
-
+  { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard', roles: ['MAIN_ADMIN', 'SUPER_ADMIN', 'SUB_ADMIN', 'HOD', 'FACULTY', 'STUDENT'] },
+  { icon: Building2, label: 'Departments', href: '/dashboard/departments', roles: ['MAIN_ADMIN', 'SUPER_ADMIN'] },
+  { icon: Users, label: 'User Management', href: '/dashboard/users', roles: ['MAIN_ADMIN', 'SUPER_ADMIN', 'SUB_ADMIN', 'HOD'] },
+  { icon: UserPlus, label: 'Enrollments', href: '/dashboard/enrollments', roles: ['MAIN_ADMIN', 'SUPER_ADMIN', 'SUB_ADMIN', 'HOD'] },
+  { icon: BookOpen, label: 'Course Catalogue', href: '/dashboard/courses', roles: ['MAIN_ADMIN', 'SUPER_ADMIN', 'SUB_ADMIN', 'HOD', 'FACULTY', 'STUDENT'] },
+  { icon: MessageSquare, label: 'Live Chat', href: '/dashboard/chat', roles: ['MAIN_ADMIN', 'SUPER_ADMIN', 'SUB_ADMIN', 'HOD', 'FACULTY', 'STUDENT'] },
+  { icon: Video, label: 'Live Classes', href: '/dashboard/classes', roles: ['MAIN_ADMIN', 'SUPER_ADMIN', 'SUB_ADMIN', 'HOD', 'FACULTY', 'STUDENT'] },
+  { icon: Beaker, label: 'Visual Lab', href: '/dashboard/labs', roles: ['MAIN_ADMIN', 'SUPER_ADMIN', 'SUB_ADMIN', 'HOD', 'FACULTY', 'STUDENT'] },
+  { icon: ClipboardList, label: 'Academic Reports', href: '/dashboard/reports', roles: ['MAIN_ADMIN', 'SUPER_ADMIN', 'SUB_ADMIN', 'HOD', 'FACULTY', 'STUDENT'] },
+  { icon: CreditCard, label: 'Fee Management', href: '/dashboard/fees', roles: ['MAIN_ADMIN', 'SUPER_ADMIN', 'SUB_ADMIN', 'HOD', 'STUDENT'] },
+  { icon: ClipboardList, label: 'Examination', href: '/dashboard/exams', roles: ['MAIN_ADMIN', 'SUPER_ADMIN', 'SUB_ADMIN', 'HOD', 'FACULTY', 'STUDENT'] },
+  { icon: FileText, label: 'Results', href: '/dashboard/results', roles: ['MAIN_ADMIN', 'SUPER_ADMIN', 'SUB_ADMIN', 'HOD', 'FACULTY'] },
+  { icon: Users, label: 'Faculty', href: '/dashboard/faculty', roles: ['MAIN_ADMIN', 'SUPER_ADMIN', 'SUB_ADMIN', 'HOD', 'FACULTY', 'STUDENT'] },
+  { icon: Calendar, label: 'Time Table', href: '/dashboard/calendar', roles: ['MAIN_ADMIN', 'SUPER_ADMIN', 'SUB_ADMIN', 'HOD', 'FACULTY', 'STUDENT'] },
+  { icon: CheckCircle, label: 'Pending Approvals', href: '/dashboard/approvals', roles: ['MAIN_ADMIN', 'SUPER_ADMIN', 'SUB_ADMIN', 'HOD'] },
+  { icon: Settings, label: 'Settings', href: '/dashboard/settings', roles: ['MAIN_ADMIN', 'SUPER_ADMIN', 'SUB_ADMIN', 'HOD', 'FACULTY', 'STUDENT'] },
 ];
 
 const Sidebar = () => {

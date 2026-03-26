@@ -167,7 +167,7 @@ export default function UsersPage() {
                 className="px-4 py-2.5 text-sm font-bold bg-white border border-slate-200 rounded-xl outline-none focus:ring-4 focus:ring-blue-50 transition-all text-slate-900"
               >
                 <option value="" className="text-slate-900">All Roles</option>
-                <option value="TEACHER" className="text-slate-900">Teachers</option>
+                <option value="FACULTY" className="text-slate-900">Teachers</option>
                 <option value="STUDENT" className="text-slate-900">Students</option>
                 <option value="SUPER_ADMIN" className="text-slate-900">Admins</option>
               </select>
@@ -325,8 +325,8 @@ export default function UsersPage() {
                       className="w-full px-5 py-3.5 bg-white border-2 border-slate-100 rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-400 transition-all shadow-sm"
                     >
                       <option value="STUDENT" className="text-slate-900">Student</option>
-                      <option value="TEACHER" className="text-slate-900">Teacher</option>
-                      <option value="DEPT_ADMIN" className="text-slate-900">Department Admin</option>
+                      <option value="FACULTY" className="text-slate-900">Teacher</option>
+                      <option value="HOD" className="text-slate-900">Department Admin</option>
                       <option value="SUPER_ADMIN" className="text-slate-900">Super Admin</option>
                     </select>
                   </div>

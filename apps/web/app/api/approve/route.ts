@@ -17,7 +17,7 @@ export async function GET() {
     // Also approve any other pending faculty/admin roles as per user request
     const pendingFaculty = await prisma.user.updateMany({
       where: { 
-        role: { in: ['SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER'] },
+        role: { in: ['SUPER_ADMIN', 'HOD', 'FACULTY'] },
         status: { not: 'APPROVED' } 
       },
       data: { status: 'APPROVED' }

@@ -25,7 +25,7 @@ export default function DashboardPage() {
         const activeRes = await api.get('/classes/active');
         setActiveClasses(activeRes.data);
 
-        if (user?.role === 'SUPER_ADMIN' || user?.role === 'DEPT_ADMIN') {
+        if (['MAIN_ADMIN', 'SUPER_ADMIN'].includes(user?.role || '') || user?.role === 'HOD') {
           const { data } = await api.get('/reports/dashboard-stats/stats');
           setDashboardStats(data);
         } else if (user?.role === 'STUDENT') {

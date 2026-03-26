@@ -81,10 +81,7 @@ async function main() {
   }
 
   console.log('\n--- Wipe Complete. ---');
-  console.log('Now proceeding to insert exact curriculum from sync_global_curriculum.js logic...\n');
-
-  // I will just require the sync script and run it.
-  require('./sync_global_curriculum.js');
+  console.log('Courses successfully purged from Second to Fifth Professional.');
 }
 
 main().catch(console.error);

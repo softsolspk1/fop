@@ -11,7 +11,7 @@ export default function FeesPage() {
   const { user } = useAuth();
   const [fees, setFees] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const isAdmin = user?.role === 'SUPER_ADMIN' || user?.role === 'DEPT_ADMIN';
+  const isAdmin = ['MAIN_ADMIN', 'SUPER_ADMIN'].includes(user?.role || '') || user?.role === 'HOD';
 
   useEffect(() => {
     fetchFees();

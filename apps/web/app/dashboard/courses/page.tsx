@@ -73,7 +73,7 @@ export default function CoursesPage() {
       setDepartments(deptsRes.data);
       setActiveClasses(activeRes.data);
       // Filter only teachers or admins for the teacher selection
-      setTeachers(usersRes.data.filter((u: any) => u.role === 'TEACHER' || u.role === 'SUPER_ADMIN'));
+      setTeachers(usersRes.data.filter((u: any) => u.role === 'FACULTY' || u.role === 'SUPER_ADMIN'));
     } catch (err) {
       console.error('Error fetching data:', err);
       setError('Failed to load courses.');

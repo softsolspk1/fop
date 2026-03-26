@@ -1,0 +1,60 @@
+On Website or mobile app, if any Student Signup and Submit form
+
+
+WHos is founder of Pakistan?
+
+Quaid-e-Azam
+Allama Iqbal
+Faiz Ahmed 
+Sir Syed Ahmed Khan
+
+
+
+On Web Admin, Fix the Quiz Form ---> Aqq MCQ Part in Admin Panel. When I Create a New Quiz, it shows UI not fine in MCQ Part.
+
+Also, it shows Error at Student Side to Attemp Quiz. Fix it.
+
+
+
+Add all Courses of Second, Third, Fourth and Fifth Professional both 1st and 2nd Semester available in the pdf file
+I need complete course details as per default details and features.
+The pdf file is  availble at file:///C:/Users/softs/Desktop/KU%20APP/cour1.pdf 
+
+
+Page 28-31, 52-67, 87-97, 118-130, 148-157, 169-171
+
+
+Add all Courses of Second, Third, Fourth and Fifth Professional both 1st and 2nd Semester. Take content from images  available in attachment as well in the folder C:\Users\softs\Desktop\KU APP\course
+
+
+
+
+
+
+User Role Hirerchy:
+
+1) I need a MAIN ADMIN which is Above Super Admin. Who can view details of Admin and also Create multiple SUper Admin (Dean)
+
+2) Hirerchy is as follows: Make the System as per following Hirerchy and Access Control
+Main Admin - Vice Chancellor of University
+Super Admin - Dean of Every Faculty who look performance of Every Departments and it's HOD and All Faculty Members and Students
+Sub-Admin: This is Dean Office Role who has access to Enrollments, Academic Reports, Fee Management, Examination, Results and Time Table as Admin Role.
+HOD: Department Head of Every department in which HOD can manage t assign course to any faculty member of relevant department
+Faculty Member: Teacher Role and Manage Assigned Courses 
+Students: Student Roles as per Professional Year.
+
+Also create Demo Accounts for all User Type with default password.
+
+3) I also need you to fix the Forgot Password working to send Reset Password on Email.
+
+
+
+===========================
+
+Username: noreply@softsols.pk
+Password: ???Aakay@12345
+Incoming Server: softsols.pk
+IMAP Port: 993 
+POP3 Port: 995
+Outgoing Server: softsols.pk
+SMTP Port: 465
