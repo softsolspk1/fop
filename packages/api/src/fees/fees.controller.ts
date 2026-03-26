@@ -18,7 +18,7 @@ router.get('/my-fees', authenticateToken, async (req: AuthRequest, res: Response
 });
 
 // Get all fees (Admin only)
-router.get('/all', authenticateToken, authorizeRoles('SUPER_ADMIN', 'DEPT_ADMIN'), async (req: AuthRequest, res: Response) => {
+router.get('/all', authenticateToken, authorizeRoles('MAIN_ADMIN', 'SUPER_ADMIN', 'HOD'), async (req: AuthRequest, res: Response) => {
   try {
     const fees = await prisma.fee.findMany({
       include: { user: { select: { name: true, rollNumber: true, email: true } } },
@@ -31,7 +31,7 @@ router.get('/all', authenticateToken, authorizeRoles('SUPER_ADMIN', 'DEPT_ADMIN'
 });
 
 // Generate a fee (Admin only)
-router.post('/generate', authenticateToken, authorizeRoles('SUPER_ADMIN', 'DEPT_ADMIN'), async (req: AuthRequest, res: Response) => {
+router.post('/generate', authenticateToken, authorizeRoles('MAIN_ADMIN', 'SUPER_ADMIN', 'HOD'), async (req: AuthRequest, res: Response) => {
   try {
     const { title, amount, dueDate, userId } = req.body;
     const fee = await prisma.fee.create({
@@ -50,7 +50,7 @@ router.post('/generate', authenticateToken, authorizeRoles('SUPER_ADMIN', 'DEPT_
 });
 
 // Update fee status (Admin only)
-router.patch('/:id/status', authenticateToken, authorizeRoles('SUPER_ADMIN', 'DEPT_ADMIN'), async (req: AuthRequest, res: Response) => {
+router.patch('/:id/status', authenticateToken, authorizeRoles('MAIN_ADMIN', 'SUPER_ADMIN', 'HOD'), async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
     const { status } = req.body;

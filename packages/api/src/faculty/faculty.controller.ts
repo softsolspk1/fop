@@ -9,7 +9,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     const faculty = await prisma.user.findMany({
       where: {
-        role: 'TEACHER'
+        role: 'FACULTY'
       },
       include: {
         department: true
@@ -35,7 +35,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
 });
 
 // Create faculty member (Super Admin or Dept Admin only)
-router.post('/', authenticateToken, authorizeRoles('SUPER_ADMIN', 'DEPT_ADMIN'), async (req: AuthRequest, res: Response) => {
+router.post('/', authenticateToken, authorizeRoles('MAIN_ADMIN', 'SUPER_ADMIN', 'HOD'), async (req: AuthRequest, res: Response) => {
   try {
     const { name, designation, email, qualification, departmentId } = req.body;
     const hashedPassword = await require('bcryptjs').hash('Softsols@123', 10);
@@ -48,7 +48,7 @@ router.post('/', authenticateToken, authorizeRoles('SUPER_ADMIN', 'DEPT_ADMIN'),
         qualification,
         departmentId,
         password: hashedPassword,
-        role: 'TEACHER',
+        role: 'FACULTY',
         status: 'APPROVED'
       }
     });
@@ -59,7 +59,7 @@ router.post('/', authenticateToken, authorizeRoles('SUPER_ADMIN', 'DEPT_ADMIN'),
 });
 
 // Update faculty member
-router.put('/:id', authenticateToken, authorizeRoles('SUPER_ADMIN', 'DEPT_ADMIN'), async (req: AuthRequest, res: Response) => {
+router.put('/:id', authenticateToken, authorizeRoles('MAIN_ADMIN', 'SUPER_ADMIN', 'HOD'), async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
     const { name, designation, qualification, departmentId, email } = req.body;
@@ -74,7 +74,7 @@ router.put('/:id', authenticateToken, authorizeRoles('SUPER_ADMIN', 'DEPT_ADMIN'
 });
 
 // Delete faculty member
-router.delete('/:id', authenticateToken, authorizeRoles('SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
+router.delete('/:id', authenticateToken, authorizeRoles('MAIN_ADMIN', 'SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
     await prisma.user.delete({

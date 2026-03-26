@@ -8,7 +8,7 @@ import fs from 'fs';
 const router = Router();
 
 // Update all courses visibility by semester (Admin only)
-router.put('/visibility/bulk', authenticateToken, authorizeRoles('SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
+router.put('/visibility/bulk', authenticateToken, authorizeRoles('MAIN_ADMIN', 'SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
   try {
     const { semesterName, isActive } = req.body;
     if (!semesterName) return res.status(400).json({ message: 'semesterName is required' });
@@ -64,7 +64,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
 });
 
 // Create course (Super Admin or Dept Admin only)
-router.post('/', authenticateToken, authorizeRoles('SUPER_ADMIN', 'DEPT_ADMIN'), async (req: AuthRequest, res: Response) => {
+router.post('/', authenticateToken, authorizeRoles('MAIN_ADMIN', 'SUPER_ADMIN', 'HOD'), async (req: AuthRequest, res: Response) => {
   try {
     const { name, code, departmentId, teacherId } = req.body;
     const course = await prisma.course.create({
@@ -140,7 +140,7 @@ router.get('/:id', authenticateToken, async (req: AuthRequest, res: Response) =>
 });
 
 // Get students for a specific course
-router.get('/:id/students', authenticateToken, authorizeRoles('TEACHER', 'DEPT_ADMIN', 'SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
+router.get('/:id/students', authenticateToken, authorizeRoles('FACULTY', 'HOD', 'SUPER_ADMIN', 'MAIN_ADMIN'), async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
     const course = await prisma.course.findUnique({
@@ -159,7 +159,7 @@ router.get('/:id/students', authenticateToken, authorizeRoles('TEACHER', 'DEPT_A
 });
 
 // Upload material for a course (Teacher)
-router.post('/:id/materials', authenticateToken, authorizeRoles('TEACHER'), upload.single('file'), async (req: AuthRequest, res: Response) => {
+router.post('/:id/materials', authenticateToken, authorizeRoles('FACULTY', 'HOD'), upload.single('file'), async (req: AuthRequest, res: Response) => {
   const filePath = req.file?.path;
   try {
     const { id: courseId } = req.params;
@@ -194,7 +194,7 @@ router.post('/:id/materials', authenticateToken, authorizeRoles('TEACHER'), uplo
 });
 
 // Update course
-router.put('/:id', authenticateToken, authorizeRoles('SUPER_ADMIN', 'DEPT_ADMIN'), async (req: AuthRequest, res: Response) => {
+router.put('/:id', authenticateToken, authorizeRoles('MAIN_ADMIN', 'SUPER_ADMIN', 'HOD'), async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
     const { name, code, departmentId, teacherId, semesterId } = req.body;
@@ -209,7 +209,7 @@ router.put('/:id', authenticateToken, authorizeRoles('SUPER_ADMIN', 'DEPT_ADMIN'
 });
 
 // Delete course
-router.delete('/:id', authenticateToken, authorizeRoles('SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
+router.delete('/:id', authenticateToken, authorizeRoles('MAIN_ADMIN'), async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
     await prisma.course.delete({

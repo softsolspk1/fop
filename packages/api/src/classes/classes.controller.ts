@@ -132,7 +132,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
 });
 
 // Create a new class session
-router.post('/', authenticateToken, authorizeRoles('TEACHER', 'SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
+router.post('/', authenticateToken, authorizeRoles('FACULTY', 'SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
   try {
     const { title, startTime, endTime, courseId, dayOfWeek, location, classType, isRecurring, recurrentMonths } = req.body;
     const agoraChannel = `class-${courseId}-${Date.now()}`;
@@ -159,7 +159,7 @@ router.post('/', authenticateToken, authorizeRoles('TEACHER', 'SUPER_ADMIN'), as
 });
 
 // START Session (Teacher)
-router.put('/:id/start', authenticateToken, authorizeRoles('TEACHER', 'SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
+router.put('/:id/start', authenticateToken, authorizeRoles('FACULTY', 'SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
     // Create Whiteboard Room if not exists
@@ -185,7 +185,7 @@ router.put('/:id/start', authenticateToken, authorizeRoles('TEACHER', 'SUPER_ADM
 });
 
 // STOP Session (Teacher)
-router.put('/:id/stop', authenticateToken, authorizeRoles('TEACHER', 'SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
+router.put('/:id/stop', authenticateToken, authorizeRoles('FACULTY', 'SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
     const session = await prisma.class.update({
@@ -231,7 +231,7 @@ router.get('/:id/join', authenticateToken, async (req: AuthRequest, res: Respons
 });
 
 // Save a recording and trigger AI transcription
-router.post('/:id/recordings', authenticateToken, authorizeRoles('TEACHER'), async (req: AuthRequest, res: Response) => {
+router.post('/:id/recordings', authenticateToken, authorizeRoles('FACULTY'), async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
     const { url } = req.body;
@@ -312,7 +312,7 @@ router.post('/mark-end', authenticateToken, async (req: AuthRequest, res: Respon
 });
 
 // Delete a class session
-router.delete('/:id', authenticateToken, authorizeRoles('SUPER_ADMIN', 'TEACHER'), async (req: AuthRequest, res: Response) => {
+router.delete('/:id', authenticateToken, authorizeRoles('SUPER_ADMIN', 'FACULTY'), async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
     await prisma.class.delete({ where: { id: String(id) } });

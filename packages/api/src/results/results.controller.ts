@@ -5,7 +5,7 @@ import { authenticateToken, authorizeRoles, AuthRequest } from '../auth/auth.mid
 const router = Router();
 
 // Post results (Teachers or Admins)
-router.post('/', authenticateToken, authorizeRoles('SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER'), async (req: AuthRequest, res: Response) => {
+router.post('/', authenticateToken, authorizeRoles('SUPER_ADMIN', 'HOD', 'FACULTY'), async (req: AuthRequest, res: Response) => {
   try {
     const { studentId, courseId, marks, grade, semester, academicYear } = req.body;
     const teacherId = req.user!.userId;
@@ -74,7 +74,7 @@ router.get('/student/:studentId', authenticateToken, async (req: AuthRequest, re
 });
 
 // Get results for a course (Teacher, HOD, Admin)
-router.get('/course/:courseId', authenticateToken, authorizeRoles('SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER'), async (req: AuthRequest, res: Response) => {
+router.get('/course/:courseId', authenticateToken, authorizeRoles('SUPER_ADMIN', 'HOD', 'FACULTY'), async (req: AuthRequest, res: Response) => {
   try {
     const courseId = req.params.courseId as string;
 
@@ -93,7 +93,7 @@ router.get('/course/:courseId', authenticateToken, authorizeRoles('SUPER_ADMIN',
 });
 
 // Delete result (Super Admin only)
-router.delete('/:id', authenticateToken, authorizeRoles('SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
+router.delete('/:id', authenticateToken, authorizeRoles('MAIN_ADMIN', 'SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
     await prisma.result.delete({

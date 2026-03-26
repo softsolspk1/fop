@@ -55,7 +55,7 @@ router.get('/course/:courseId', authenticateToken, async (req: AuthRequest, res:
 });
 
 // Create a new quiz or exam (Teacher/Admin)
-router.post('/', authenticateToken, authorizeRoles('TEACHER', 'DEPT_ADMIN', 'SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
+router.post('/', authenticateToken, authorizeRoles('FACULTY', 'HOD', 'SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
   try {
     const { title, description, timeLimit, courseId, questions, startTime, endTime, totalMarks, passingPercentage, isExam } = req.body;
     
@@ -194,11 +194,11 @@ router.post('/:id/submit', authenticateToken, authorizeRoles('STUDENT'), async (
 });
 
 // Get Pending Quizzes/Exams, Approve/Reject (Keeping previous logic)
-router.get('/pending', authenticateToken, authorizeRoles('DEPT_ADMIN', 'SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
+router.get('/pending', authenticateToken, authorizeRoles('HOD', 'SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
   try {
     const userBuffer = await prisma.user.findUnique({ where: { id: req.user?.userId } });
     let whereClause: any = { status: 'PENDING' };
-    if (req.user?.role === 'DEPT_ADMIN' && userBuffer?.departmentId) {
+    if (req.user?.role === 'HOD' && userBuffer?.departmentId) {
       whereClause.course = { departmentId: userBuffer.departmentId };
     }
     const pending = await prisma.quiz.findMany({
@@ -211,7 +211,7 @@ router.get('/pending', authenticateToken, authorizeRoles('DEPT_ADMIN', 'SUPER_AD
   }
 });
 
-router.put('/:id/status', authenticateToken, authorizeRoles('DEPT_ADMIN', 'SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
+router.put('/:id/status', authenticateToken, authorizeRoles('HOD', 'SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
     const { status } = req.body;

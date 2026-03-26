@@ -5,6 +5,8 @@ import prisma from '../lib/prisma';
 import { z } from 'zod';
 import { validate } from '../middleware/validate';
 import { authenticateToken, AuthRequest } from './auth.middleware';
+import crypto from 'crypto';
+import { sendResetPasswordEmail } from '../services/mail.service';
 
 const router = Router();
 
@@ -13,7 +15,7 @@ const registerSchema = z.object({
     email: z.string().email(),
     password: z.string().min(6),
     name: z.string().min(2),
-    role: z.enum(['SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER', 'STUDENT']),
+    role: z.enum(['MAIN_ADMIN', 'SUPER_ADMIN', 'SUB_ADMIN', 'HOD', 'FACULTY', 'STUDENT']),
     departmentId: z.string().optional(),
     shift: z.enum(['MORNING', 'EVENING']).optional(),
     year: z.string().optional(),
@@ -142,6 +144,65 @@ router.get('/me', authenticateToken, async (req: AuthRequest, res: Response) => 
     res.json(user);
   } catch (error) {
     res.status(500).json({ message: 'Internal server error', error });
+  }
+});
+
+// Forgot Password
+router.post('/forgot-password', async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await prisma.user.findUnique({ where: { email } });
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User with this email does not exist' });
+    }
+
+    const token = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date(Date.now() + 3600000); // 1 hour
+
+    await prisma.passwordResetToken.upsert({
+      where: { token },
+      update: { token, expiresAt },
+      create: { email, token, expiresAt }
+    });
+
+    try {
+      await sendResetPasswordEmail(email, token);
+      res.json({ message: 'Password reset email sent' });
+    } catch (mailError) {
+      console.error('[Auth]: Error sending reset email:', mailError);
+      res.status(500).json({ message: 'Error sending reset email' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Internal server error', error });
+  }
+});
+
+// Reset Password
+router.post('/reset-password', async (req, res) => {
+  try {
+    const { token, newPassword } = req.body;
+    
+    const resetToken = await prisma.passwordResetToken.findUnique({
+      where: { token }
+    });
+
+    if (!resetToken || resetToken.expiresAt < new Date()) {
+      return res.status(400).json({ message: 'Invalid or expired reset token' });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await prisma.user.update({
+      where: { email: resetToken.email },
+      data: { password: hashedPassword }
+    });
+
+    // Delete used token
+    await prisma.passwordResetToken.delete({ where: { token } });
+
+    res.json({ message: 'Password has been reset successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error resetting password', error });
   }
 });
 

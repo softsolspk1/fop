@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 async function main() {
   const hashedPassword = await bcrypt.hash('123456', 10);
   
-  console.log('--- Starting University Database Seeding ---');
+  console.log('--- Starting University Database Seeding (New Hierarchy) ---');
 
   // 1. Seed Departments
   const depts = [
@@ -26,134 +26,73 @@ async function main() {
   }
   
   const pharmaDept = await prisma.department.findFirst({ where: { name: 'Department of Pharmacology' } });
-  const chemDept = await prisma.department.findFirst({ where: { name: 'Department of Pharmaceutical Chemistry' } });
   const ceuticsDept = await prisma.department.findFirst({ where: { name: 'Department of Pharmaceutics' } });
-  const cognosyDept = await prisma.department.findFirst({ where: { name: 'Department of Pharmacognosy' } });
 
-  // 2. Seed Admin User
-  await prisma.user.upsert({
-    where: { email: 'admin@uok.edu.pk' },
-    update: { password: hashedPassword },
-    create: {
-      email: 'admin@uok.edu.pk',
-      name: 'System Administrator',
-      password: hashedPassword,
-      role: Role.SUPER_ADMIN,
-      status: EnrollmentStatus.APPROVED,
-      departmentId: pharmaDept?.id
-    }
-  });
-
-  // 3. Seed Faculty Members
-  const faculty = [
-    { name: 'Dr. Sarah Ahmed', designation: 'Professor', department: 'Pharmacology' },
-    { name: 'Dr. John Doe', designation: 'Associate Professor', department: 'Pharmaceutics' },
-    { name: 'Dr. Jane Smith', designation: 'Assistant Professor', department: 'Pharmaceutical Chemistry' },
+  // 2. Seed Demo Accounts for All Roles
+  const demoUsers = [
+    { email: 'vc@uok.edu.pk', name: 'Vice Chancellor (Main Admin)', role: Role.MAIN_ADMIN },
+    { email: 'dean@uok.edu.pk', name: 'Dean (Super Admin)', role: Role.SUPER_ADMIN },
+    { email: 'office@uok.edu.pk', name: 'Dean Office (Sub-Admin)', role: Role.SUB_ADMIN },
+    { email: 'hod@uok.edu.pk', name: 'Department Head (HOD)', role: Role.HOD, departmentId: pharmaDept?.id },
+    { email: 'teacher@uok.edu.pk', name: 'Faculty Member', role: Role.FACULTY, departmentId: pharmaDept?.id },
+    { email: 'student@uok.edu.pk', name: 'Demo Student', role: Role.STUDENT, departmentId: pharmaDept?.id, year: "Second" },
   ];
 
-  for (const f of faculty) {
-    await prisma.facultyMember.create({ data: f });
-  }
-
-  // 4. Seed Labs
-  const labs = [
-    { 
-      title: 'Pharmacokinetic Modeling', 
-      description: 'Simulate drug absorption and elimination processes.',
-      department: 'Pharmacology', 
-      provider: 'PharmaSimuleX',
-      difficulty: 'Intermediate'
-    },
-    { 
-      title: 'Titration Analysis', 
-      description: 'Perform precise acid-base titrations.',
-      department: 'Pharmaceutical Chemistry', 
-      provider: 'PraxiLabs',
-      difficulty: 'Beginner'
-    }
-  ];
-
-  for (const l of labs) {
-    await prisma.lab.create({ data: l });
-  }
-
-  // 5. Seed Real Courses (from PDF)
-  const teacher = await prisma.user.findFirst({ where: { role: Role.SUPER_ADMIN } });
-  if (!teacher) return;
-
-  const courses = [
-    { name: 'Pharmaceutics - Fundamental of Pharmacy', code: 'PHT-301', departmentId: ceuticsDept!.id },
-    { name: 'Pharmaceutical Chemistry - Organic', code: 'PHC-303', departmentId: chemDept!.id },
-    { name: 'Pharmacology - Islamic learning/Pak Studies', code: 'PHL-305', departmentId: pharmaDept!.id },
-    { name: 'Pharmacology - Physiology & Histology - I', code: 'PHL-307', departmentId: pharmaDept!.id },
-    { name: 'Pharmacology - Biochemistry-I', code: 'PHL-309', departmentId: pharmaDept!.id },
-    { name: 'Pharmaceutical Mathematics', code: 'PHC-313', departmentId: chemDept!.id },
-    { name: 'Pharmaceutics - Pharmaceutical Dosage Forms-I', code: 'PHT-302', departmentId: ceuticsDept!.id },
-    { name: 'Pharmaceutical Statistics', code: 'PHC-306', departmentId: chemDept!.id },
-    { name: 'Pharmacognosy - General Pharmacognosy', code: 'PHG-312', departmentId: cognosyDept!.id }
-  ];
-
-  for (const c of courses) {
-    await prisma.course.upsert({
-      where: { code: c.code },
-      update: {},
+  for (const u of demoUsers) {
+    await prisma.user.upsert({
+      where: { email: u.email },
+      update: { password: hashedPassword, role: u.role, status: EnrollmentStatus.APPROVED },
       create: {
-        ...c,
-        teacherId: teacher.id
+        ...u,
+        password: hashedPassword,
+        status: EnrollmentStatus.APPROVED
       }
     });
+    console.log(`Seeded user: ${u.email} (${u.role})`);
   }
 
-  // 6. Seed Classes (Timetable)
-  const pht301 = await prisma.course.findUnique({ where: { code: 'PHT-301' } });
-  const phc303 = await prisma.course.findUnique({ where: { code: 'PHC-303' } });
+  // 3. Seed Professional Courses
+  const teacher = await prisma.user.findFirst({ where: { role: Role.FACULTY } });
+  if (!teacher) {
+     console.error("No teacher found to assign courses!");
+     return;
+  }
 
-  if (pht301 && phc303) {
-    const classes = [
-      {
-        title: 'Fundamental of Pharmacy Lecture',
-        dayOfWeek: 'Monday',
-        startTime: new Date('2026-03-23T09:00:00Z'),
-        endTime: new Date('2026-03-23T10:30:00Z'),
-        location: 'Lecture Hall A',
-        courseId: pht301.id,
-        agoraChannel: 'class-pht301-monday'
-      },
-      {
-        title: 'Organic Chemistry Seminar',
-        dayOfWeek: 'Monday',
-        startTime: new Date('2026-03-23T11:00:00Z'),
-        endTime: new Date('2026-03-23T12:30:00Z'),
-        location: 'Chemistry Lab 1',
-        courseId: phc303.id,
-        agoraChannel: 'class-phc303-monday'
-      },
-      {
-        title: 'Dosage Forms Practical',
-        dayOfWeek: 'Tuesday',
-        startTime: new Date('2026-03-24T09:00:00Z'),
-        endTime: new Date('2026-03-24T12:00:00Z'),
-        location: 'Pharmaceutics Lab 2',
-        courseId: pht301.id,
-        agoraChannel: 'class-pht301-tuesday'
-      }
-    ];
+  // Re-adding the 56 courses from the previous task
+  const coursesToSeed = [
+    { code: "PHT-401", name: "Pharmaceutics-Pharmaceutical Dosage Forms-II", creditHours: "3", professional: "Second", semesterName: "1st Semester", departmentName: "Department of Pharmaceutics" },
+    { code: "PHT-403", name: "Pharmaceutics - Microbiology- I", creditHours: "3", professional: "Second", semesterName: "1st Semester", departmentName: "Department of Pharmaceutics" },
+    { code: "PHC-405", name: "Pharmaceutical Chemistry-Physical-I", creditHours: "3", professional: "Second", semesterName: "1st Semester", departmentName: "Department of Pharmaceutical Chemistry" },
+    { code: "PHL-407", name: "Pharmacology- Physiology & Histology (Practical)", creditHours: "3", professional: "Second", semesterName: "1st Semester", departmentName: "Department of Pharmacology" },
+    { code: "PHL-409", name: "Pharmacology-Pharmacology & Therapeutics", creditHours: "3", professional: "Second", semesterName: "1st Semester", departmentName: "Department of Pharmacology" },
+    { code: "PHG-411", name: "Pharmacognosy- Herbal Quality Control Lab-I (Practical)", creditHours: "3", professional: "Second", semesterName: "1st Semester", departmentName: "Department of Pharmacognosy" },
+    { code: "PHL-413", name: "Pharmacology-Pathology", creditHours: "2", professional: "Second", semesterName: "1st Semester", departmentName: "Department of Pharmacology" },
+    { code: "PHT-402", name: "Pharmaceutics-Pharmaceutical Dosage Forms (Lab)", creditHours: "3", professional: "Second", semesterName: "2nd Semester", departmentName: "Department of Pharmaceutics" },
+    { code: "PHT-404", name: "Pharmaceutics-Microbiology-II", creditHours: "3", professional: "Second", semesterName: "2nd Semester", departmentName: "Department of Pharmaceutics" },
+    { code: "PHC-406", name: "Pharmaceutical Chemistry-Physical-I (Practical)", creditHours: "2", professional: "Second", semesterName: "2nd Semester", departmentName: "Department of Pharmaceutical Chemistry" },
+    { code: "PHC-408", name: "Pharmaceutical Chemistry- Physical-II", creditHours: "3", professional: "Second", semesterName: "2nd Semester", departmentName: "Department of Pharmaceutical Chemistry" },
+    { code: "PHL-410", name: "Pharmacology-Systemic Pharmacology - I", creditHours: "3", professional: "Second", semesterName: "2nd Semester", departmentName: "Department of Pharmacology" },
+    { code: "PHG-412", name: "Pharmacognosy-Chemical Pharmacognosy-I", creditHours: "3", professional: "Second", semesterName: "2nd Semester", departmentName: "Department of Pharmacognosy" },
+    { code: "PHT-414", name: "Pharmaceutics-Physical Pharmacy", creditHours: "3", professional: "Second", semesterName: "2nd Semester", departmentName: "Department of Pharmaceutics" },
+  ];
 
-    for (const cls of classes) {
-      await prisma.class.create({ data: cls });
+  for (const c of coursesToSeed) {
+    const dept = await prisma.department.findUnique({ where: { name: c.departmentName } });
+    if (dept) {
+      await prisma.course.upsert({
+        where: { code: c.code },
+        update: {},
+        create: {
+          code: c.code,
+          name: c.name,
+          creditHours: c.creditHours,
+          professional: c.professional,
+          semesterName: c.semesterName,
+          departmentId: dept.id,
+          teacherId: teacher.id
+        }
+      });
     }
-  }
-
-  // 7. Seed Assignments
-  if (pht301) {
-    await prisma.assignment.create({
-      data: {
-        title: 'Introduction to Pharmaceutics Essay',
-        description: 'Submit an essay on the history and fundamentals of pharmaceutics.',
-        dueDate: new Date('2026-03-30T23:59:59Z'),
-        courseId: pht301.id
-      }
-    });
   }
 
   console.log('--- Seeding Completed Successfully ---');

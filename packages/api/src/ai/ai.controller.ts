@@ -67,7 +67,7 @@ router.post('/tutor', authenticateToken, async (req: AuthRequest, res: Response)
 
 
 // Transcription Mock (Whisper API Integration entry point)
-router.post('/transcribe', authenticateToken, authorizeRoles('TEACHER', 'DEPT_ADMIN'), async (req: AuthRequest, res: Response) => {
+router.post('/transcribe', authenticateToken, authorizeRoles('FACULTY', 'HOD'), async (req: AuthRequest, res: Response) => {
   try {
     const { recordingId } = req.body;
     
@@ -88,7 +88,7 @@ router.post('/transcribe', authenticateToken, authorizeRoles('TEACHER', 'DEPT_AD
 });
 
 // Plagiarism Check Mock
-router.post('/check-plagiarism', authenticateToken, authorizeRoles('TEACHER', 'DEPT_ADMIN'), async (req: AuthRequest, res: Response) => {
+router.post('/check-plagiarism', authenticateToken, authorizeRoles('FACULTY', 'HOD'), async (req: AuthRequest, res: Response) => {
   try {
     const { submissionId } = req.body;
     

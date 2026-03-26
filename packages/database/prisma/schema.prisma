@@ -20,9 +20,13 @@ model User {
   rollNumber        String?
   shift             String?
   status            EnrollmentStatus   @default(PENDING)
-  year              String?
   enrollmentNumber  String?
   phoneNumber       String?
+  bio               String?
+  designation       String?
+  qualification     String?
+  yearOfAssociation String?
+  year              String?
   assessmentResults AssessmentResult[]
   attendances       Attendance[]
   teacherCourses    Course[]           @relation("TeacherCourses")
@@ -31,6 +35,8 @@ model User {
   experiments       Experiment[]
   fees              Fee[]
   grades            Grade[]
+  labObservations   LabObservation[]
+  uploadedMaterials Material[]         @relation("MaterialUploader")
   receivedMessages  Message[]          @relation("ReceivedMessages")
   sentMessages      Message[]          @relation("SentMessages")
   quizzes           QuizResult[]
@@ -40,14 +46,6 @@ model User {
   department        Department?        @relation(fields: [departmentId], references: [id])
   groups            ChatGroup[]        @relation("GroupMembers")
   studentCourses    Course[]           @relation("StudentCourses")
-  labObservations   LabObservation[]
-  uploadedMaterials Material[]         @relation("MaterialUploader")
-  
-  // Faculty Profile Fields
-  designation       String?
-  qualification     String?
-  bio               String?
-  yearOfAssociation String?
 }
 
 model Result {
@@ -131,6 +129,14 @@ model Course {
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
   semesterId   String?
+  category     String?
+  contents     String?
+  creditHours  String?
+  outcomes     String?
+  professional String?
+  readings     String?
+  semesterName String?
+  isActive     Boolean      @default(true)
   assignments  Assignment[]
   chatGroup    ChatGroup?
   classes      Class[]
@@ -143,69 +149,56 @@ model Course {
   quizzes      Quiz[]
   results      Result[]
   students     User[]       @relation("StudentCourses")
-
-  // Academic Metadata
-  professional String?      // e.g. "First", "Second"
-  semesterName String?      // e.g. "1st Semester"
-  creditHours  String?
-  category     String?      // e.g. "Core", "General"
-  outcomes     String?      @db.Text
-  contents     String?      @db.Text
-  readings     String?      @db.Text
-  isActive     Boolean      @default(true)
 }
 
 model Material {
   id           String           @id @default(uuid())
   title        String
   url          String
-  type         String           // IMAGE, VIDEO, DOCUMENT, YOUTUBE
+  type         String
   courseId     String
-  uploadedById String?
-  publicId     String?
-  status       EnrollmentStatus @default(PENDING) // Reusing EnrollmentStatus for simplicity: PENDING, APPROVED, REJECTED
   createdAt    DateTime         @default(now())
   updatedAt    DateTime         @updatedAt
+  status       EnrollmentStatus @default(PENDING)
+  uploadedById String?
+  publicId     String?
   course       Course           @relation(fields: [courseId], references: [id])
   uploadedBy   User?            @relation("MaterialUploader", fields: [uploadedById], references: [id])
 }
 
 model Class {
-  id               String       @id @default(uuid())
-  title            String
-  startTime        DateTime
-  endTime          DateTime
-  actualStartTime  DateTime?    // When the teacher Actually clicks "Start Session"
-  actualEndTime    DateTime?    // When the teacher Actually clicks "Stop Session"
-  agoraChannel     String?
-  whiteboardUuid   String?
-  courseId         String
-  createdAt        DateTime     @default(now())
-  updatedAt        DateTime     @updatedAt
-  dayOfWeek        String       @default("Monday")
-  location         String       @default("Lecture Hall 1")
-  classType        String       @default("Physical") // Online, Physical
-
-  // Recurrence
-  isRecurring      Boolean      @default(false)
-  recurrentMonths  String[]     // ["January", "February"]
-  
-  attendance   Attendance[]
-  course       Course       @relation(fields: [courseId], references: [id])
-  recordings   Recording[]
+  id              String       @id @default(uuid())
+  title           String
+  startTime       DateTime
+  endTime         DateTime
+  agoraChannel    String?
+  courseId        String
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  dayOfWeek       String       @default("Monday")
+  location        String       @default("Lecture Hall 1")
+  actualEndTime   DateTime?
+  actualStartTime DateTime?
+  classType       String       @default("Physical")
+  isRecurring     Boolean      @default(false)
+  recurrentMonths String[]
+  whiteboardUuid  String?
+  attendance      Attendance[]
+  course          Course       @relation(fields: [courseId], references: [id])
+  recordings      Recording[]
 }
 
 model Attendance {
-  id             String    @id @default(uuid())
-  status         String    // PRESENT, ABSENT, LATE
-  userId         String
-  classId        String
-  markedStartAt  DateTime? // First attendance mark within 15 mins
-  markedEndAt    DateTime? // Second attendance mark within 5 mins
-  createdAt      DateTime  @default(now())
-  remarks        String?
-  class          Class     @relation(fields: [classId], references: [id])
-  user           User      @relation(fields: [userId], references: [id])
+  id            String    @id @default(uuid())
+  status        String
+  userId        String
+  classId       String
+  createdAt     DateTime  @default(now())
+  remarks       String?
+  markedEndAt   DateTime?
+  markedStartAt DateTime?
+  class         Class     @relation(fields: [classId], references: [id])
+  user          User      @relation(fields: [userId], references: [id])
 
   @@unique([userId, classId])
 }
@@ -214,15 +207,15 @@ model Assignment {
   id          String       @id @default(uuid())
   title       String
   description String
-  startTime   DateTime?
-  endTime     DateTime?
-  dueDate     DateTime?  // Re-adding dueDate for compatibility
-  totalMarks  Float?
-  fileUrl     String?
-  publicId    String?
+  dueDate     DateTime?
   courseId    String
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
+  fileUrl     String?
+  publicId    String?
+  startTime   DateTime?
+  totalMarks  Float?
+  endTime     DateTime?
   course      Course       @relation(fields: [courseId], references: [id])
   submissions Submission[]
 }
@@ -230,35 +223,35 @@ model Assignment {
 model Submission {
   id           String     @id @default(uuid())
   fileUrl      String
-  publicId     String?
   status       String
   plagiarism   Float?
   assignmentId String
   studentId    String
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
+  publicId     String?
   grade        Grade?
   assignment   Assignment @relation(fields: [assignmentId], references: [id])
   student      User       @relation(fields: [studentId], references: [id])
 }
 
 model Quiz {
-  id          String           @id @default(uuid())
+  id                String           @id @default(uuid())
   title             String
   description       String?
-  startTime         DateTime?
-  endTime           DateTime?
-  totalMarks        Float     @default(100)
-  passingPercentage Float     @default(50)
   timeLimit         Int
   courseId          String
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
   isExam            Boolean          @default(false)
   status            EnrollmentStatus @default(PENDING)
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
-  questions   Question[]
-  course      Course           @relation(fields: [courseId], references: [id])
-  results     QuizResult[]
+  endTime           DateTime?
+  passingPercentage Float            @default(50)
+  startTime         DateTime?
+  totalMarks        Float            @default(100)
+  questions         Question[]
+  course            Course           @relation(fields: [courseId], references: [id])
+  results           QuizResult[]
 }
 
 model Question {
@@ -273,10 +266,10 @@ model Question {
 model QuizResult {
   id        String   @id @default(uuid())
   score     Float
-  passed    Boolean  @default(false)
   userId    String
   quizId    String
   createdAt DateTime @default(now())
+  passed    Boolean  @default(false)
   quiz      Quiz     @relation(fields: [quizId], references: [id])
   user      User     @relation(fields: [userId], references: [id])
 }
@@ -302,42 +295,42 @@ model Recording {
 }
 
 model Lab {
-  id          String       @id @default(uuid())
-  title       String       @unique
-  description String
-  department  String
-  provider    String
-  difficulty  String
-  url         String?
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  objectives  String?
-  safety      String?
-  theory      String?
-  courseId    String?
-  year        String?
-  assessments Assessment[]
-  experiments Experiment[]
-  course      Course?      @relation(fields: [courseId], references: [id])
+  id                String       @id @default(uuid())
+  title             String       @unique
+  description       String
+  department        String
+  provider          String
+  difficulty        String
+  url               String?
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+  objectives        String?
+  safety            String?
+  theory            String?
+  courseId          String?
+  year              String?
   multimediaContent Json?
+  assessments       Assessment[]
+  experiments       Experiment[]
+  course            Course?      @relation(fields: [courseId], references: [id])
 }
 
 model Experiment {
-  id           String        @id @default(uuid())
-  labId        String
-  studentId    String
-  status       String
-  inputs       Json?
-  resultData   Json?
-  grade        Float?
-  feedback     String?
-  createdAt    DateTime      @default(now())
+  id                 String        @id @default(uuid())
+  labId              String
+  studentId          String
+  status             String
+  inputs             Json?
+  resultData         Json?
+  grade              Float?
+  feedback           String?
+  createdAt          DateTime      @default(now())
   updatedAt          DateTime      @updatedAt
-  studentResult      Json?
   studentObservation Json?
+  studentResult      Json?
   lab                Lab           @relation(fields: [labId], references: [id])
-  student      User          @relation(fields: [studentId], references: [id])
-  observations Observation[]
+  student            User          @relation(fields: [studentId], references: [id])
+  observations       Observation[]
 }
 
 model Observation {
@@ -412,10 +405,20 @@ model ChatGroup {
   members     User[]    @relation("GroupMembers")
 }
 
+model PasswordResetToken {
+  id        String   @id @default(uuid())
+  email     String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
 enum Role {
+  MAIN_ADMIN
   SUPER_ADMIN
-  DEPT_ADMIN
-  TEACHER
+  SUB_ADMIN
+  HOD
+  FACULTY
   STUDENT
 }
 

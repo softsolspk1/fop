@@ -10,7 +10,7 @@ router.get('/stats', authenticateToken, async (req: any, res) => {
   try {
     // Only admins/teachers should probably see full stats, but users might see some.
     // Let's keep it open for now or restrict to ADMINs.
-    // if (req.user.role !== 'SUPER_ADMIN' && req.user.role !== 'DEPT_ADMIN') {
+    // if (req.user.role !== 'SUPER_ADMIN' && req.user.role !== 'HOD') {
     //   return res.status(403).json({ message: 'Forbidden' });
     // }
 
@@ -23,7 +23,7 @@ router.get('/stats', authenticateToken, async (req: any, res) => {
       pendingEnrollments
     ] = await Promise.all([
       prisma.user.count({ where: { role: 'STUDENT' } }),
-      prisma.user.count({ where: { role: 'TEACHER' } }),
+      prisma.user.count({ where: { role: 'FACULTY' } }),
       prisma.course.count(),
       prisma.department.count(),
       prisma.lab.count(),

@@ -197,7 +197,7 @@ router.post('/:experimentId/observations', authenticateToken, async (req: AuthRe
 });
 
 // Get Submissions for Faculty
-router.get('/submissions/all', authenticateToken, authorizeRoles('SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER'), async (req: AuthRequest, res: Response) => {
+router.get('/submissions/all', authenticateToken, authorizeRoles('SUPER_ADMIN', 'HOD', 'FACULTY'), async (req: AuthRequest, res: Response) => {
   try {
     const submissions = await prisma.experiment.findMany({
       include: {
@@ -216,7 +216,7 @@ router.get('/submissions/all', authenticateToken, authorizeRoles('SUPER_ADMIN', 
 });
 
 // Grade Experiment
-router.post('/experiments/:id/grade', authenticateToken, authorizeRoles('SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER'), async (req: AuthRequest, res: Response) => {
+router.post('/experiments/:id/grade', authenticateToken, authorizeRoles('SUPER_ADMIN', 'HOD', 'FACULTY'), async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
     const { grade, feedback } = req.body;
@@ -237,7 +237,7 @@ router.post('/experiments/:id/grade', authenticateToken, authorizeRoles('SUPER_A
 });
 
 // Update lab details (Super Admin or Teacher)
-router.put('/:id', authenticateToken, authorizeRoles('SUPER_ADMIN', 'TEACHER'), async (req: AuthRequest, res: Response) => {
+router.put('/:id', authenticateToken, authorizeRoles('SUPER_ADMIN', 'FACULTY'), async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
     const { title, description, department, provider, difficulty, theory, objectives, safety, year, multimediaContent } = req.body;
@@ -254,7 +254,7 @@ router.put('/:id', authenticateToken, authorizeRoles('SUPER_ADMIN', 'TEACHER'), 
 });
 
 // Create new lab (Super Admin or Teacher)
-router.post('/', authenticateToken, authorizeRoles('SUPER_ADMIN', 'TEACHER'), async (req: AuthRequest, res: Response) => {
+router.post('/', authenticateToken, authorizeRoles('SUPER_ADMIN', 'FACULTY'), async (req: AuthRequest, res: Response) => {
   try {
     const { title, description, department, provider, difficulty, theory, objectives, safety, year, multimediaContent } = req.body;
     
@@ -311,7 +311,7 @@ router.post('/:id/assessment/:assessmentId', authenticateToken, async (req: Auth
 });
 
 // Delete lab (Super Admin only)
-router.delete('/:id', authenticateToken, authorizeRoles('SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
+router.delete('/:id', authenticateToken, authorizeRoles('MAIN_ADMIN', 'SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
     await prisma.lab.delete({

@@ -1,6 +1,7 @@
 import { Router, Response } from 'express';
 import prisma from '../lib/prisma';
 import { authenticateToken, authorizeRoles, AuthRequest } from '../auth/auth.middleware';
+import { Role } from '@prisma/client';
 
 const router = Router();
 
@@ -31,7 +32,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
 });
 
 // Get pending users (Super Admin only)
-router.get('/pending', authenticateToken, authorizeRoles('SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
+router.get('/pending', authenticateToken, authorizeRoles('MAIN_ADMIN', 'SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
   try {
     const users = await prisma.user.findMany({
       where: { status: 'PENDING' },
@@ -54,7 +55,7 @@ router.get('/pending', authenticateToken, authorizeRoles('SUPER_ADMIN'), async (
 router.get('/faculty', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     const faculty = await prisma.user.findMany({
-      where: { role: 'TEACHER' },
+      where: { role: Role.FACULTY },
       select: {
         id: true,
         name: true,
@@ -98,13 +99,13 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res: Response) =>
     const { id } = req.params;
     const { name, email, role, departmentId, rollNumber, shift, year, status } = req.body;
 
-    if (req.user?.role !== 'SUPER_ADMIN' && req.user?.userId !== id) {
+    if (!['MAIN_ADMIN', 'SUPER_ADMIN'].includes(req.user?.role || '') && req.user?.userId !== id) {
       return res.status(403).json({ message: 'Access denied' });
     }
 
-    // Only SUPER_ADMIN can change roles or status
+    // Only MAIN_ADMIN or SUPER_ADMIN can change roles or status
     const updateData: any = { name, email, departmentId, rollNumber, shift, year };
-    if (req.user?.role === 'SUPER_ADMIN') {
+    if (['MAIN_ADMIN', 'SUPER_ADMIN'].includes(req.user?.role || '')) {
       if (role) updateData.role = role;
       if (status) updateData.status = status;
     }
@@ -121,7 +122,7 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res: Response) =>
 });
 
 // Create user (Super Admin only)
-router.post('/', authenticateToken, authorizeRoles('SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
+router.post('/', authenticateToken, authorizeRoles('MAIN_ADMIN', 'SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
   try {
     const { email, password, name, role, departmentId, shift, year, rollNumber } = req.body;
     
@@ -148,7 +149,7 @@ router.post('/', authenticateToken, authorizeRoles('SUPER_ADMIN'), async (req: A
 });
 
 // Delete user (Super Admin only)
-router.delete('/:id', authenticateToken, authorizeRoles('SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
+router.delete('/:id', authenticateToken, authorizeRoles('MAIN_ADMIN', 'SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
     await prisma.user.delete({
@@ -192,7 +193,7 @@ router.put('/change-password', authenticateToken, async (req: AuthRequest, res: 
 });
 
 // Admin reset password (Super Admin only)
-router.put('/:id/reset-password', authenticateToken, authorizeRoles('SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
+router.put('/:id/reset-password', authenticateToken, authorizeRoles('MAIN_ADMIN', 'SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
     const { newPassword } = req.body;

@@ -11,7 +11,7 @@ router.get('/:userId', authenticateToken, async (req: any, res) => {
     const userId = req.params.userId as string;
     
     // Check if the requester is the student or an admin/teacher
-    if (req.user.userId !== userId && !['SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER'].includes(req.user.role)) {
+    if (req.user.userId !== userId && !['SUPER_ADMIN', 'HOD', 'FACULTY'].includes(req.user.role)) {
       return res.status(403).json({ message: 'Unauthorized to view this report' });
     }
 

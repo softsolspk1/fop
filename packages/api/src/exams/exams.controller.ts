@@ -32,7 +32,7 @@ router.get('/my-results', authenticateToken, authorizeRoles('STUDENT'), async (r
 });
 
 // Create an exam (Admin/Teacher only)
-router.post('/', authenticateToken, authorizeRoles('SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER'), async (req: AuthRequest, res: Response) => {
+router.post('/', authenticateToken, authorizeRoles('SUPER_ADMIN', 'HOD', 'FACULTY'), async (req: AuthRequest, res: Response) => {
   try {
     const { title, date, location, courseId } = req.body;
     const exam = await prisma.exam.create({
@@ -50,7 +50,7 @@ router.post('/', authenticateToken, authorizeRoles('SUPER_ADMIN', 'DEPT_ADMIN', 
 });
 
 // Post exam result (Admin/Teacher only)
-router.post('/results', authenticateToken, authorizeRoles('SUPER_ADMIN', 'DEPT_ADMIN', 'TEACHER'), async (req: AuthRequest, res: Response) => {
+router.post('/results', authenticateToken, authorizeRoles('SUPER_ADMIN', 'HOD', 'FACULTY'), async (req: AuthRequest, res: Response) => {
   try {
     const { score, grade, userId, examId } = req.body;
     const result = await prisma.examResult.create({
@@ -68,7 +68,7 @@ router.post('/results', authenticateToken, authorizeRoles('SUPER_ADMIN', 'DEPT_A
 });
 
 // Delete result (Super Admin only)
-router.delete('/results/:id', authenticateToken, authorizeRoles('SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
+router.delete('/results/:id', authenticateToken, authorizeRoles('MAIN_ADMIN', 'SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
     await prisma.examResult.delete({
@@ -81,7 +81,7 @@ router.delete('/results/:id', authenticateToken, authorizeRoles('SUPER_ADMIN'), 
 });
 
 // Delete exam (Super Admin only)
-router.delete('/:id', authenticateToken, authorizeRoles('SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
+router.delete('/:id', authenticateToken, authorizeRoles('MAIN_ADMIN', 'SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
     await prisma.exam.delete({

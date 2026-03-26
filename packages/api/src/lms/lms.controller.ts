@@ -37,7 +37,7 @@ router.get('/courses/:courseId/materials', authenticateToken, async (req: AuthRe
 });
 
 // 2. Upload Material (Teacher or Admin)
-router.post('/materials', authenticateToken, authorizeRoles('TEACHER', 'SUPER_ADMIN', 'DEPT_ADMIN'), upload.single('file'), async (req: AuthRequest, res: Response) => {
+router.post('/materials', authenticateToken, authorizeRoles('FACULTY', 'SUPER_ADMIN', 'HOD'), upload.single('file'), async (req: AuthRequest, res: Response) => {
   const filePath = req.file?.path;
   try {
     console.log('[LMS]: Incoming upload request:', { 
@@ -124,14 +124,14 @@ router.post('/materials', authenticateToken, authorizeRoles('TEACHER', 'SUPER_AD
 });
 
 // 3. Get Pending Materials (HOD or Super Admin)
-router.get('/pending', authenticateToken, authorizeRoles('DEPT_ADMIN', 'SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
+router.get('/pending', authenticateToken, authorizeRoles('HOD', 'SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
   try {
     const user = await prisma.user.findUnique({ where: { id: req.user?.userId } });
     
     let whereClause: any = { status: 'PENDING' };
     
     // HOD only sees materials for their department
-    if (req.user?.role === 'DEPT_ADMIN' && user?.departmentId) {
+    if (req.user?.role === 'HOD' && user?.departmentId) {
       whereClause.course = { departmentId: user.departmentId };
     }
 
@@ -150,7 +150,7 @@ router.get('/pending', authenticateToken, authorizeRoles('DEPT_ADMIN', 'SUPER_AD
 });
 
 // 4. Approve/Reject Material (HOD or Super Admin)
-router.put('/materials/:id/status', authenticateToken, authorizeRoles('DEPT_ADMIN', 'SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
+router.put('/materials/:id/status', authenticateToken, authorizeRoles('HOD', 'SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
     const { status } = req.body; // APPROVED or REJECTED
@@ -171,7 +171,7 @@ router.put('/materials/:id/status', authenticateToken, authorizeRoles('DEPT_ADMI
 });
 
 // 5. Delete Material
-router.delete('/materials/:id', authenticateToken, authorizeRoles('TEACHER', 'DEPT_ADMIN', 'SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
+router.delete('/materials/:id', authenticateToken, authorizeRoles('FACULTY', 'HOD', 'SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
     await prisma.material.delete({ where: { id: String(id) } });

@@ -5,7 +5,7 @@ import { authenticateToken, authorizeRoles, AuthRequest } from '../auth/auth.mid
 const router = Router();
 
 // Get stats for HOD's department
-router.get('/my-stats', authenticateToken, authorizeRoles('HOD', 'DEPT_ADMIN'), async (req: AuthRequest, res: Response) => {
+router.get('/my-stats', authenticateToken, authorizeRoles('HOD'), async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user!.userId;
     const department = await prisma.department.findFirst({
@@ -21,7 +21,7 @@ router.get('/my-stats', authenticateToken, authorizeRoles('HOD', 'DEPT_ADMIN'), 
 
     // Faculty members are users with role TEACHER in this dept
     const facultyCount = await prisma.user.count({
-      where: { departmentId: department.id, role: 'TEACHER' }
+      where: { departmentId: department.id, role: 'FACULTY' }
     });
 
     res.json({
@@ -53,7 +53,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
 });
 
 // Create department (Super Admin only)
-router.post('/', authenticateToken, authorizeRoles('SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
+router.post('/', authenticateToken, authorizeRoles('MAIN_ADMIN', 'SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
   try {
     const { name } = req.body;
     const department = await prisma.department.create({
@@ -66,7 +66,7 @@ router.post('/', authenticateToken, authorizeRoles('SUPER_ADMIN'), async (req: A
 });
 
 // Update department (Super Admin only for now)
-router.put('/:id', authenticateToken, authorizeRoles('SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
+router.put('/:id', authenticateToken, authorizeRoles('MAIN_ADMIN', 'SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
     const { name, hodId } = req.body;
@@ -81,7 +81,7 @@ router.put('/:id', authenticateToken, authorizeRoles('SUPER_ADMIN'), async (req:
 });
 
 // Delete department (Super Admin only)
-router.delete('/:id', authenticateToken, authorizeRoles('SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
+router.delete('/:id', authenticateToken, authorizeRoles('MAIN_ADMIN'), async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
     await prisma.department.delete({

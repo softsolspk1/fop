@@ -48,7 +48,7 @@ router.get('/course/:courseId', authenticateToken, async (req: AuthRequest, res:
 });
 
 // Create an assignment (Teacher)
-router.post('/', authenticateToken, authorizeRoles('TEACHER', 'DEPT_ADMIN', 'SUPER_ADMIN'), upload.single('file'), async (req: AuthRequest, res: Response) => {
+router.post('/', authenticateToken, authorizeRoles('FACULTY', 'HOD', 'SUPER_ADMIN'), upload.single('file'), async (req: AuthRequest, res: Response) => {
   const filePath = req.file?.path;
   try {
     const { title, description, startTime, dueDate, totalMarks, courseId } = req.body;
@@ -147,7 +147,7 @@ router.post('/:assignmentId/submit', authenticateToken, authorizeRoles('STUDENT'
 });
 
 // Grade a submission (Teacher)
-router.post('/submissions/:submissionId/grade', authenticateToken, authorizeRoles('TEACHER'), async (req: any, res) => {
+router.post('/submissions/:submissionId/grade', authenticateToken, authorizeRoles('FACULTY'), async (req: any, res) => {
   try {
     const { submissionId } = req.params;
     const { score, feedback } = req.body;
@@ -174,7 +174,7 @@ router.post('/submissions/:submissionId/grade', authenticateToken, authorizeRole
 });
 
 // Get submissions for an assignment (Teacher)
-router.get('/:assignmentId/submissions', authenticateToken, authorizeRoles('TEACHER'), async (req, res) => {
+router.get('/:assignmentId/submissions', authenticateToken, authorizeRoles('FACULTY'), async (req, res) => {
   try {
     const { assignmentId } = req.params;
     const submissions = await prisma.submission.findMany({

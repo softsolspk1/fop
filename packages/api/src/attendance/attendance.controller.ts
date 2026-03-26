@@ -5,7 +5,7 @@ import { authenticateToken, authorizeRoles, AuthRequest } from '../auth/auth.mid
 const router = Router();
 
 // Mark attendance for a class (Teacher/Admin)
-router.post('/mark', authenticateToken, authorizeRoles('TEACHER', 'DEPT_ADMIN', 'SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
+router.post('/mark', authenticateToken, authorizeRoles('FACULTY', 'HOD', 'SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
   try {
     const { classId, records } = req.body; // records: { userId: string, status: 'PRESENT' | 'ABSENT' | 'LATE', remarks: string }[]
 

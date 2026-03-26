@@ -6,7 +6,7 @@ const router = Router();
 const prisma = new PrismaClient();
 
 // Get all pending enrollments (Admin only)
-router.get('/pending', authenticateToken, authorizeRoles('SUPER_ADMIN', 'DEPT_ADMIN'), async (req: any, res) => {
+router.get('/pending', authenticateToken, authorizeRoles('MAIN_ADMIN', 'SUPER_ADMIN', 'HOD'), async (req: any, res) => {
   try {
     const pendingStudents = await prisma.user.findMany({
       where: { 
@@ -24,7 +24,7 @@ router.get('/pending', authenticateToken, authorizeRoles('SUPER_ADMIN', 'DEPT_AD
 });
 
 // Approve enrollment
-router.post('/:id/approve', authenticateToken, authorizeRoles('SUPER_ADMIN', 'DEPT_ADMIN'), async (req: any, res) => {
+router.post('/:id/approve', authenticateToken, authorizeRoles('MAIN_ADMIN', 'SUPER_ADMIN', 'HOD'), async (req: any, res) => {
   try {
     const { id } = req.params;
     const user = await prisma.user.update({
@@ -38,7 +38,7 @@ router.post('/:id/approve', authenticateToken, authorizeRoles('SUPER_ADMIN', 'DE
 });
 
 // Reject enrollment
-router.post('/:id/reject', authenticateToken, authorizeRoles('SUPER_ADMIN', 'DEPT_ADMIN'), async (req: any, res) => {
+router.post('/:id/reject', authenticateToken, authorizeRoles('MAIN_ADMIN', 'SUPER_ADMIN', 'HOD'), async (req: any, res) => {
   try {
     const { id } = req.params;
     const user = await prisma.user.update({
