@@ -44,9 +44,14 @@ router.get('/active', authenticateToken, async (req: AuthRequest, res: Response)
           OR: [
             { students: { some: { id: userId } } },
             { 
+              // Match by department IF student has one, otherwise skip this constraint
               departmentId: student?.departmentId || undefined,
+              // Match by professional year mapping
               professional: normalizeYear(student?.year) || undefined
-            }
+            },
+            // Fallback: If student has NO department assigned, show all courses matching their year
+            // to prevent complete invisibility during transition/testing
+            ...(!student?.departmentId ? [{ professional: normalizeYear(student?.year) || undefined }] : [])
           ]
         },
         select: { id: true }
@@ -100,7 +105,8 @@ router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
             { 
               departmentId: student?.departmentId || undefined,
               professional: normalizeYear(student?.year) || undefined
-            }
+            },
+            ...(!student?.departmentId ? [{ professional: normalizeYear(student?.year) || undefined }] : [])
           ]
         },
         select: { id: true }
@@ -215,7 +221,7 @@ router.get('/:id/join', authenticateToken, async (req: AuthRequest, res: Respons
       whiteboard: classSession.whiteboardUuid ? {
         uuid: classSession.whiteboardUuid,
         token: await generateRoomToken(classSession.whiteboardUuid),
-        appId: process.env.NEXT_PUBLIC_AGORA_WHITEBOARD_APP_ID
+        appId: process.env.NEXT_PUBLIC_AGORA_WHITEBOARD_APP_ID || '876dc55e0241436fb6c63433afeb9563' // Fallback to Agora Video App ID if distinct Whiteboard ID is missing (sometimes shared)
       } : null
     });
   } catch (error) {
