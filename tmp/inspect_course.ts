@@ -4,11 +4,19 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 async function main() {
-  const course = await prisma.course.findFirst({
-    where: { outcomes: { not: null } },
-    select: { name: true, outcomes: true, contents: true }
+  const c = await prisma.course.findFirst({ 
+    where: { code: 'PHL-316' },
+    include: {
+      materials: true,
+      assignments: true,
+      quizzes: true
+    }
   });
-  console.log('Course Data:', JSON.stringify(course, null, 2));
+  if(!c) { console.log('Course not found'); return; }
+  console.log('Course:', c.name, c.id);
+  console.log('Materials:', c.materials.map(m =>({title: m.title, status: m.status})));
+  console.log('Assignments:', c.assignments.map(a =>({title: a.title, count: 1})));
+  console.log('Quizzes:', c.quizzes.map(q =>({title: q.title, status: q.status})));
 }
 
 main()

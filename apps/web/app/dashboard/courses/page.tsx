@@ -184,11 +184,29 @@ export default function CoursesPage() {
     }
   }, [activeQuiz, quizTimer]);
 
+  useEffect(() => {
+    const fetchCourseDetails = async () => {
+      if (!viewingCourse || viewingCourse.materials) return;
+      try {
+        const res = await api.get(`/courses/${viewingCourse.id}`);
+        setViewingCourse(res.data);
+      } catch (err) {
+        console.error('Error fetching course details:', err);
+      }
+    };
+    fetchCourseDetails();
+  }, [viewingCourse?.id]);
+
   const parseToItems = (text: string) => {
     if (!text) return [];
+    // Collapse whitespace but keep it readable
     let collapsed = text.replace(/\s+/g, ' ');
-    const items = collapsed.split(/\s*(?=\d+\.)/).map(i => i.trim()).filter(i => i !== '');
-    return items;
+    const items = collapsed.split(/\s*(?=\d+\.\s)/).map(i => i.trim()).filter(i => i !== '');
+    return items.filter(i => {
+      const clean = i.replace(/^\d+\.\s*/, '').trim();
+      // More aggressive filtering: must have at least 5 meaningful characters
+      return clean.length > 5 && !/^\d+$/.test(clean);
+    });
   };
 
   return (
