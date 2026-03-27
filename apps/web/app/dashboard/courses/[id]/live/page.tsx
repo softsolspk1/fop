@@ -148,8 +148,11 @@ export default function LiveClassPage() {
      }
   };
 
-  const handleLeaveSession = () => {
+  const handleLeaveSession = async () => {
      if(confirm('Are you sure you want to leave this session?')) {
+        try {
+          await (api as any).post(`/classes/${sessionId}/leave`);
+        } catch (e) {}
         router.push(`/dashboard/courses/${params.id}`);
      }
   };

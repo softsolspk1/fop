@@ -12,18 +12,32 @@ export default function StudentDashboard() {
   const { user } = useAuth();
   const [courses, setCourses] = React.useState<any[]>([]);
   const [loading, setLoading] = React.useState(true);
-
   const [activeClasses, setActiveClasses] = React.useState<any[]>([]);
+  const [stats, setStats] = React.useState<any>({
+    attendance: '0%',
+    gpa: '0.0',
+    assignments: '0',
+    recentResults: [],
+    pendingTasks: []
+  });
 
   React.useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        const [coursesRes, activeRes] = await Promise.all([
+        const [coursesRes, activeRes, statsRes] = await Promise.all([
           api.get('/courses'),
-          api.get('/classes/active')
+          api.get('/classes/active'),
+          api.get('/reports/dashboard-stats/stats')
         ]);
         setCourses(coursesRes.data);
         setActiveClasses(activeRes.data);
+        setStats({
+          attendance: `${statsRes.data.attendance || 0}%`,
+          gpa: statsRes.data.gpa || '0.0',
+          assignments: statsRes.data.assignmentsCount || '0',
+          recentResults: statsRes.data.recentResults || [],
+          pendingTasks: statsRes.data.pendingTasks || []
+        });
       } catch (err) {
         console.error('Failed to fetch dashboard data', err);
       } finally {
@@ -98,9 +112,9 @@ export default function StudentDashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {[
             { label: 'Enrolled Courses', value: loading ? '...' : courses.length.toString(), icon: BookOpen, color: 'text-blue-600', bg: 'bg-blue-100' },
-            { label: 'Attendance', value: '94%', icon: Clock, color: 'text-purple-600', bg: 'bg-purple-100' },
-            { label: 'GPA', value: '3.8', icon: Award, color: 'text-orange-600', bg: 'bg-orange-100' },
-            { label: 'Pending Tasks', value: '3', icon: FileText, color: 'text-red-600', bg: 'bg-red-100' },
+            { label: 'Attendance', value: loading ? '...' : stats.attendance, icon: Clock, color: 'text-purple-600', bg: 'bg-purple-100' },
+            { label: 'GPA', value: loading ? '...' : stats.gpa, icon: Award, color: 'text-orange-600', bg: 'bg-orange-100' },
+            { label: 'Pending Tasks', value: loading ? '...' : stats.assignments, icon: FileText, color: 'text-red-600', bg: 'bg-red-100' },
           ].map((stat, idx) => (
             <motion.div 
               key={idx}
@@ -157,19 +171,22 @@ export default function StudentDashboard() {
                 <Link href="/dashboard/student/report" className="text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors underline-offset-4 hover:underline">Transcript</Link>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {[
-                  { course: 'Pharmacology I', score: '88/100', grade: 'A', remarks: 'Good work on the lab report.' },
-                  { course: 'Pharmaceutics II', score: '92/100', grade: 'A+', remarks: 'Excellent understanding of kinetics.' },
-                ].map((grade, idx) => (
-                  <div key={idx} className="p-5 rounded-xl bg-slate-50/50 border border-slate-100">
-                    <div className="flex justify-between items-start mb-2">
-                      <h4 className="font-bold text-slate-800">{grade.course}</h4>
-                      <span className="text-2xl font-black text-blue-600">{grade.grade}</span>
-                    </div>
-                    <p className="text-xs text-slate-500 mb-3">{grade.remarks}</p>
-                    <div className="text-sm font-bold text-slate-700 underline underline-offset-2">Score: {grade.score}</div>
+                {stats.recentResults.length === 0 ? (
+                  <div className="col-span-full py-6 text-center text-slate-400 text-xs font-bold uppercase tracking-wider bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
+                    No recent grades available
                   </div>
-                ))}
+                ) : (
+                  stats.recentResults.map((grade: any, idx: number) => (
+                    <div key={idx} className="p-5 rounded-xl bg-slate-50/50 border border-slate-100">
+                      <div className="flex justify-between items-start mb-2">
+                        <h4 className="font-bold text-slate-800">{grade.course}</h4>
+                        <span className="text-2xl font-black text-blue-600">{grade.grade}</span>
+                      </div>
+                      <p className="text-xs text-slate-500 mb-3">{grade.remarks}</p>
+                      <div className="text-sm font-bold text-slate-700 underline underline-offset-2">Score: {grade.marks}</div>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           </div>
@@ -178,20 +195,22 @@ export default function StudentDashboard() {
             <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm">
               <h3 className="text-xl font-bold text-slate-800 mb-8">Learning Tasks</h3>
               <div className="space-y-4">
-                {[
-                  { title: 'Assignment #4', due: 'In 2 days', type: 'Upload' },
-                  { title: 'Quiz: Session 12', due: 'Tomorrow', type: 'Quiz' },
-                  { title: 'Lab Feedback', due: 'Completed', type: 'Feedback' },
-                ].map((task, idx) => (
-                  <div key={idx} className="flex items-center gap-4 p-4 rounded-xl hover:bg-slate-50 transition-colors group cursor-pointer">
-                    <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                    <div className="flex-1">
-                      <h4 className="font-bold text-slate-800 text-sm">{task.title}</h4>
-                      <p className="text-[10px] text-slate-500 uppercase font-black">{task.type}</p>
-                    </div>
-                    <span className={`text-[10px] font-bold ${task.due === 'Completed' ? 'text-green-600' : 'text-red-500'}`}>{task.due}</span>
+                {stats.pendingTasks.length === 0 ? (
+                  <div className="py-6 text-center text-slate-400 text-xs font-bold uppercase tracking-wider bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
+                    No pending tasks
                   </div>
-                ))}
+                ) : (
+                  stats.pendingTasks.map((task: any, idx: number) => (
+                    <div key={idx} className="flex items-center gap-4 p-4 rounded-xl hover:bg-slate-50 transition-colors group cursor-pointer">
+                      <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                      <div className="flex-1">
+                        <h4 className="font-bold text-slate-800 text-sm">{task.title}</h4>
+                        <p className="text-[10px] text-slate-500 uppercase font-black">{task.type}</p>
+                      </div>
+                      <span className={`text-[10px] font-bold ${task.due === 'Completed' ? 'text-green-600' : 'text-red-500'}`}>{task.due}</span>
+                    </div>
+                  ))
+                )}
               </div>
               <Link href="/dashboard/student/assignments" className="w-full mt-6 py-3 border-2 border-slate-50 text-slate-600 font-bold rounded-xl hover:bg-slate-50 transition-all flex justify-center items-center">
                 View All Assignments

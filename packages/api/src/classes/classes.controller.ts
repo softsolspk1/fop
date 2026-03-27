@@ -97,9 +97,9 @@ router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
             { students: { some: { id: userId } } },
             { 
               departmentId: student?.departmentId || undefined,
-              professional: normalizeYear(student?.year) || undefined
+              professional: { in: [student?.year || '', normalizeYear(student?.year) || ''] }
             },
-            ...(!student?.departmentId ? [{ professional: normalizeYear(student?.year) || undefined }] : [])
+            ...(!student?.departmentId ? [{ professional: { in: [student?.year || '', normalizeYear(student?.year) || ''] } }] : [])
           ]
         },
         select: { id: true }
@@ -246,7 +246,24 @@ router.post('/:id/heartbeat', authenticateToken, async (req: AuthRequest, res: R
   }
 });
 
-// 2. Sync - Get all session state (participants, messages, assets)
+// 2. Leave Session - Remove user's presence
+router.post('/:id/leave', authenticateToken, async (req: AuthRequest, res: Response) => {
+  try {
+    const { id: classId } = req.params;
+    const userId = (req.user as any)?.userId;
+    if (!userId) return res.status(401).send();
+
+    await (prisma as any).sessionPresence.deleteMany({
+      where: { userId, classId }
+    });
+
+    res.status(204).send();
+  } catch (error) {
+    res.status(500).json({ error: 'Leave failed' });
+  }
+});
+
+// 3. Sync - Get all session state (participants, messages, assets)
 router.get('/:id/sync', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     const { id: classId } = req.params;

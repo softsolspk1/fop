@@ -33,7 +33,8 @@ router.get('/stats', authenticateToken, async (req: any, res) => {
         submissionsCount,
         allAssignments,
         upcomingQuizzes,
-        allResults
+        allResults,
+        pendingAssignments
       ] = await Promise.all([
         prisma.course.count({ where: { professional: year, isActive: true } }),
         prisma.lab.count({ where: { year: year } }),
@@ -48,7 +49,20 @@ router.get('/stats', authenticateToken, async (req: any, res) => {
             status: 'APPROVED'
           } 
         }),
-        prisma.result.findMany({ where: { studentId: req.user.userId } })
+        prisma.result.findMany({ 
+          where: { studentId: req.user.userId },
+          orderBy: { createdAt: 'desc' },
+          take: 5,
+          include: { course: { select: { name: true } } }
+        }),
+        prisma.assignment.findMany({
+          where: { 
+            course: { professional: year },
+            submissions: { none: { studentId: req.user.userId } }
+          },
+          orderBy: { createdAt: 'desc' },
+          take: 5
+        })
       ]);
 
       const gradeToGPA: any = { 'A': 4.0, 'A-': 3.7, 'B+': 3.3, 'B': 3.0, 'B-': 2.7, 'C+': 2.3, 'C': 2.0, 'C-': 1.7, 'D': 1.0, 'F': 0.0 };
@@ -61,9 +75,20 @@ router.get('/stats', authenticateToken, async (req: any, res) => {
         labs: totalLabs,
         exams: totalExams,
         attendance: attendanceCount,
-        assignments: allAssignments - submissionsCount, // Simplified pending
+        assignmentsCount: allAssignments - submissionsCount,
         upcomingQuizzes: upcomingQuizzes,
         gpa: gpa,
+        recentResults: allResults.map(r => ({
+          course: (r as any).course.name,
+          grade: r.grade,
+          marks: r.marks,
+          remarks: (r as any).remarks || 'Record added'
+        })),
+        pendingTasks: pendingAssignments.map(a => ({
+          title: a.title,
+          due: 'Pending Submission',
+          type: 'Assignment'
+        })),
         professionalYear: year,
         lastUpdated: new Date()
       });
