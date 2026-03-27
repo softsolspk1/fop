@@ -47,7 +47,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             {children}
           </div>
           <footer className="mt-12 py-6 border-t border-slate-100 flex justify-between items-center text-slate-400 text-xs font-bold uppercase tracking-widest no-print">
-            <p>© 2026 Faculty of Pharmacy, University of Karachi</p>
+            <p>© 2026 Faculty of Pharmacy and Pharmaceutical Sciences, University of Karachi</p>
             <p>Developed by <span className="text-blue-600">Softsols Pakistan</span></p>
           </footer>
         </main>

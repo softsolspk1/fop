@@ -82,6 +82,43 @@ export default function AttendancePage() {
     fetchAttendance();
   }, [fetchAttendance]);
 
+  const handleExport = () => {
+    if (attendance.length === 0) return alert('No data to export');
+    
+    // CSV Header row
+    const headers = ['Student Name', 'Roll Number', 'Department', 'Course', 'Session', 'Date', 'Status'];
+    
+    // Data rows
+    const rows = attendance.map(record => [
+       `"${record.user.name}"`,
+       `"${record.user.rollNumber || 'N/A'}"`,
+       `"${record.class.course.department.name}"`,
+       `"${record.class.course.name}"`,
+       `"${record.class.title}"`,
+       `"${new Date(record.createdAt).toLocaleDateString()}"`,
+       `"${record.status}"`
+    ]);
+
+    const csvContent = [headers, ...rows].map(e => e.join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `attendance_ledger_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const stats = {
+    total: attendance.length,
+    present: attendance.filter(a => a.status === 'PRESENT').length,
+    absent: attendance.filter(a => a.status === 'ABSENT').length,
+    late: attendance.filter(a => a.status === 'LATE').length,
+    percentage: attendance.length > 0 ? (attendance.filter(a => a.status === 'PRESENT' || a.status === 'LATE').length / attendance.length * 100).toFixed(1) : '0'
+  };
+
   // Derived filtered lists
   const filteredCourses = filters.departmentId 
     ? courses.filter(c => c.departmentId === filters.departmentId)
@@ -113,10 +150,54 @@ export default function AttendancePage() {
             <p className="text-slate-500 font-medium">Monitor and manage presence across sessions, courses, and departments.</p>
           </div>
           <div className="flex items-center gap-3">
-             <button className="flex items-center gap-2 px-6 py-3 bg-white text-slate-600 font-black rounded-2xl shadow-sm border border-slate-100 hover:bg-slate-50 transition-all text-sm">
+             <button 
+               onClick={handleExport}
+               disabled={attendance.length === 0}
+               className="flex items-center gap-2 px-6 py-3 bg-white text-slate-600 font-black rounded-2xl shadow-sm border border-slate-100 hover:bg-slate-50 transition-all text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+             >
                 <Download className="w-4 h-4" />
                 Export Ledger
              </button>
+          </div>
+        </div>
+
+        {/* Stats Summary Section */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className="p-6 bg-white rounded-[2rem] border border-slate-100 shadow-sm flex items-center gap-4">
+             <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center">
+                <User className="w-6 h-6" />
+             </div>
+             <div>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Records</p>
+                <h4 className="text-xl font-black text-slate-800">{stats.total}</h4>
+             </div>
+          </div>
+          <div className="p-6 bg-white rounded-[2rem] border border-slate-100 shadow-sm flex items-center gap-4">
+             <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center">
+                <CheckCircle2 className="w-6 h-6" />
+             </div>
+             <div>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Present</p>
+                <h4 className="text-xl font-black text-slate-800">{stats.present}</h4>
+             </div>
+          </div>
+          <div className="p-6 bg-white rounded-[2rem] border border-slate-100 shadow-sm flex items-center gap-4">
+             <div className="w-12 h-12 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center">
+                <XCircle className="w-6 h-6" />
+             </div>
+             <div>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Absent</p>
+                <h4 className="text-xl font-black text-slate-800">{stats.absent}</h4>
+             </div>
+          </div>
+          <div className="p-6 bg-blue-600 rounded-[2rem] shadow-xl shadow-blue-200 flex items-center gap-4 text-white">
+             <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center">
+                <Clock className="w-6 h-6" />
+             </div>
+             <div>
+                <p className="text-[10px] font-black text-blue-100 uppercase tracking-widest">Pres. Rate</p>
+                <h4 className="text-xl font-black">{stats.percentage}%</h4>
+             </div>
           </div>
         </div>
 

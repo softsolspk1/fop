@@ -56,7 +56,7 @@ export default function LandingPage() {
       </main>
 
       <footer className="mt-20 py-8 text-center border-t border-slate-200">
-        <p className="text-slate-500 text-sm">© 2026 Faculty of Pharmacy, University of Karachi. All rights reserved.</p>
+        <p className="text-slate-500 text-sm">© 2026 Faculty of Pharmacy and Pharmaceutical Sciences, University of Karachi. All rights reserved.</p>
         <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-2">Developed by <span className="text-blue-500">Softsols Pakistan</span></p>
       </footer>
     </div>

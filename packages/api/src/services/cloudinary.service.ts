@@ -1,5 +1,6 @@
 import { v2 as cloudinary } from 'cloudinary';
 import fs from 'fs';
+import path from 'path';
 
 // Simple config: if CLOUDINARY_URL exists, it's used automatically by the SDK.
 // Otherwise, we use explicit keys.
@@ -24,9 +25,23 @@ console.log('[Cloudinary]: Initialized');
 export const cloudinaryService = {
   uploadFile: async (file: any, folder: string = 'course-materials') => {
     try {
+      const originalName = file.originalname || 'file';
+      const fileExtension = path.extname(originalName);
+      const fileNameWithoutExt = path.basename(originalName, fileExtension);
+      
+      // Sanitize filename to avoid Cloudinary issues
+      const sanitizedName = fileNameWithoutExt.replace(/[^a-zA-Z0-9]/g, '_');
+      const publicId = `${sanitizedName}_${Date.now()}`;
+
       return new Promise((resolve, reject) => {
         const uploadStream = cloudinary.uploader.upload_stream(
-          { folder, resource_type: 'auto' },
+          { 
+            folder, 
+            resource_type: 'auto',
+            public_id: publicId,
+            use_filename: true,
+            unique_filename: true
+          },
           (error, result) => {
             if (error) {
               console.error('Cloudinary Upload Stream Error:', error);

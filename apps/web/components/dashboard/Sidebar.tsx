@@ -42,7 +42,7 @@ const navItems = [
   { icon: ClipboardList, label: 'Academic Reports', href: '/dashboard/reports', roles: ['MAIN_ADMIN', 'SUPER_ADMIN', 'SUB_ADMIN', 'HOD', 'FACULTY', 'STUDENT'] },
   { icon: CreditCard, label: 'Fee Management', href: '/dashboard/fees', roles: ['MAIN_ADMIN', 'SUPER_ADMIN', 'SUB_ADMIN', 'HOD', 'STUDENT'] },
   { icon: ClipboardList, label: 'Examination', href: '/dashboard/exams', roles: ['MAIN_ADMIN', 'SUPER_ADMIN', 'SUB_ADMIN', 'HOD', 'FACULTY', 'STUDENT'] },
-  { icon: BarChart, label: 'Analytics', href: '/dashboard/analytics', roles: ['MAIN_ADMIN', 'SUPER_ADMIN', 'SUB_ADMIN'] },
+  { icon: BarChart, label: 'Analytics', href: '/dashboard/reports', roles: ['MAIN_ADMIN', 'SUPER_ADMIN', 'SUB_ADMIN'] },
   { icon: CheckCircle, label: 'Attendance', href: '/dashboard/attendance', roles: ['MAIN_ADMIN', 'SUPER_ADMIN', 'SUB_ADMIN', 'HOD', 'FACULTY', 'STUDENT'] },
   { icon: CheckCircle, label: 'Pending Approvals', href: '/dashboard/approvals', roles: ['MAIN_ADMIN', 'SUPER_ADMIN', 'SUB_ADMIN', 'HOD'] },
   { icon: Settings, label: 'Settings', href: '/dashboard/settings', roles: ['MAIN_ADMIN', 'SUPER_ADMIN', 'SUB_ADMIN', 'HOD', 'FACULTY', 'STUDENT'] },

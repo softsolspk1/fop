@@ -6,7 +6,7 @@ import {
   Plus, Search, BookOpen, User, Clock, MoreVertical, Filter, ArrowRight, 
   Loader2, X, Edit2, Trash2, FileText, Video as VideoIcon, ShieldCheck, 
   Video, Upload, Trash, ClipboardList, Zap, CheckCircle, GraduationCap,
-  LayoutGrid, List, ExternalLink 
+  LayoutGrid, List, ExternalLink, Lock, Download, Calendar
 } from 'lucide-react';
 
 import { motion, AnimatePresence } from 'framer-motion';
@@ -483,6 +483,28 @@ export default function CoursesPage() {
                           className="w-full px-5 py-3.5 bg-white border-2 border-slate-100 rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-400 transition-all placeholder:text-slate-300 shadow-sm"
                         />
                       </div>
+                      <div className="space-y-1.5 px-1 col-span-1">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-2">
+                           <Calendar className="w-3 h-3 text-blue-500" /> Expiration Date (Optional)
+                        </label>
+                        <input 
+                          type="datetime-local" 
+                          id="mat-expiresAt"
+                          className="w-full px-5 py-3.5 bg-white border-2 border-slate-100 rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-400 transition-all shadow-sm"
+                        />
+                      </div>
+                      <div className="space-y-1.5 px-1 col-span-1 flex flex-col justify-center">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2">Download Permission</label>
+                        <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-2xl border border-slate-100">
+                          <input 
+                            type="checkbox" 
+                            id="mat-isDownloadable" 
+                            defaultChecked 
+                            className="w-5 h-5 rounded-lg border-2 border-slate-200 text-blue-600 focus:ring-blue-500 transition-all cursor-pointer" 
+                          />
+                          <span className="text-xs font-black text-slate-600 uppercase tracking-tight">Allow student to download</span>
+                        </div>
+                      </div>
                       <div className="md:col-span-2 pt-2">
                         <button 
                           onClick={async (e) => {
@@ -492,6 +514,8 @@ export default function CoursesPage() {
                             const url = (document.getElementById('mat-url') as HTMLInputElement).value;
                             const fileInput = document.getElementById('mat-file') as HTMLInputElement;
                             const file = fileInput.files?.[0];
+                            const expiresAt = (document.getElementById('mat-expiresAt') as HTMLInputElement).value;
+                            const isDownloadable = (document.getElementById('mat-isDownloadable') as HTMLInputElement).checked;
 
                             if (!title || (!url && !file)) return alert('Please provide a title and either a file or a URL');
                             
@@ -505,6 +529,8 @@ export default function CoursesPage() {
                               formData.append('courseId', managingMaterials.id);
                               if (file) formData.append('file', file);
                               if (url) formData.append('url', url);
+                              if (expiresAt) formData.append('expiresAt', expiresAt);
+                              formData.append('isDownloadable', String(isDownloadable));
 
                               await api.post('/lms/materials', formData, {
                                 headers: { 'Content-Type': 'multipart/form-data' }
@@ -513,6 +539,7 @@ export default function CoursesPage() {
                               alert('SUCCESS: Resource submitted for HOD approval! You will see it once it is verified.');
                               (document.getElementById('mat-title') as HTMLInputElement).value = '';
                               (document.getElementById('mat-url') as HTMLInputElement).value = '';
+                              (document.getElementById('mat-expiresAt') as HTMLInputElement).value = '';
                               fileInput.value = '';
                               // Trigger a re-fetch of course data to show new material
                               await fetchData();
@@ -522,9 +549,6 @@ export default function CoursesPage() {
                             } catch (err: any) { 
                               console.error('Upload error:', err);
                               alert('Error uploading material: ' + (err.response?.data?.message || err.message)); 
-                            } finally {
-                              btn.disabled = false;
-                              btn.innerHTML = 'Submit';
                             }
                           }}
                           className="w-full py-4.5 bg-blue-600 text-white font-black rounded-2xl shadow-xl shadow-blue-200 uppercase text-xs tracking-[0.2em] border-b-4 border-blue-800 active:border-b-0 active:translate-y-1 hover:bg-blue-700 transition-all flex items-center justify-center gap-3"

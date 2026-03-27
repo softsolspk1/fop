@@ -53,19 +53,19 @@ router.get('/:userId', authenticateToken, async (req: any, res) => {
     }
 
     // Process reporting data
-    const courseReports = user.studentCourses.map(course => {
+    const courseReports = (user.studentCourses || []).map(course => {
       // Calculate Grade Average
-      const submissions = course.assignments.flatMap(a => a.submissions);
-      const grades = submissions.filter(s => s.grade).map(s => s.grade!.score);
-      const avgGrade = grades.length > 0 ? (grades.reduce((a, b) => a + b, 0) / grades.length) : null;
+      const submissions = (course.assignments || []).flatMap((a: any) => a.submissions || []);
+      const grades = submissions.filter((s: any) => s.grade).map((s: any) => s.grade!.score);
+      const avgGrade = grades.length > 0 ? (grades.reduce((a: number, b: number) => a + b, 0) / grades.length) : null;
 
       // Calculate Quiz Average
-      const quizResults = course.quizzes.flatMap(q => q.results);
-      const quizScores = quizResults.map(r => r.score);
-      const avgQuiz = quizScores.length > 0 ? (quizScores.reduce((a, b) => a + b, 0) / quizScores.length) : null;
+      const quizResults = (course.quizzes || []).flatMap((q: any) => q.results || []);
+      const quizScores = quizResults.map((r: any) => r.score);
+      const avgQuiz = quizScores.length > 0 ? (quizScores.reduce((a: number, b: number) => a + b, 0) / quizScores.length) : null;
 
       // Calculate Attendance for this course
-      const courseAttendance = user.attendances.filter(a => a.class.courseId === course.id);
+      const courseAttendance = (user.attendances || []).filter(a => a.class.courseId === course.id);
       const presentCount = courseAttendance.filter(a => a.status === 'PRESENT' || a.status === 'LATE').length;
       const attendancePercentage = courseAttendance.length > 0 ? (presentCount / courseAttendance.length) * 100 : null;
 
@@ -86,10 +86,10 @@ router.get('/:userId', authenticateToken, async (req: any, res) => {
         id: user.id,
         name: user.name,
         rollNumber: user.rollNumber,
-        department: user.department?.name,
+        department: user.department?.name || 'N/A',
       },
       courses: courseReports,
-      overallGPA: calculateGPA(courseReports) // Helper logic
+      overallGPA: calculateGPA(courseReports)
     });
 
   } catch (error) {

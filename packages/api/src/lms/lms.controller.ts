@@ -4,6 +4,7 @@ import { authenticateToken, authorizeRoles, AuthRequest } from '../auth/auth.mid
 import { upload } from '../middleware/storage.middleware';
 import cloudinaryService from '../services/cloudinary.service';
 import fs from 'fs';
+import path from 'path';
 
 const router = Router();
 
@@ -19,6 +20,11 @@ router.get('/courses/:courseId/materials', authenticateToken, async (req: AuthRe
     if (userRole === 'STUDENT') {
       whereClause.status = 'APPROVED';
     }
+
+    whereClause.OR = [
+      { expiresAt: null },
+      { expiresAt: { gt: new Date() } }
+    ];
 
     const materials = await prisma.material.findMany({
       where: whereClause,
@@ -54,7 +60,14 @@ router.post('/materials', authenticateToken, authorizeRoles('FACULTY', 'SUPER_AD
       userId: req.user?.userId 
     });
 
-    let { title, url, type, courseId } = req.body;
+    if (req.file) {
+      const ext = path.extname(req.file.originalname).toLowerCase();
+      if (ext === '.exe' || ext === '.bat') {
+        return res.status(400).json({ message: 'File type NOT allowed (.exe or .bat)' });
+      }
+    }
+
+    let { title, url, type, courseId, expiresAt, isDownloadable } = req.body;
     const userId = req.user?.userId;
     let publicId = null;
 
@@ -87,7 +100,6 @@ router.post('/materials', authenticateToken, authorizeRoles('FACULTY', 'SUPER_AD
         }
       } catch (uploadError) {
         console.error('[LMS]: Cloudinary Upload Failed:', uploadError);
-        if (filePath && fs.existsSync(filePath)) fs.unlinkSync(filePath);
         return res.status(500).json({ 
           message: 'Failed to upload file to Cloudinary', 
           error: uploadError instanceof Error ? uploadError.message : 'Upload failed' 
@@ -107,7 +119,9 @@ router.post('/materials', authenticateToken, authorizeRoles('FACULTY', 'SUPER_AD
         type: type || 'LECTURE_NOTE',
         courseId,
         uploadedById: userId,
-        status: 'APPROVED'
+        status: 'APPROVED',
+        expiresAt: expiresAt ? new Date(expiresAt) : null,
+        isDownloadable: isDownloadable === 'true' || isDownloadable === true
       }
     });
 

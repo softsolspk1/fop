@@ -315,7 +315,7 @@ export default function LiveClassesPage() {
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Course</label>
                     <select required value={formData.courseId} onChange={(e) => setFormData({...formData, courseId: e.target.value})} className="w-full px-5 py-3.5 bg-white border-2 border-slate-100 rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-400 transition-all shadow-sm">
                       <option value="">Select Course</option>
-                      {filteredCourses.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                      {filteredCourses.map(c => <option key={c.id} value={c.id}>{c.code} - {c.name}</option>)}
                     </select>
                   </div>
                   <div className="space-y-2">

@@ -155,18 +155,20 @@ model Course {
 }
 
 model Material {
-  id           String           @id @default(uuid())
-  title        String
-  url          String
-  type         String
-  courseId     String
-  createdAt    DateTime         @default(now())
-  updatedAt    DateTime         @updatedAt
-  status       EnrollmentStatus @default(PENDING)
-  uploadedById String?
-  publicId     String?
-  course       Course           @relation(fields: [courseId], references: [id])
-  uploadedBy   User?            @relation("MaterialUploader", fields: [uploadedById], references: [id])
+  id             String           @id @default(uuid())
+  title          String
+  url            String
+  type           String
+  courseId       String
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  status         EnrollmentStatus @default(PENDING)
+  uploadedById   String?
+  publicId       String?
+  expiresAt      DateTime?
+  isDownloadable Boolean          @default(true)
+  course         Course           @relation(fields: [courseId], references: [id])
+  uploadedBy     User?            @relation("MaterialUploader", fields: [uploadedById], references: [id])
 }
 
 model Class {
