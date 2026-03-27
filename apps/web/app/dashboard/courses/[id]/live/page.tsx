@@ -55,8 +55,9 @@ export default function LiveClassPage() {
           token: res.data.token,
           uid: res.data.uid,
           whiteboard: res.data.whiteboard,
-          role: user?.role === 'STUDENT' ? 'audience' : 'host',
-          courseName: res.data.courseName || 'Live Session'
+          role: 'host', // Everyone is a host in this interactive classroom
+          courseName: res.data.courseName || 'Live Session',
+          isFaculty: user?.role !== 'STUDENT'
         });
 
         // Fetch initial participants
