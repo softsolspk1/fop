@@ -378,19 +378,6 @@ export default function LiveClassPage() {
                     </div>
                   )}
 
-                  {activeTab === 'whiteboard' && (
-                    <div className="h-full flex flex-col items-center justify-center text-center p-6 bg-purple-600/5 rounded-3xl border border-purple-600/10">
-                       <PenTool className="w-12 h-12 text-purple-600 mb-4 animate-pulse" />
-                       <h4 className="text-sm font-black uppercase tracking-tighter text-purple-600 mb-2">Interactive Board Active</h4>
-                       <p className="text-[10px] text-slate-500 font-medium leading-relaxed">The whiteboard is currently active on the main stage. You can illustrate and explain concepts in real-time.</p>
-                       <button 
-                        onClick={() => setActiveTab('chat')}
-                        className="mt-6 px-6 py-3 bg-purple-600/10 hover:bg-purple-600/20 text-purple-600 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all"
-                       >
-                         Back to Chat
-                       </button>
-                    </div>
-                  )}
                </div>
 
                {/* Message Input (Only for Chat Tab) */}
@@ -431,16 +418,6 @@ export default function LiveClassPage() {
           <div className="w-px h-10 bg-white/10 mx-2" />
 
           <div className="flex items-center gap-3">
-             <button 
-               onClick={() => {
-                 setActiveTab('whiteboard');
-                 setIsFullScreen(false);
-               }}
-               className={`p-4 rounded-2xl transition-all shadow-xl hover:-translate-y-1 active:scale-95 ${activeTab === 'whiteboard' ? 'bg-purple-600 text-white' : 'bg-slate-800 text-slate-400'}`}
-               title="Interactive Whiteboard"
-             >
-               <PenTool className="w-6 h-6" />
-             </button>
              {user?.role !== 'STUDENT' && (
                <button 
                  onClick={() => setIsScreenSharing(!isScreenSharing)}
