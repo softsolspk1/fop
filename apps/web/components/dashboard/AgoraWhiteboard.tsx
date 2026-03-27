@@ -1,6 +1,16 @@
 import 'regenerator-runtime/runtime';
 import React, { useEffect, useRef, useState } from 'react';
+import * as ReactDOM from 'react-dom';
+import { createRoot } from 'react-dom/client';
 import { WhiteWebSdk, Room, RoomPhase, ViewMode } from 'white-web-sdk';
+
+// React 19 Shim for Whiteboard SDK
+if (typeof window !== 'undefined' && !(ReactDOM as any).render) {
+  (ReactDOM as any).render = (element: any, container: any) => {
+    const root = createRoot(container);
+    root.render(element);
+  };
+}
 
 interface AgoraWhiteboardProps {
   appId: string;

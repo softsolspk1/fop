@@ -92,6 +92,11 @@ export default function AgoraVideoPlayer({
     const startScreenShare = async () => {
       if (isScreenSharing && !screenTrack) {
         try {
+          // Unpublish camera if sharing screen to avoid track limits
+          if (localVideoTrack && clientRef.current) {
+             await clientRef.current.unpublish(localVideoTrack);
+          }
+
           const result = await AgoraRTC.createScreenVideoTrack({}, "auto");
           const track = Array.isArray(result) ? result[0] : result;
           setScreenTrack(track);
@@ -108,6 +113,10 @@ export default function AgoraVideoPlayer({
         } catch (err) {
           console.error("Failed to create screen track:", err);
           if (onScreenShareEnd) onScreenShareEnd();
+          // Restore camera if screen share failed
+          if (localVideoTrack && clientRef.current) {
+             await clientRef.current.publish(localVideoTrack);
+          }
         }
       } else if (!isScreenSharing && screenTrack) {
         stopScreenShare();
@@ -118,6 +127,10 @@ export default function AgoraVideoPlayer({
       if (screenTrack) {
         if (clientRef.current) {
           await clientRef.current.unpublish(screenTrack);
+          // Restore camera after screen share
+          if (localVideoTrack) {
+             await clientRef.current.publish(localVideoTrack);
+          }
         }
         screenTrack.close();
         setScreenTrack(null);
@@ -125,7 +138,7 @@ export default function AgoraVideoPlayer({
     };
 
     startScreenShare();
-  }, [isScreenSharing, role]);
+  }, [isScreenSharing, role, localVideoTrack]);
 
   return (
     <div className="flex flex-col h-full gap-4">
