@@ -31,7 +31,8 @@ export const cloudinaryService = {
       
       // Sanitize filename to avoid Cloudinary issues
       const sanitizedName = fileNameWithoutExt.replace(/[^a-zA-Z0-9]/g, '_');
-      const publicId = `${sanitizedName}_${Date.now()}`;
+      // For Cloudinary 'raw' resources (like PDF/DOCX), the extension MUST be in the public_id to be preserved in the URL.
+      const publicId = `${sanitizedName}_${Date.now()}${fileExtension}`;
 
       return new Promise((resolve, reject) => {
         const uploadStream = cloudinary.uploader.upload_stream(

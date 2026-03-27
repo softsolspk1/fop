@@ -53,13 +53,6 @@ router.post('/materials', authenticateToken, authorizeRoles('FACULTY', 'SUPER_AD
       userId: req.user?.userId 
     });
 
-    console.log('[LMS]: Incoming upload request:', { 
-      body: req.body, 
-      hasFile: !!req.file, 
-      fileName: req.file?.originalname,
-      userId: req.user?.userId 
-    });
-
     if (req.file) {
       const ext = path.extname(req.file.originalname).toLowerCase();
       if (ext === '.exe' || ext === '.bat') {
