@@ -4,12 +4,34 @@ import * as ReactDOM from 'react-dom';
 import { createRoot } from 'react-dom/client';
 import { WhiteWebSdk, Room, RoomPhase, ViewMode } from 'white-web-sdk';
 
-// React 19 Shim for Whiteboard SDK
-if (typeof window !== 'undefined' && !(ReactDOM as any).render) {
-  (ReactDOM as any).render = (element: any, container: any) => {
-    const root = createRoot(container);
-    root.render(element);
-  };
+// React 19 Shim for Whiteboard SDK (Aggressive Global Repair)
+if (typeof window !== 'undefined') {
+  try {
+     const originalReactDOM = ReactDOM as any;
+     if (!originalReactDOM.render) {
+        // Create a writable proxy or shadow for ReactDOM
+        const shimmedReactDOM = { ...originalReactDOM };
+        shimmedReactDOM.render = (element: any, container: any) => {
+           if (!container._root) {
+              container._root = createRoot(container);
+           }
+           container._root.render(element);
+        };
+        
+        // Try to define it globally for the SDK to find
+        try {
+          Object.defineProperty(window, 'ReactDOM', {
+            value: shimmedReactDOM,
+            writable: true,
+            configurable: true
+          });
+        } catch (e) {
+          (window as any).ReactDOM = shimmedReactDOM;
+        }
+     }
+  } catch (err) {
+     console.warn('[Whiteboard Shim]: Optimization failed, legacy SDK may crash.', err);
+  }
 }
 
 interface AgoraWhiteboardProps {
