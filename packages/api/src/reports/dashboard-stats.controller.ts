@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { PrismaClient, Role } from '@prisma/client';
+import { normalizeYear } from '../lib/utils';
 import { authenticateToken } from '../auth/auth.middleware';
 
 const router = Router();
@@ -22,7 +23,7 @@ router.get('/stats', authenticateToken, async (req: any, res) => {
         select: { year: true }
       });
       
-      const year = student?.year || "First";
+      const year = normalizeYear(student?.year) || "First";
 
       const [
         totalCourses,

@@ -2,6 +2,7 @@ import { Router, Response } from 'express';
 import prisma from '../lib/prisma';
 import { authenticateToken, authorizeRoles, AuthRequest } from '../auth/auth.middleware';
 import { upload } from '../middleware/storage.middleware';
+import { normalizeYear } from '../lib/utils';
 import cloudinaryService from '../services/cloudinary.service';
 import fs from 'fs';
 
@@ -48,7 +49,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
         select: { year: true }
       });
       if (student?.year) {
-        whereClause.professional = student.year;
+        whereClause.professional = normalizeYear(student.year);
       }
     }
 

@@ -742,67 +742,98 @@ export default function CoursesPage() {
                              
                              <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                                 {newQuizQuestions.map((q, qIdx) => (
-                                  <div key={qIdx} className="p-6 bg-white border border-slate-100 rounded-[2rem] space-y-4 shadow-sm relative group/q">
-                                     <div className="flex items-center justify-between mb-2">
-                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Question #{qIdx + 1}</span>
+                                  <motion.div 
+                                    initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                                    key={qIdx} 
+                                    className="p-8 bg-white border-2 border-slate-100 rounded-[2.5rem] space-y-6 shadow-sm relative group/q hover:border-purple-200 transition-all"
+                                  >
+                                     <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-3">
+                                           <div className="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center text-white text-[10px] font-black">
+                                              #{qIdx + 1}
+                                           </div>
+                                           <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Question Details</span>
+                                        </div>
                                         <button 
                                           onClick={() => {
                                             const updated = [...newQuizQuestions];
                                             updated.splice(qIdx, 1);
                                             setNewQuizQuestions(updated);
                                           }}
-                                          className="text-slate-300 hover:text-red-500 transition-colors"
+                                          className="p-2 bg-slate-50 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
                                         >
                                           <Trash2 className="w-4 h-4" />
                                         </button>
                                      </div>
-                                     <input 
-                                       type="text" 
-                                       placeholder="Type your question here..." 
-                                       value={q.text}
-                                       onChange={(e) => {
-                                         const updated = [...newQuizQuestions];
-                                         updated[qIdx].text = e.target.value;
-                                         setNewQuizQuestions(updated);
-                                       }}
-                                       className="w-full px-4 py-3 bg-slate-50 border-none rounded-xl font-bold text-sm outline-none focus:ring-2 focus:ring-purple-100" 
-                                     />
-                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                       {['A', 'B', 'C', 'D'].map((optLabel, optIdx) => (
-                                         <div key={optIdx} className="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-xl border border-transparent focus-within:border-purple-200 transition-all">
-                                            <span className="text-[10px] font-bold text-slate-400">{optLabel}</span>
-                                            <input 
-                                              type="text" 
-                                              placeholder={`Option ${optLabel}`} 
-                                              value={q.options[optIdx]}
-                                              onChange={(e) => {
-                                                const updated = [...newQuizQuestions];
-                                                updated[qIdx].options[optIdx] = e.target.value;
-                                                setNewQuizQuestions(updated);
-                                              }}
-                                              className="w-full bg-transparent border-none text-xs font-bold outline-none" 
-                                            />
-                                         </div>
-                                       ))}
-                                     </div>
-                                     <div className="space-y-1">
-                                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Correct Answer (Must match one of the options)</label>
-                                        <select 
-                                          value={q.answer}
+                                     
+                                     <div className="space-y-2">
+                                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 text-purple-600">Question Statement</label>
+                                        <textarea 
+                                          placeholder="Type your question here..." 
+                                          rows={2}
+                                          value={q.text}
                                           onChange={(e) => {
                                             const updated = [...newQuizQuestions];
-                                            updated[qIdx].answer = e.target.value;
+                                            updated[qIdx].text = e.target.value;
                                             setNewQuizQuestions(updated);
                                           }}
-                                          className="w-full px-4 py-2.5 bg-green-50/50 border-2 border-green-100 rounded-xl font-bold text-xs text-green-700 outline-none"
-                                        >
-                                          <option value="">Select Correct Option</option>
-                                          {q.options.filter((o: string) => o.trim() !== '').map((o: string, i: number) => (
-                                            <option key={i} value={o}>{o}</option>
-                                          ))}
-                                        </select>
+                                          className="w-full px-5 py-4 bg-slate-50 border-2 border-transparent focus:border-purple-200 rounded-2xl font-bold text-sm text-slate-900 outline-none transition-all placeholder:text-slate-300" 
+                                        />
                                      </div>
-                                  </div>
+
+                                     <div className="space-y-3">
+                                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Answer Options</label>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                          {['A', 'B', 'C', 'D'].map((optLabel, optIdx) => (
+                                            <div key={optIdx} className="group/opt flex items-center gap-3 bg-slate-50/50 px-4 py-3 rounded-2xl border-2 border-slate-100 focus-within:border-purple-200 focus-within:bg-white transition-all">
+                                               <div className="w-6 h-6 bg-white border border-slate-200 rounded-lg flex items-center justify-center text-[10px] font-black text-slate-400 group-focus-within/opt:bg-purple-600 group-focus-within/opt:text-white transition-all">
+                                                  {optLabel}
+                                               </div>
+                                               <input 
+                                                 type="text" 
+                                                 placeholder={`Option ${optLabel}...`} 
+                                                 value={q.options[optIdx]}
+                                                 onChange={(e) => {
+                                                   const updated = [...newQuizQuestions];
+                                                   updated[qIdx].options[optIdx] = e.target.value;
+                                                   setNewQuizQuestions(updated);
+                                                 }}
+                                                 className="w-full bg-transparent border-none text-sm font-bold text-slate-800 outline-none placeholder:text-slate-300" 
+                                               />
+                                            </div>
+                                          ))}
+                                        </div>
+                                     </div>
+
+                                     <div className="pt-4 border-t border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                        <div className="space-y-1 flex-1">
+                                           <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Correct Answer Selection</label>
+                                           <div className="relative">
+                                              <select 
+                                                value={q.answer}
+                                                onChange={(e) => {
+                                                  const updated = [...newQuizQuestions];
+                                                  updated[qIdx].answer = e.target.value;
+                                                  setNewQuizQuestions(updated);
+                                                }}
+                                                className="w-full pl-5 pr-10 py-3.5 bg-green-50/30 border-2 border-green-100/50 rounded-2xl font-black text-xs text-green-700 outline-none appearance-none focus:border-green-400 transition-all cursor-pointer"
+                                              >
+                                                <option value="">Select Correct Option</option>
+                                                {q.options.filter((o: string) => o.trim() !== '').map((o: string, i: number) => (
+                                                  <option key={i} value={o}>Option {['A','B','C','D'][q.options.indexOf(o)]}: {o}</option>
+                                                ))}
+                                              </select>
+                                              <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-green-600">
+                                                 <CheckCircle className="w-4 h-4" />
+                                              </div>
+                                           </div>
+                                        </div>
+                                        <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 rounded-2xl">
+                                            <div className="w-2 h-2 bg-purple-600 rounded-full" />
+                                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Auto-Graded</span>
+                                        </div>
+                                     </div>
+                                  </motion.div>
                                 ))}
                              </div>
                           </div>
