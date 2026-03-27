@@ -51,7 +51,7 @@ export default function LiveClassPage() {
         
         // Update currentSessionId if the backend redirected us to an auto-found session
         if (res.data.id && res.data.id !== currentSessionId) {
-           setCurrentSessionId(res.data.id);
+           setCurrentSessionId(res.data.id as string);
         }
 
         setAgoraConfig({
@@ -83,7 +83,7 @@ export default function LiveClassPage() {
       }
     };
     if (user) fetchJoinData();
-  }, [params.id, user, router]); // currentSessionId removed from deps to prevent re-join loop
+  }, [params.id, user, router]);
 
   useEffect(() => {
     let syncInterval: any;
@@ -120,14 +120,15 @@ export default function LiveClassPage() {
       if (syncInterval) clearInterval(syncInterval);
       if (heartbeatInterval) clearInterval(heartbeatInterval);
     };
-  }, [isJoined, agoraConfig, sessionId]);
+  }, [isJoined, agoraConfig, currentSessionId, params.id]);
 
   const handleSendMessage = async () => {
-    if (inputMessage.trim() && sessionId) {
+    const targetId = currentSessionId || params.id;
+    if (inputMessage.trim() && targetId) {
       const pendingText = inputMessage;
       setInputMessage(''); // Clear immediately for UX
       try {
-        await (api as any).post(`/classes/${sessionId}/messages`, { content: pendingText });
+        await (api as any).post(`/classes/${targetId}/messages`, { content: pendingText });
         // Optionally add to state immediately with formatted time
         setMessages((prev) => [...prev, { 
           sender: user?.name || 'Me', 
@@ -144,7 +145,7 @@ export default function LiveClassPage() {
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
      const file = e.target.files?.[0];
-     if (!file || !sessionId) return;
+     if (!file || !currentSessionId) return;
 
      setIsUploading(true);
      const formData = new FormData();
@@ -162,7 +163,7 @@ export default function LiveClassPage() {
        const url = data.secure_url;
        const type = file.type.includes('video') ? 'video' : 'file';
 
-       await (api as any).post(`/classes/${sessionId}/assets`, { title, url, type });
+       await (api as any).post(`/classes/${currentSessionId}/assets`, { title, url, type });
        
        toast.success(`${type === 'video' ? 'Video' : 'File'} shared successfully!`);
      } catch (err) {
@@ -175,7 +176,7 @@ export default function LiveClassPage() {
   const handleLeaveSession = async () => {
      if(confirm('Are you sure you want to leave this session?')) {
         try {
-          await (api as any).post(`/classes/${sessionId}/leave`);
+          await (api as any).post(`/classes/${currentSessionId}/leave`);
         } catch (e) {}
         router.push(`/dashboard/courses`);
      }
@@ -184,8 +185,8 @@ export default function LiveClassPage() {
   const handleStopSession = async () => {
     if(confirm('Are you sure you want to END this session for everyone?')) {
        try {
-         await (api as any).put(`/classes/${sessionId}/stop`);
-         await (api as any).post(`/classes/${sessionId}/leave`);
+         await (api as any).put(`/classes/${currentSessionId}/stop`);
+         await (api as any).post(`/classes/${currentSessionId}/leave`);
        } catch (e) {}
        router.push(`/dashboard/courses`);
     }
@@ -220,7 +221,7 @@ export default function LiveClassPage() {
                     onClick={async () => {
                       if (confirm('Are you sure you want to PERMANENTLY DELETE this session and all its data?')) {
                         try {
-                          await api.delete(`/classes/${sessionId}`);
+                          await api.delete(`/classes/${currentSessionId}`);
                           toast.success("Session deleted successfully");
                           router.push(`/dashboard/courses/${params.id}`);
                         } catch (err) {
