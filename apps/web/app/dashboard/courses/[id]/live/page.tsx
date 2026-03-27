@@ -157,6 +157,16 @@ export default function LiveClassPage() {
      }
   };
 
+  const handleStopSession = async () => {
+    if(confirm('Are you sure you want to END this session for everyone?')) {
+       try {
+         await (api as any).put(`/classes/${sessionId}/stop`);
+         await (api as any).post(`/classes/${sessionId}/leave`);
+       } catch (e) {}
+       router.push(`/dashboard/courses/${params.id}`);
+    }
+  };
+
   return (
     <div className="flex h-screen bg-slate-950 overflow-hidden text-white">
       <div className="flex-1 flex flex-col min-w-0 h-full">
@@ -173,13 +183,23 @@ export default function LiveClassPage() {
             <button onClick={() => setActiveTab('participants')} className="p-2.5 bg-slate-800 hover:bg-slate-700 rounded-xl transition-colors">
               <Users className="w-5 h-5 text-slate-300" />
             </button>
-            <button 
-              onClick={handleLeaveSession}
-              className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl flex items-center gap-2 transition-all"
-            >
-              <LogOut className="w-4 h-4" />
-              Leave Session
-            </button>
+            {user?.role === 'FACULTY' || user?.role === 'SUPER_ADMIN' ? (
+              <button 
+                onClick={handleStopSession}
+                className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl flex items-center gap-2 transition-all"
+              >
+                <X className="w-4 h-4" />
+                End Session
+              </button>
+            ) : (
+              <button 
+                onClick={handleLeaveSession}
+                className="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl flex items-center gap-2 transition-all"
+              >
+                <LogOut className="w-4 h-4" />
+                Leave Session
+              </button>
+            )}
           </div>
         </header>
 

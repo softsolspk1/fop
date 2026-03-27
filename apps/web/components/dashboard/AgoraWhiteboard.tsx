@@ -1,3 +1,4 @@
+import 'regenerator-runtime/runtime';
 import React, { useEffect, useRef, useState } from 'react';
 import { WhiteWebSdk, Room, RoomPhase, ViewMode } from 'white-web-sdk';
 
