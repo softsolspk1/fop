@@ -226,27 +226,138 @@ router.get('/:id/join', authenticateToken, async (req: AuthRequest, res: Respons
   }
 });
 
-// Get participants joined in a class
-router.get('/:id/participants', authenticateToken, async (req: AuthRequest, res: Response) => {
-  const { id } = req.params;
+// 1. Heartbeat - Update user's last seen status
+router.post('/:id/heartbeat', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
-    const attendees = await prisma.attendance.findMany({
-      where: { classId: String(id) },
-      include: {
-        user: {
-          select: { 
-            id: true, 
-            name: true, 
-            role: true, 
-            designation: true, 
-            rollNumber: true 
-          }
-        }
-      }
+    const { id: classId } = req.params;
+    const { agoraUid } = req.body;
+    const userId = (req.user as any)?.userId;
+    if (!userId) return res.status(401).send();
+
+    await (prisma as any).sessionPresence.upsert({
+      where: { userId_classId: { userId, classId } },
+      update: { lastSeen: new Date(), agoraUid: agoraUid ? Number(agoraUid) : undefined },
+      create: { userId, classId, lastSeen: new Date(), agoraUid: agoraUid ? Number(agoraUid) : undefined }
     });
-    res.json(attendees.map((a: any) => a.user));
-  } catch (err) {
-    res.status(500).json({ message: 'Error fetching participants' });
+
+    res.status(204).send();
+  } catch (error) {
+    res.status(500).json({ error: 'Heartbeat failed' });
+  }
+});
+
+// 2. Sync - Get all session state (participants, messages, assets)
+router.get('/:id/sync', authenticateToken, async (req: AuthRequest, res: Response) => {
+  try {
+    const { id: classId } = req.params;
+    
+    // Get active participants (heartbeat in last 60 seconds)
+    const activeTime = new Date(Date.now() - 60000);
+    const presences = await (prisma as any).sessionPresence.findMany({
+      where: { classId, lastSeen: { gte: activeTime } },
+      include: { user: { select: { name: true, role: true } } }
+    });
+
+    const participants = presences.map((p: any) => ({
+      uid: p.userId, 
+      agoraUid: p.agoraUid, // crucial for mapping video to name
+      name: p.user.name,
+      role: p.user.role
+    }));
+
+    // Get recent messages
+    const messages = await (prisma as any).sessionMessage.findMany({
+      where: { classId },
+      orderBy: { createdAt: 'asc' },
+      take: 50,
+      include: { sender: { select: { name: true } } }
+    });
+
+    // Get shared assets
+    const assets = await (prisma as any).sessionAsset.findMany({
+      where: { classId },
+      orderBy: { createdAt: 'desc' },
+      include: { sender: { select: { name: true } } }
+    });
+
+    res.json({
+      participants,
+      messages: messages.map((m: any) => ({
+        from: m.sender.name,
+        msg: m.content,
+        time: m.createdAt,
+        senderId: m.senderId
+      })),
+      assets: assets.map((a: any) => ({
+        id: a.id,
+        name: a.title,
+        url: a.url,
+        type: a.type,
+        sender: a.sender.name,
+        time: a.createdAt
+      }))
+    });
+  } catch (error) {
+    console.error('[Sync Error]:', error);
+    res.status(500).json({ error: 'Sync failed' });
+  }
+});
+
+// 3. Send Message
+router.post('/:id/messages', authenticateToken, async (req: AuthRequest, res: Response) => {
+  try {
+    const { id: classId } = req.params;
+    const { content } = req.body;
+    const userId = (req.user as any)?.userId;
+    if (!userId) return res.status(401).send();
+
+    const message = await (prisma as any).sessionMessage.create({
+      data: { content, classId, senderId: userId }
+    });
+
+    res.status(201).json(message);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to send message' });
+  }
+});
+
+// 4. Share Asset (File/Video)
+router.post('/:id/assets', authenticateToken, async (req: AuthRequest, res: Response) => {
+  try {
+    const { id: classId } = req.params;
+    const { title, url, type } = req.body;
+    const userId = (req.user as any)?.userId;
+    if (!userId) return res.status(401).send();
+
+    const asset = await (prisma as any).sessionAsset.create({
+      data: { title, url, type, classId, senderId: userId }
+    });
+
+    res.status(201).json(asset);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to share asset' });
+  }
+});
+
+// Get participants joined in a class (Backward compatibility/Original version)
+router.get('/:id/participants', authenticateToken, async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const activeTime = new Date(Date.now() - 60000);
+    const presences = await (prisma as any).sessionPresence.findMany({
+      where: { classId: String(id), lastSeen: { gte: activeTime } },
+      include: { user: { select: { name: true, role: true } } }
+    });
+
+    const participants = presences.map((p: any) => ({
+      name: p.user.name,
+      role: p.user.role,
+      uid: p.userId
+    }));
+
+    res.json(participants);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching participants', error });
   }
 });
 

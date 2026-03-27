@@ -1,4 +1,3 @@
-import 'regenerator-runtime/runtime';
 import React, { useEffect, useRef, useState } from 'react';
 import { WhiteWebSdk, Room, RoomPhase, ViewMode } from 'white-web-sdk';
 
@@ -13,14 +12,25 @@ export default function AgoraWhiteboard({ appId, uuid, token, uid }: AgoraWhiteb
   const containerRef = useRef<HTMLDivElement>(null);
   const roomRef = useRef<Room | null>(null);
   const [phase, setPhase] = useState<RoomPhase>(RoomPhase.Connecting);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (typeof window === 'undefined' || !containerRef.current || !appId || !uuid || !token) return;
+    if (typeof window === 'undefined' || !containerRef.current || !appId || !uuid || !token) {
+      console.warn('[Whiteboard]: Missing required props for initialization');
+      return;
+    }
 
-    const sdk = new WhiteWebSdk({
-      appIdentifier: appId,
-      region: 'in-mum',
-    });
+    let sdk: WhiteWebSdk;
+    try {
+      sdk = new WhiteWebSdk({
+        appIdentifier: appId,
+        region: 'in-mum',
+      });
+    } catch (e: any) {
+      console.error('[Whiteboard]: SDK Init Error:', e);
+      setError('Failed to initialize whiteboard SDK');
+      return;
+    }
 
     const joinRoom = async () => {
       try {
@@ -31,14 +41,15 @@ export default function AgoraWhiteboard({ appId, uuid, token, uid }: AgoraWhiteb
         });
         roomRef.current = room;
         room.bindHtmlElement(containerRef.current);
-        room.setViewMode(ViewMode.Broadcaster); // For teachers/hosts
+        room.setViewMode(ViewMode.Broadcaster); 
         setPhase(room.phase);
         
         room.callbacks.on("onPhaseChanged", (p: RoomPhase) => {
           setPhase(p);
         });
-      } catch (err) {
-        console.error('Whiteboard join error:', err);
+      } catch (err: any) {
+        console.error('[Whiteboard]: Join Error:', err);
+        setError(`Failed to join whiteboard: ${err.message || 'Unknown error'}`);
       }
     };
 
@@ -48,6 +59,15 @@ export default function AgoraWhiteboard({ appId, uuid, token, uid }: AgoraWhiteb
       roomRef.current?.disconnect();
     };
   }, [appId, uuid, token, uid]);
+
+  if (error) {
+    return (
+      <div className="w-full h-full bg-slate-100 flex flex-col items-center justify-center p-8 text-center text-slate-600 rounded-3xl">
+        <p className="font-bold text-red-500 mb-2">Whiteboard Error</p>
+        <p className="text-xs">{error}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full h-full bg-white rounded-2xl relative overflow-hidden board-container shadow-inner min-h-[400px]">

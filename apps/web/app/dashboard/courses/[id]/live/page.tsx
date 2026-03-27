@@ -9,7 +9,6 @@ const AgoraWhiteboard = dynamic(() => import('../../../../../components/dashboar
   ssr: false,
 });
 import api from '../../../../../lib/api';
-import { initChat, sendMessage, onMessageReceived } from '../../../../../components/dashboard/AgoraChatService';
 import { Mic, MicOff, Video, VideoOff, ScreenShare, MessageSquare, Users, Settings, X, LogOut, Send, PenTool } from 'lucide-react';
 import { useAuth } from '../../../../../context/AuthContext';
 import { toast } from 'react-hot-toast';
@@ -72,34 +71,56 @@ export default function LiveClassPage() {
   }, [params.id, sessionId, user, router]);
 
   useEffect(() => {
-    if (isJoined && agoraConfig) {
-      // In a real app, you'd use a real chat token
-      initChat(agoraConfig.uid.toString(), 'mock_token');
-      
-      onMessageReceived((msg) => {
-        if (msg.msg.startsWith('__FILE__:')) {
-          try {
-            const fileData = JSON.parse(msg.msg.replace('__FILE__:', ''));
-            setSharedFiles((prev) => [...prev, fileData]);
-          } catch(e) {}
-        } else {
-          setMessages((prev) => [...prev, { from: msg.from, msg: msg.msg, time: new Date().toLocaleTimeString() }]);
-        }
-      });
-    }
-  }, [isJoined, agoraConfig]);
+    let syncInterval: any;
+    let heartbeatInterval: any;
 
-  const handleSendMessage = () => {
-    if (inputMessage.trim() && agoraConfig) {
-      sendMessage(agoraConfig.channel, inputMessage);
-      setMessages((prev) => [...prev, { from: 'Me', msg: inputMessage, time: new Date().toLocaleTimeString() }]);
-      setInputMessage('');
+    if (isJoined && agoraConfig && sessionId) {
+      // Sync function
+      const syncSession = async () => {
+        try {
+          const res = await (api as any).get(`/classes/${sessionId}/sync`);
+          if (res.data.participants) setParticipants(res.data.participants);
+          if (res.data.messages) setMessages(res.data.messages);
+          if (res.data.assets) setSharedFiles(res.data.assets);
+        } catch (err) {
+          console.error('Sync failed:', err);
+        }
+      };
+
+      // Heartbeat function
+      const sendHeartbeat = async () => {
+        try {
+          await (api as any).post(`/classes/${sessionId}/heartbeat`, { agoraUid: agoraConfig.uid });
+        } catch (err) {}
+      };
+
+      syncSession();
+      sendHeartbeat();
+      syncInterval = setInterval(syncSession, 5000);
+      heartbeatInterval = setInterval(sendHeartbeat, 10000);
+    }
+
+    return () => {
+      if (syncInterval) clearInterval(syncInterval);
+      if (heartbeatInterval) clearInterval(heartbeatInterval);
+    };
+  }, [isJoined, agoraConfig, sessionId]);
+
+  const handleSendMessage = async () => {
+    if (inputMessage.trim() && sessionId) {
+      try {
+        await (api as any).post(`/classes/${sessionId}/messages`, { content: inputMessage });
+        setMessages((prev) => [...prev, { from: user?.name || 'Me', msg: inputMessage, time: new Date() }]);
+        setInputMessage('');
+      } catch (err) {
+        toast.error("Failed to send message");
+      }
     }
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
      const file = e.target.files?.[0];
-     if (!file || !agoraConfig) return;
+     if (!file || !sessionId) return;
 
      setIsUploading(true);
      const formData = new FormData();
@@ -113,14 +134,15 @@ export default function LiveClassPage() {
        });
        const data = await res.json();
        
-       const fileData = { name: file.name, url: data.secure_url, sender: user?.name, time: new Date().toLocaleTimeString() };
-       setSharedFiles(prev => [...prev, fileData]);
+       const title = file.name;
+       const url = data.secure_url;
+       const type = file.type.includes('video') ? 'video' : 'file';
+
+       await (api as any).post(`/classes/${sessionId}/assets`, { title, url, type });
        
-       // Share via chat with a special prefix
-       sendMessage(agoraConfig.channel, `__FILE__:${JSON.stringify(fileData)}`);
-       toast.success("File shared successfully!");
+       toast.success(`${type === 'video' ? 'Video' : 'File'} shared successfully!`);
      } catch (err) {
-       toast.error("File upload failed.");
+       toast.error("Share failed.");
      } finally {
        setIsUploading(false);
      }
@@ -180,7 +202,12 @@ export default function LiveClassPage() {
                   </div>
                 ) : (
                   <div className="flex-1 min-h-0">
-                    <AgoraVideoPlayer {...agoraConfig} isScreenSharing={isScreenSharing} onScreenShareEnd={() => setIsScreenSharing(false)} />
+                    <AgoraVideoPlayer 
+                      {...agoraConfig} 
+                      participants={participants}
+                      isScreenSharing={isScreenSharing} 
+                      onScreenShareEnd={() => setIsScreenSharing(false)} 
+                    />
                   </div>
                 )}
               </div>
@@ -217,12 +244,14 @@ export default function LiveClassPage() {
             <div className="flex-1 overflow-y-auto p-6 space-y-4">
                {activeTab === 'chat' && (
                  <>
-                   {messages.map((m, i) => (
-                     <div key={i} className="flex flex-col gap-1 anim-fade-in">
-                       <p className="text-[9px] font-black text-slate-500 uppercase">{m.time}</p>
-                       <p className="text-sm"><span className="font-bold text-blue-400">{m.from}:</span> {m.msg}</p>
-                     </div>
-                   ))}
+                    {messages.map((m, i) => (
+                      <div key={i} className="flex flex-col gap-1 anim-fade-in">
+                        <p className="text-[9px] font-black text-slate-500 uppercase">
+                          {new Date(m.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </p>
+                        <p className="text-sm"><span className="font-bold text-blue-400">{m.from}:</span> {m.msg}</p>
+                      </div>
+                    ))}
                  </>
                )}
 

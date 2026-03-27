@@ -9,12 +9,14 @@ interface AgoraVideoPlayerProps {
   token: string;
   uid: number;
   role: 'audience' | 'host';
+  participants?: any[];
   isScreenSharing?: boolean;
   onScreenShareEnd?: () => void;
 }
 
 export default function AgoraVideoPlayer({ 
   appId, channel, token, uid, role, 
+  participants = [],
   isScreenSharing = false, 
   onScreenShareEnd 
 }: AgoraVideoPlayerProps) {
@@ -26,6 +28,12 @@ export default function AgoraVideoPlayer({
   const videoRef = useRef<HTMLDivElement>(null);
   const screenRef = useRef<HTMLDivElement>(null);
 
+  // Helper to get name from uid
+  const getUserName = (remoteUid: any) => {
+    const p = participants.find(part => part.agoraUid === Number(remoteUid));
+    return p ? p.name : `User ${remoteUid}`;
+  };
+  
   useEffect(() => {
     const initAgora = async () => {
       clientRef.current = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
@@ -144,7 +152,7 @@ export default function AgoraVideoPlayer({
               )}
 
               {remoteUsers.map((user) => (
-                <RemoteVideo key={user.uid} user={user} />
+                <RemoteVideo key={user.uid} user={user} name={getUserName(user.uid)} />
               ))}
 
               {remoteUsers.length === 0 && role !== 'host' && (
@@ -170,7 +178,7 @@ export default function AgoraVideoPlayer({
            )}
            {remoteUsers.map((user) => (
               <div key={user.uid} className="aspect-video h-full shrink-0">
-                <RemoteVideo user={user} />
+                <RemoteVideo user={user} name={getUserName(user.uid)} />
               </div>
            ))}
         </div>
@@ -179,7 +187,7 @@ export default function AgoraVideoPlayer({
   );
 }
 
-function RemoteVideo({ user }: { user: any }) {
+function RemoteVideo({ user, name }: { user: any, name: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -192,7 +200,7 @@ function RemoteVideo({ user }: { user: any }) {
     <div className="relative aspect-video bg-slate-800 rounded-2xl overflow-hidden border border-white/10 shadow-sm transition-transform hover:scale-[1.02] w-full h-full">
       <div ref={containerRef} className="w-full h-full" />
       <div className="absolute bottom-4 left-4 flex items-center gap-2 bg-black/50 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/20">
-        <span className="text-xs font-bold text-white uppercase tracking-wider">Student</span>
+        <span className="text-xs font-bold text-white uppercase tracking-wider">{name}</span>
       </div>
     </div>
   );
