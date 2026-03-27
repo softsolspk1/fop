@@ -38,7 +38,7 @@ User Role Hirerchy:
 2) Hirerchy is as follows: Make the System as per following Hirerchy and Access Control
 Main Admin - Vice Chancellor of University
 Super Admin - Dean of Every Faculty who look performance of Every Departments and it's HOD and All Faculty Members and Students
-Sub-Admin: This is Dean Office Role who has access to Enrollments, Academic Reports, Fee Management, Examination, Results and Time Table as Admin Role.
+Sub-Admin: This is Dean Office Role who has access to Enrollments, Attendance, Academic Reports, Fee Management, Examination, Results and Time Table as Admin Role.
 HOD: Department Head of Every department in which HOD can manage t assign course to any faculty member of relevant department
 Faculty Member: Teacher Role and Manage Assigned Courses 
 Students: Student Roles as per Professional Year.
@@ -124,4 +124,63 @@ Failed to join whiteboard: (0 , c6.render) is not a function
 
 7) Video should be optimized as per screen to the Faculty and Student Side also. Icrease the Video Screen Size. See the attached image and optimized the size
 Fix all issues and make sure the Live Session between faculty member and students will work 100% functional and smoothly.
+
+============================================================================
+Fix the following:
+1) Forgot password not working
+2) Share file in Live Session / Live Class is not working
+3) Allow Admin / Sub Admin (Dean Office) will Active or Deactive any single course also. So add option with all courses 
+4) Set the Access / Navigation Menu to the following Roles:
+
+A) Sub-Admin (Dean Office Role)
+This is Dean Office Role who has access to Enrollments, Attendance, Academic Reports, Fee Management, Examination, Results and Time Table as Admin Role.
+Navigation Menu Items:
+Dashboard
+Enrollments
+Attendance
+Academic Reports
+Fee Management
+Examination
+Results
+Time Table
+Settings
+
+
+
+B) HOD: Department Head of Every department in which HOD can manage to assign course to any faculty member of relevant department
+
+Navigation Menu Items:
+Dashboard: The Dashboard will show department analytics
+Course Catalogue: Only Active Courses of Relevant Department will be Visible
+Assign Course
+Attendance: Attendance of relevant department courses will be visible
+Live Chat
+Live Classes
+Visual Lab
+Academic Reports
+Examination
+Results
+Time Table
+Settings
+In the Assign Course, there is list of All Active Course showing of relevant department from which HOD assign course to any Faculty Member of their Department
+
+
+C) Faculty Member (Teacher): Teacher Role is to Manage Assigned Courses 
+Navigation Menu Items:
+Dashboard: The Dashboard will show teacher's performance analytics
+Course Catalogue: Only Active and Assigned Courses will be Visible
+Attendance: Attendance of assigned courses will be visible
+Live Chat
+Live Classes
+Visual Lab
+Academic Reports
+Examination
+Results
+Time Table
+Settings
+
+
+D) Student Role:
+Student Role and Navigation Menu is perfect.
+Only one issue need to resolve is that the Student Dashboard and Course Catalogue in Student will show only Active Courses of their Professional Year. Currently InActive courses also showing.
 

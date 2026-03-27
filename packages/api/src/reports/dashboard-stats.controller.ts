@@ -94,6 +94,9 @@ router.get('/stats', authenticateToken, async (req: any, res) => {
       });
     }
 
+    const isHOD = req.user?.role === 'HOD';
+    const deptId = isHOD ? req.user?.departmentId : undefined;
+
     const [
       totalStudents,
       totalFaculty,
@@ -102,12 +105,12 @@ router.get('/stats', authenticateToken, async (req: any, res) => {
       totalLabs,
       pendingEnrollments
     ] = await Promise.all([
-      prisma.user.count({ where: { role: 'STUDENT' as any } }),
-      prisma.user.count({ where: { role: 'FACULTY' as any } }),
-      prisma.course.count(),
-      prisma.department.count(),
-      prisma.lab.count(),
-      prisma.user.count({ where: { status: 'PENDING' } })
+      prisma.user.count({ where: { role: 'STUDENT' as any, departmentId: deptId || undefined } }),
+      prisma.user.count({ where: { role: 'FACULTY' as any, departmentId: deptId || undefined } }),
+      prisma.course.count({ where: { departmentId: deptId || undefined } }),
+      prisma.department.count(deptId ? { where: { id: deptId } } : undefined),
+      prisma.lab.count(deptId ? { where: { department: { contains: deptId } } } : undefined),
+      prisma.user.count({ where: { status: 'PENDING', departmentId: deptId || undefined } })
     ]);
 
     res.json({

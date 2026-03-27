@@ -73,7 +73,11 @@ export default function CoursesPage() {
       setDepartments(deptsRes.data);
       setActiveClasses(activeRes.data);
       // Filter only teachers or admins for the teacher selection
-      setTeachers(usersRes.data.filter((u: any) => u.role === 'FACULTY' || u.role === 'SUPER_ADMIN'));
+      let availableTeachers = usersRes.data.filter((u: any) => ['FACULTY', 'HOD', 'SUPER_ADMIN', 'MAIN_ADMIN', 'SUB_ADMIN'].includes(u.role));
+      if (currentUser?.role === 'HOD') {
+        availableTeachers = availableTeachers.filter((u: any) => u.departmentId === currentUser.departmentId);
+      }
+      setTeachers(availableTeachers);
     } catch (err) {
       console.error('Error fetching data:', err);
       setError('Failed to load courses.');
@@ -101,7 +105,16 @@ export default function CoursesPage() {
       });
     } else {
       setEditingCourse(null);
-      setFormData({ name: '', code: '', departmentId: '', teacherId: '', professional: '', semesterName: '', creditHours: 0, category: '' });
+      setFormData({ 
+        name: '', 
+        code: '', 
+        departmentId: currentUser?.role === 'HOD' ? (currentUser.departmentId || '') : '', 
+        teacherId: '', 
+        professional: '', 
+        semesterName: '', 
+        creditHours: 0, 
+        category: '' 
+      });
     }
     setIsModalOpen(true);
   };
@@ -146,6 +159,18 @@ export default function CoursesPage() {
     } catch (err) {
       console.error('Error saving course:', err);
       alert('Failed to save course');
+    }
+  };
+
+  const handleToggleActive = async (course: any) => {
+    try {
+      const updatedStatus = !course.isActive;
+      await api.put(`/courses/${course.id}`, { ...course, isActive: updatedStatus });
+      toast?.success(`Course ${updatedStatus ? 'activated' : 'deactivated'} successfully`);
+      fetchData();
+    } catch (err) {
+      console.error('Error toggling course status:', err);
+      alert('Failed to update course status');
     }
   };
 
@@ -337,9 +362,13 @@ export default function CoursesPage() {
                 <div className="mb-6 flex-1">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-[10px] font-black text-blue-600 uppercase tracking-[0.2em]">{course.code}</span>
-                    <span className={`px-3 py-1 ${course.isActive ? 'bg-green-50 text-green-700 border-green-100' : 'bg-slate-50 text-slate-400 border-slate-100'} rounded-full text-[10px] font-black uppercase tracking-widest border`}>
+                    <button 
+                      onClick={() => (['MAIN_ADMIN', 'SUPER_ADMIN', 'SUB_ADMIN', 'HOD'].includes(currentUser?.role || '')) && handleToggleActive(course)}
+                      disabled={!['MAIN_ADMIN', 'SUPER_ADMIN', 'SUB_ADMIN', 'HOD'].includes(currentUser?.role || '')}
+                      className={`px-3 py-1 ${course.isActive ? 'bg-green-50 text-green-700 border-green-100 hover:bg-green-100' : 'bg-slate-50 text-slate-400 border-slate-100 hover:bg-slate-100'} rounded-full text-[10px] font-black uppercase tracking-widest border transition-colors cursor-pointer disabled:cursor-default`}
+                    >
                       {course.isActive ? 'Active' : 'Inactive'}
-                    </span>
+                    </button>
                   </div>
                   <h3 className="text-xl font-black text-slate-800 leading-tight mb-1">{course.name}</h3>
                   <div className="flex flex-wrap gap-2 mt-2">
@@ -1476,9 +1505,10 @@ export default function CoursesPage() {
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Department</label>
                     <select 
                       required
+                      disabled={currentUser?.role === 'HOD'}
                       value={formData.departmentId}
                       onChange={(e) => setFormData({...formData, departmentId: e.target.value})}
-                      className="w-full px-5 py-3.5 bg-white border-2 border-slate-100 rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-400 transition-all shadow-sm"
+                      className="w-full px-5 py-3.5 bg-white border-2 border-slate-100 rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-400 transition-all shadow-sm disabled:bg-slate-50 disabled:text-slate-500"
                     >
                       <option value="" className="text-slate-900">Select Department</option>
                       {departments.map((dept: any) => (

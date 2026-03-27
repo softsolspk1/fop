@@ -53,6 +53,22 @@ router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
       }
     }
 
+    // HOD only sees courses for their department
+    if (req.user?.role === 'HOD') {
+      const hod = await prisma.user.findUnique({
+        where: { id: req.user.userId },
+        select: { departmentId: true }
+      });
+      if (hod?.departmentId) {
+        whereClause.departmentId = hod.departmentId;
+      }
+    }
+
+    // Faculty only sees courses they teach
+    if (req.user?.role === 'FACULTY') {
+      whereClause.teacherId = req.user.userId;
+    }
+
     const courses = await prisma.course.findMany({
       where: whereClause,
       include: {
@@ -205,10 +221,10 @@ router.post('/:id/materials', authenticateToken, authorizeRoles('FACULTY', 'HOD'
 router.put('/:id', authenticateToken, authorizeRoles('MAIN_ADMIN', 'SUPER_ADMIN', 'HOD'), async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
-    const { name, code, departmentId, teacherId, semesterId } = req.body;
+    const { name, code, departmentId, teacherId, semesterId, isActive, professional, semesterName, creditHours, category } = req.body;
     const course = await prisma.course.update({
       where: { id: String(id) },
-      data: { name, code, departmentId, teacherId, semesterId }
+      data: { name, code, departmentId, teacherId, semesterId, isActive, professional, semesterName, creditHours, category }
     });
     res.json(course);
   } catch (error) {

@@ -33,18 +33,19 @@ import { motion } from 'framer-motion';
 const navItems = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard', roles: ['MAIN_ADMIN', 'SUPER_ADMIN', 'SUB_ADMIN', 'HOD', 'FACULTY', 'STUDENT'] },
   { icon: Building2, label: 'Departments', href: '/dashboard/departments', roles: ['MAIN_ADMIN', 'SUPER_ADMIN'] },
-  { icon: Users, label: 'User Management', href: '/dashboard/users', roles: ['MAIN_ADMIN', 'SUPER_ADMIN', 'SUB_ADMIN', 'HOD'] },
+  { icon: Users, label: 'User Directory', href: '/dashboard/users', roles: ['MAIN_ADMIN', 'SUPER_ADMIN', 'SUB_ADMIN', 'HOD'] },
   { icon: UserPlus, label: 'Enrollments', href: '/dashboard/enrollments', roles: ['MAIN_ADMIN', 'SUPER_ADMIN', 'SUB_ADMIN', 'HOD'] },
   { icon: BookOpen, label: 'Course Catalogue', href: '/dashboard/courses', roles: ['MAIN_ADMIN', 'SUPER_ADMIN', 'SUB_ADMIN', 'HOD', 'FACULTY', 'STUDENT'] },
+  { icon: UserPlus, label: 'Assign Course', href: '/dashboard/courses', roles: ['HOD'] }, // Using courses page for assignment logic
   { icon: MessageSquare, label: 'Live Chat', href: '/dashboard/chat', roles: ['MAIN_ADMIN', 'SUPER_ADMIN', 'SUB_ADMIN', 'HOD', 'FACULTY', 'STUDENT'] },
   { icon: Video, label: 'Live Classes', href: '/dashboard/classes', roles: ['MAIN_ADMIN', 'SUPER_ADMIN', 'SUB_ADMIN', 'HOD', 'FACULTY', 'STUDENT'] },
   { icon: Beaker, label: 'Visual Lab', href: '/dashboard/labs', roles: ['MAIN_ADMIN', 'SUPER_ADMIN', 'SUB_ADMIN', 'HOD', 'FACULTY', 'STUDENT'] },
   { icon: ClipboardList, label: 'Academic Reports', href: '/dashboard/reports', roles: ['MAIN_ADMIN', 'SUPER_ADMIN', 'SUB_ADMIN', 'HOD', 'FACULTY', 'STUDENT'] },
-  { icon: CreditCard, label: 'Fee Management', href: '/dashboard/fees', roles: ['MAIN_ADMIN', 'SUPER_ADMIN', 'SUB_ADMIN', 'HOD', 'STUDENT'] },
+  { icon: CreditCard, label: 'Fee Management', href: '/dashboard/fees', roles: ['MAIN_ADMIN', 'SUPER_ADMIN', 'SUB_ADMIN', 'STUDENT'] },
   { icon: ClipboardList, label: 'Examination', href: '/dashboard/exams', roles: ['MAIN_ADMIN', 'SUPER_ADMIN', 'SUB_ADMIN', 'HOD', 'FACULTY', 'STUDENT'] },
-  { icon: BarChart, label: 'Analytics', href: '/dashboard/reports', roles: ['MAIN_ADMIN', 'SUPER_ADMIN', 'SUB_ADMIN'] },
+  { icon: FileText, label: 'Results', href: '/dashboard/results', roles: ['MAIN_ADMIN', 'SUPER_ADMIN', 'SUB_ADMIN', 'HOD', 'FACULTY', 'STUDENT'] },
+  { icon: Calendar, label: 'Time Table', href: '/dashboard/calendar', roles: ['MAIN_ADMIN', 'SUPER_ADMIN', 'SUB_ADMIN', 'HOD', 'FACULTY', 'STUDENT'] },
   { icon: CheckCircle, label: 'Attendance', href: '/dashboard/attendance', roles: ['MAIN_ADMIN', 'SUPER_ADMIN', 'SUB_ADMIN', 'HOD', 'FACULTY', 'STUDENT'] },
-  { icon: CheckCircle, label: 'Pending Approvals', href: '/dashboard/approvals', roles: ['MAIN_ADMIN', 'SUPER_ADMIN', 'SUB_ADMIN', 'HOD'] },
   { icon: Settings, label: 'Settings', href: '/dashboard/settings', roles: ['MAIN_ADMIN', 'SUPER_ADMIN', 'SUB_ADMIN', 'HOD', 'FACULTY', 'STUDENT'] },
 ];
 

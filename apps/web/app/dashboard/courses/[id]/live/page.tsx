@@ -145,7 +145,8 @@ export default function LiveClassPage() {
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
      const file = e.target.files?.[0];
-     if (!file || !currentSessionId) return;
+     const targetId = currentSessionId || params.id;
+     if (!file || !targetId) return;
 
      setIsUploading(true);
      const formData = new FormData();
@@ -163,7 +164,7 @@ export default function LiveClassPage() {
        const url = data.secure_url;
        const type = file.type.includes('video') ? 'video' : 'file';
 
-       await (api as any).post(`/classes/${currentSessionId}/assets`, { title, url, type });
+       await (api as any).post(`/classes/${targetId}/assets`, { title, url, type });
        
        toast.success(`${type === 'video' ? 'Video' : 'File'} shared successfully!`);
      } catch (err) {

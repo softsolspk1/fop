@@ -174,6 +174,7 @@ router.post('/forgot-password', async (req, res) => {
       res.status(500).json({ message: 'Error sending reset email' });
     }
   } catch (error) {
+    console.error('[Auth]: Forgot Password Fatal Error:', error);
     res.status(500).json({ message: 'Internal server error', error });
   }
 });
