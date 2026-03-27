@@ -13,6 +13,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../../lib/api';
 import { useAuth } from '../../../context/AuthContext';
 import Link from 'next/link';
+import { toast } from 'react-hot-toast';
 
 export default function CoursesPage() {
   const { user: currentUser } = useAuth();
