@@ -22,7 +22,7 @@ export default function LiveClassPage() {
   const [isJoined, setIsJoined] = useState(false);
   const [isMicOn, setIsMicOn] = useState(true);
   const [isCamOn, setIsCamOn] = useState(true);
-  const [activeTab, setActiveTab] = useState<'chat' | 'participants' | 'files' | 'whiteboard'>('chat');
+  const [activeTab, setActiveTab] = useState<'chat' | 'participants' | 'files'>('chat');
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [activeStageId, setActiveStageId] = useState<number | null>(null);
   const [showWhiteboard, setShowWhiteboard] = useState(false);
@@ -55,7 +55,7 @@ export default function LiveClassPage() {
           token: res.data.token,
           uid: res.data.uid,
           whiteboard: res.data.whiteboard,
-          role: 'host', // Everyone is a host in this interactive classroom
+          role: user?.role === 'STUDENT' ? 'audience' : 'host',
           courseName: res.data.courseName || 'Live Session',
           isFaculty: user?.role !== 'STUDENT'
         });
@@ -195,13 +195,32 @@ export default function LiveClassPage() {
           </div>
           <div className="flex items-center gap-3">
              {user?.role === 'FACULTY' || user?.role === 'SUPER_ADMIN' ? (
-               <button 
-                 onClick={handleStopSession}
-                 className="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white text-xs font-black uppercase tracking-widest rounded-xl flex items-center gap-2 transition-all shadow-lg"
-               >
-                 <X className="w-4 h-4" />
-                 End Session
-               </button>
+                <>
+                  <button 
+                    onClick={handleStopSession}
+                    className="px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-white text-xs font-black uppercase tracking-widest rounded-xl flex items-center gap-2 transition-all shadow-lg"
+                  >
+                    <X className="w-4 h-4" />
+                    End Session
+                  </button>
+                  <button 
+                    onClick={async () => {
+                      if (confirm('Are you sure you want to PERMANENTLY DELETE this session and all its data?')) {
+                        try {
+                          await api.delete(`/classes/${sessionId}`);
+                          toast.success("Session deleted successfully");
+                          router.push(`/dashboard/courses/${params.id}`);
+                        } catch (err) {
+                          toast.error("Failed to delete session");
+                        }
+                      }
+                    }}
+                    className="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white text-xs font-black uppercase tracking-widest rounded-xl flex items-center gap-2 transition-all shadow-xl"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Delete Session
+                  </button>
+                </>
              ) : (
                <button 
                  onClick={handleLeaveSession}
@@ -233,21 +252,12 @@ export default function LiveClassPage() {
                </div>
              ) : (
                <div className="flex-1 rounded-[32px] bg-slate-900 border border-white/5 shadow-2xl overflow-hidden relative group">
-                  {activeTab === 'whiteboard' ? (
-                     <AgoraWhiteboard 
-                       appId={process.env.NEXT_PUBLIC_AGORA_WHITEBOARD_APP_ID || '876dc55e0241436fb6c63433afeb9563'} 
-                       uuid={agoraConfig?.whiteboard?.uuid} 
-                       token={agoraConfig?.whiteboard?.token}
-                       uid={agoraConfig?.uid || 0}
-                     />
-                  ) : (
-                     <AgoraVideoPlayer 
-                       {...agoraConfig}
-                       participants={participants}
-                       isScreenSharing={isScreenSharing}
-                       onScreenShareEnd={() => setIsScreenSharing(false)}
-                     />
-                  )}
+                   <AgoraVideoPlayer 
+                     {...agoraConfig}
+                     participants={participants}
+                     isScreenSharing={isScreenSharing}
+                     onScreenShareEnd={() => setIsScreenSharing(false)}
+                   />
 
                   {/* Stage Utilities */}
                   <div className="absolute bottom-6 right-6 flex gap-3 z-30 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -268,7 +278,7 @@ export default function LiveClassPage() {
             <div className="w-80 bg-slate-900/50 rounded-[32px] border border-white/10 flex flex-col shrink-0 overflow-hidden shadow-2xl">
                {/* Sidebar Tabs */}
                <div className="flex border-b border-white/5 p-2 gap-1 bg-slate-950/20">
-                  {['chat', 'participants', 'files', 'whiteboard'].map((tab) => (
+                  {['chat', 'participants', 'files'].map((tab) => (
                     <button 
                       key={tab}
                       onClick={() => setActiveTab(tab as any)}

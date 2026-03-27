@@ -192,9 +192,32 @@ router.put('/:id/stop', authenticateToken, authorizeRoles('FACULTY', 'SUPER_ADMI
       where: { id: String(id) },
       data: { actualEndTime: new Date() }
     });
+});
     res.json({ message: 'Session stopped successfully', session });
   } catch (error) {
     res.status(500).json({ message: 'Error stopping session', error });
+  }
+});
+
+// DELETE Session (Teacher/Admin)
+router.delete('/:id', authenticateToken, authorizeRoles('FACULTY', 'SUPER_ADMIN', 'MAIN_ADMIN'), async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    
+    // First delete dependent records (SessionMessage, SessionPresence, SessionAsset)
+    await (prisma as any).sessionMessage.deleteMany({ where: { classId: String(id) } });
+    await (prisma as any).sessionPresence.deleteMany({ where: { classId: String(id) } });
+    await (prisma as any).sessionAsset.deleteMany({ where: { classId: String(id) } });
+    await prisma.attendance.deleteMany({ where: { classId: String(id) } });
+    await prisma.recording.deleteMany({ where: { classId: String(id) } });
+
+    await prisma.class.delete({
+      where: { id: String(id) }
+    });
+    res.json({ message: 'Session deleted successfully' });
+  } catch (error) {
+    console.error('Delete Class Error:', error);
+    res.status(500).json({ message: 'Error deleting session', error });
   }
 });
 
