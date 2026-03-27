@@ -7,7 +7,21 @@ const router = Router();
 // Get exam schedule (Authenticated)
 router.get('/schedule', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
+    const isStudent = req.user?.role === 'STUDENT';
+    const whereClause: any = {};
+
+    if (isStudent) {
+      const student = await prisma.user.findUnique({
+        where: { id: req.user?.userId },
+        select: { year: true }
+      });
+      if (student?.year) {
+        whereClause.course = { professional: student.year };
+      }
+    }
+
     const exams = await prisma.exam.findMany({
+      where: whereClause,
       include: { course: true },
       orderBy: { date: 'asc' }
     });

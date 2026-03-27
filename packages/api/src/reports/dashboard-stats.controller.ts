@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Role } from '@prisma/client';
 import { authenticateToken } from '../auth/auth.middleware';
 
 const router = Router();
@@ -14,6 +14,41 @@ router.get('/stats', authenticateToken, async (req: any, res) => {
     //   return res.status(403).json({ message: 'Forbidden' });
     // }
 
+    const isStudent = req.user?.role === 'STUDENT';
+
+    if (isStudent) {
+      const student = await prisma.user.findUnique({
+        where: { id: req.user.userId },
+        select: { year: true }
+      });
+      
+      const year = student?.year || "First";
+
+      const [
+        totalCourses,
+        totalLabs,
+        totalExams,
+        attendanceCount,
+        assignmentsCount
+      ] = await Promise.all([
+        prisma.course.count({ where: { professional: year, isActive: true } }),
+        prisma.lab.count({ where: { year: year } }),
+        prisma.exam.count({ where: { course: { professional: year } } }),
+        prisma.attendance.count({ where: { userId: req.user.userId, status: 'PRESENT' } }),
+        prisma.submission.count({ where: { studentId: req.user.userId } })
+      ]);
+
+      return res.json({
+        courses: totalCourses,
+        labs: totalLabs,
+        exams: totalExams,
+        attendance: attendanceCount,
+        assignments: assignmentsCount,
+        professionalYear: year,
+        lastUpdated: new Date()
+      });
+    }
+
     const [
       totalStudents,
       totalFaculty,
@@ -22,8 +57,8 @@ router.get('/stats', authenticateToken, async (req: any, res) => {
       totalLabs,
       pendingEnrollments
     ] = await Promise.all([
-      prisma.user.count({ where: { role: 'STUDENT' } }),
-      prisma.user.count({ where: { role: 'FACULTY' } }),
+      prisma.user.count({ where: { role: 'STUDENT' as any } }),
+      prisma.user.count({ where: { role: 'FACULTY' as any } }),
       prisma.course.count(),
       prisma.department.count(),
       prisma.lab.count(),

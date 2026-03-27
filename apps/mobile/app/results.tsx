@@ -16,7 +16,7 @@ export default function ResultsScreen() {
   const fetchResults = async () => {
     try {
       if (!user?.id) return;
-      const res = await api.get(`/results/student/${user.id}`);
+      const res = await api.get('/results/me');
       setResults(Array.isArray(res.data) ? res.data : []);
     } catch (error) {
       console.error('[Results Error]:', error);

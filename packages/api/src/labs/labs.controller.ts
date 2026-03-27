@@ -7,7 +7,20 @@ const router = Router();
 // Get all labs grouped by department
 router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
+    const isStudent = req.user?.role === 'STUDENT';
+    const whereClause: any = {};
+    if (isStudent) {
+      const student = await prisma.user.findUnique({
+        where: { id: req.user?.userId },
+        select: { year: true }
+      });
+      if (student?.year) {
+        whereClause.year = student.year;
+      }
+    }
+
     const labs = await prisma.lab.findMany({
+      where: whereClause,
       include: {
         experiments: {
           where: { studentId: req.user?.userId }

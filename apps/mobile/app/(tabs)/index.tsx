@@ -15,11 +15,12 @@ export default function DashboardScreen() {
     if (!user) return;
     try {
       if (user.role === 'STUDENT') {
-        // Students stats
-         setStats({
-          attendance: '92%',
-          courses: '6',
-          labs: '12'
+        const { data } = await api.get('/reports/dashboard-stats/stats');
+        setStats({
+          attendance: data.attendance || 0,
+          courses: data.courses || 0,
+          labs: data.labs || 0,
+          exams: data.exams || 0
         });
       } else {
         const { data } = await api.get('/departments/my-stats');
@@ -46,14 +47,13 @@ export default function DashboardScreen() {
     fetchStats();
   };
 
-  const StatCircle = ({ icon: Icon, label, value, color }: any) => (
-    <Card style={styles.statCard}>
-      <View style={[styles.statIcon, { backgroundColor: color + '10' }]}>
+  const QuickAction = ({ icon: Icon, label, onPress, color }: any) => (
+    <TouchableOpacity style={styles.actionBtn} onPress={onPress}>
+      <View style={[styles.actionIcon, { backgroundColor: color + '15' }]}>
         <Icon size={24} color={color} />
       </View>
-      <Text style={styles.statValue}>{value || '0'}</Text>
-      <Text style={styles.statLabel}>{label}</Text>
-    </Card>
+      <Text style={styles.actionLabel}>{label}</Text>
+    </TouchableOpacity>
   );
 
   return (
@@ -85,6 +85,20 @@ export default function DashboardScreen() {
       </View>
 
       <View style={styles.content}>
+        {user?.role === 'STUDENT' && (
+          <View style={styles.actionsSection}>
+            <Text style={styles.sectionTitle}>Quick Actions</Text>
+            <View style={styles.actionsGrid}>
+              <QuickAction icon={Calendar} label="Timetable" color="#2563eb" onPress={() => router.push('/timetable')} />
+              <QuickAction icon={FileText} label="Exams" color="#7c3aed" onPress={() => router.push('/exams')} />
+              <QuickAction icon={CreditCard} label="Fees" color="#059669" onPress={() => router.push('/fees')} />
+              <QuickAction icon={FlaskConical} label="Virtual Lab" color="#ea580c" onPress={() => router.push('/(tabs)/labs')} />
+              <QuickAction icon={Users} label="Faculty" color="#db2777" onPress={() => router.push('/faculty-directory')} />
+              <QuickAction icon={Award} label="Assessments" color="#d97706" onPress={() => router.push('/lab-assessment')} />
+            </View>
+          </View>
+        )}
+
         <Text style={styles.sectionTitle}>Quick Overview</Text>
         <View style={styles.statsGrid}>
           <StatCircle icon={BookOpen} label="Courses" value={stats?.courses} color="#2563eb" />
@@ -115,6 +129,8 @@ export default function DashboardScreen() {
   );
 }
 
+import { CreditCard, Award } from 'lucide-react-native';
+
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
   scroll: { paddingBottom: 40 },
@@ -137,6 +153,11 @@ const styles = StyleSheet.create({
   statValue: { fontSize: 24, fontWeight: 'bold', color: Colors.text },
   statLabel: { fontSize: 12, color: Colors.textSecondary, marginTop: 2 },
   upcomingSection: { marginTop: 32 },
+  actionsSection: { marginBottom: 32 },
+  actionsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, justifyContent: 'space-between' },
+  actionBtn: { width: '31%', backgroundColor: Colors.white, borderRadius: 16, padding: 16, alignItems: 'center', borderWidth: 1, borderColor: Colors.border },
+  actionIcon: { width: 48, height: 48, borderRadius: 14, alignItems: 'center', justifyContent: 'center', marginBottom: 8 },
+  actionLabel: { fontSize: 11, fontWeight: '600', color: Colors.text, textAlign: 'center' },
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
   seeAll: { color: Colors.primary, fontWeight: 'bold' },
   sessionCard: { flexDirection: 'row', alignItems: 'center', gap: 16, padding: 16 },

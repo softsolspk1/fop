@@ -40,9 +40,16 @@ router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
     if (departmentId) whereClause.departmentId = String(departmentId);
     if (semesterName) whereClause.semesterName = String(semesterName);
     
-    // Students only see active courses
+    // Students only see active courses for their professional year
     if (isStudent) {
       whereClause.isActive = true;
+      const student = await prisma.user.findUnique({
+        where: { id: req.user?.userId },
+        select: { year: true }
+      });
+      if (student?.year) {
+        whereClause.professional = student.year;
+      }
     }
 
     const courses = await prisma.course.findMany({

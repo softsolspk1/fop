@@ -9,7 +9,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     const faculty = await prisma.user.findMany({
       where: {
-        role: 'FACULTY'
+        role: { in: ['FACULTY', 'HOD'] }
       },
       include: {
         department: true
