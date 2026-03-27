@@ -231,7 +231,7 @@ router.get('/:id/participants', authenticateToken, async (req: AuthRequest, res:
   const { id } = req.params;
   try {
     const attendees = await prisma.attendance.findMany({
-      where: { classId: id },
+      where: { classId: String(id) },
       include: {
         user: {
           select: { 
@@ -244,7 +244,7 @@ router.get('/:id/participants', authenticateToken, async (req: AuthRequest, res:
         }
       }
     });
-    res.json(attendees.map(a => a.user));
+    res.json(attendees.map((a: any) => a.user));
   } catch (err) {
     res.status(500).json({ message: 'Error fetching participants' });
   }
