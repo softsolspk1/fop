@@ -174,9 +174,31 @@ router.put('/materials/:id/status', authenticateToken, authorizeRoles('HOD', 'SU
 router.delete('/materials/:id', authenticateToken, authorizeRoles('FACULTY', 'HOD', 'SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
+    
+    // 1. Find the material to get the publicId
+    const material = await prisma.material.findUnique({
+      where: { id: String(id) }
+    });
+
+    if (!material) {
+      return res.status(404).json({ message: 'Material not found' });
+    }
+
+    // 2. Delete from Cloudinary if exists
+    if (material.publicId) {
+      try {
+        await cloudinaryService.deleteFile(material.publicId);
+      } catch (err) {
+        console.error('[LMS]: Error deleting material file from Cloudinary:', err);
+      }
+    }
+
+    // 3. Delete from Database
     await prisma.material.delete({ where: { id: String(id) } });
+    
     res.status(204).send();
   } catch (error) {
+    console.error('[LMS]: Error deleting material:', error);
     res.status(500).json({ message: 'Error deleting material', error });
   }
 });

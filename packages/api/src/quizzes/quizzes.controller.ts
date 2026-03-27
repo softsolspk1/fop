@@ -225,4 +225,23 @@ router.put('/:id/status', authenticateToken, authorizeRoles('HOD', 'SUPER_ADMIN'
   }
 });
 
+// Delete a quiz
+router.delete('/:id', authenticateToken, authorizeRoles('FACULTY', 'HOD', 'SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    // 1. Delete associated results and questions first (since no cascade in schema)
+    await prisma.$transaction([
+      prisma.quizResult.deleteMany({ where: { quizId: String(id) } }),
+      prisma.question.deleteMany({ where: { quizId: String(id) } }),
+      prisma.quiz.delete({ where: { id: String(id) } })
+    ]);
+
+    res.status(204).send();
+  } catch (error: any) {
+    console.error('[Quizzes]: Error deleting quiz:', error);
+    res.status(500).json({ message: 'Error deleting quiz', error: error.message });
+  }
+});
+
 export default router;

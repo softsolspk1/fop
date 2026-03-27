@@ -187,4 +187,54 @@ router.get('/:assignmentId/submissions', authenticateToken, authorizeRoles('FACU
   }
 });
 
+// Delete an assignment
+router.delete('/:id', authenticateToken, authorizeRoles('FACULTY', 'HOD', 'SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    
+    // 1. Find the assignment and its submissions
+    const assignment = await prisma.assignment.findUnique({
+      where: { id: String(id) },
+      include: { submissions: true }
+    });
+
+    if (!assignment) {
+      return res.status(404).json({ message: 'Assignment not found' });
+    }
+
+    // 2. Cleanup Cloudinary for submissions
+    for (const sub of assignment.submissions) {
+      if (sub.publicId) {
+        try {
+          await cloudinaryService.deleteFile(sub.publicId);
+        } catch (err) {
+          console.error('[Assignments]: Error deleting submission file:', err);
+        }
+      }
+    }
+
+    // 3. Cleanup Cloudinary for assignment itself
+    if (assignment.publicId) {
+      try {
+        await cloudinaryService.deleteFile(assignment.publicId);
+      } catch (err) {
+        console.error('[Assignments]: Error deleting assignment file:', err);
+      }
+    }
+
+    // 4. Delete from Database (Transaction to ensure all or nothing)
+    // Note: Grades must be deleted before Submissions if not cascaded
+    await prisma.$transaction([
+      prisma.grade.deleteMany({ where: { submission: { assignmentId: String(id) } } }),
+      prisma.submission.deleteMany({ where: { assignmentId: String(id) } }),
+      prisma.assignment.delete({ where: { id: String(id) } })
+    ]);
+
+    res.status(204).send();
+  } catch (error: any) {
+    console.error('[Assignments]: Error deleting assignment:', error);
+    res.status(500).json({ message: 'Error deleting assignment', error: error.message });
+  }
+});
+
 export default router;

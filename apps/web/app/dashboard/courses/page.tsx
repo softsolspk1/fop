@@ -556,7 +556,10 @@ export default function CoursesPage() {
                             onClick={async () => {
                               if (!confirm('Delete this material?')) return;
                                await api.delete(`/lms/materials/${mat.id}`);
-                               setManagingMaterials({...managingMaterials});
+                               setManagingMaterials({
+                                 ...managingMaterials,
+                                 materials: managingMaterials.materials.filter((m: any) => m.id !== mat.id)
+                               });
                             }}
                             className="p-2 text-slate-300 hover:text-red-500 transition-colors"
                           >
@@ -674,7 +677,10 @@ export default function CoursesPage() {
                                    <button onClick={async () => {
                                       if(!confirm('Delete this assignment?')) return;
                                       await api.delete(`/assignments/${asgn.id}`);
-                                      location.reload();
+                                      setManagingMaterials({
+                                        ...managingMaterials,
+                                        assignments: managingMaterials.assignments.filter((a: any) => a.id !== asgn.id)
+                                      });
                                    }} className="p-2 text-slate-300 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
                                 </div>
                              </div>
@@ -899,7 +905,10 @@ export default function CoursesPage() {
                                  <button onClick={async () => {
                                       if(!confirm('Delete this quiz?')) return;
                                       await api.delete(`/quizzes/${qz.id}`);
-                                      location.reload();
+                                      setManagingMaterials({
+                                        ...managingMaterials,
+                                        quizzes: managingMaterials.quizzes.filter((q: any) => q.id !== qz.id)
+                                      });
                                    }} className="p-2 text-slate-300 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
                               </div>
                             ))
