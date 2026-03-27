@@ -1,8 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { useParams, useSearchParams } from 'next/navigation';
-import DashboardLayout from '../../../../../components/dashboard/DashboardLayout';
+import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import AgoraVideoPlayer from '../../../../../components/dashboard/AgoraVideoPlayer';
 import dynamic from 'next/dynamic';
 
@@ -10,22 +9,30 @@ const AgoraWhiteboard = dynamic(() => import('../../../../../components/dashboar
   ssr: false,
 });
 import api from '../../../../../lib/api';
-import { chatClient, initChat, sendMessage, onMessageReceived } from '../../../../../components/dashboard/AgoraChatService';
+import { initChat, sendMessage, onMessageReceived } from '../../../../../components/dashboard/AgoraChatService';
 import { Mic, MicOff, Video, VideoOff, ScreenShare, MessageSquare, Users, Settings, X, LogOut, Send, PenTool } from 'lucide-react';
+import { useAuth } from '../../../../../context/AuthContext';
+import { toast } from 'react-hot-toast';
 
 export default function LiveClassPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const { user } = useAuth();
+  
   const [isJoined, setIsJoined] = useState(false);
   const [isMicOn, setIsMicOn] = useState(true);
   const [isCamOn, setIsCamOn] = useState(true);
-  const [showChat, setShowChat] = useState(true);
+  const [activeTab, setActiveTab] = useState<'chat' | 'participants' | 'files'>('chat');
   const [showWhiteboard, setShowWhiteboard] = useState(false);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [messages, setMessages] = useState<any[]>([]);
+  const [participants, setParticipants] = useState<any[]>([]);
+  const [sharedFiles, setSharedFiles] = useState<any[]>([]);
   const [inputMessage, setInputMessage] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
 
-  const searchParams = useSearchParams();
-  const sessionId = searchParams.get('sessionId');
+  const sessionId = searchParams.get('sessionId') || searchParams.get('classId');
   
   const [agoraConfig, setAgoraConfig] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -34,34 +41,50 @@ export default function LiveClassPage() {
     const fetchJoinData = async () => {
       try {
         setLoading(true);
-        // If sessionId is provided, join that specific session, else fallback to course-based (if supported by backend)
-        const idToJoin = sessionId || (params.id as string);
-        const res = await (api as any).get(`/classes/${idToJoin}/join`);
+        if (!sessionId) {
+          toast.error("No active session ID provided.");
+          router.push(`/dashboard/courses/${params.id}`);
+          return;
+        }
+
+        const res = await (api as any).get(`/classes/${sessionId}/join`);
         setAgoraConfig({
           appId: res.data.appId,
           channel: res.data.channel,
           token: res.data.token,
           uid: res.data.uid,
           whiteboard: res.data.whiteboard,
-          userToken: 'mock_chat_token', 
-          role: 'host' 
+          role: user?.role === 'STUDENT' ? 'audience' : 'host',
+          courseName: res.data.courseName || 'Live Session'
         });
+
+        // Fetch initial participants
+        const partsRes = await (api as any).get(`/classes/${sessionId}/participants`);
+        setParticipants(partsRes.data);
       } catch (err) {
         console.error('Error fetching join data:', err);
+        toast.error("Failed to authenticate session.");
       } finally {
         setLoading(false);
       }
     };
-    fetchJoinData();
-  }, [params.id, sessionId]);
+    if (user) fetchJoinData();
+  }, [params.id, sessionId, user, router]);
 
   useEffect(() => {
     if (isJoined && agoraConfig) {
-      // Initialize Chat
-      initChat(agoraConfig.uid.toString(), agoraConfig.userToken);
+      // In a real app, you'd use a real chat token
+      initChat(agoraConfig.uid.toString(), 'mock_token');
       
       onMessageReceived((msg) => {
-        setMessages((prev) => [...prev, { from: msg.from, msg: msg.msg, time: new Date().toLocaleTimeString() }]);
+        if (msg.msg.startsWith('__FILE__:')) {
+          try {
+            const fileData = JSON.parse(msg.msg.replace('__FILE__:', ''));
+            setSharedFiles((prev) => [...prev, fileData]);
+          } catch(e) {}
+        } else {
+          setMessages((prev) => [...prev, { from: msg.from, msg: msg.msg, time: new Date().toLocaleTimeString() }]);
+        }
       });
     }
   }, [isJoined, agoraConfig]);
@@ -74,24 +97,61 @@ export default function LiveClassPage() {
     }
   };
 
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+     const file = e.target.files?.[0];
+     if (!file || !agoraConfig) return;
+
+     setIsUploading(true);
+     const formData = new FormData();
+     formData.append('file', file);
+     formData.append('upload_preset', 'ml_default');
+
+     try {
+       const res = await fetch(`https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || 'dq78ed4vu'}/upload`, {
+         method: 'POST',
+         body: formData,
+       });
+       const data = await res.json();
+       
+       const fileData = { name: file.name, url: data.secure_url, sender: user?.name, time: new Date().toLocaleTimeString() };
+       setSharedFiles(prev => [...prev, fileData]);
+       
+       // Share via chat with a special prefix
+       sendMessage(agoraConfig.channel, `__FILE__:${JSON.stringify(fileData)}`);
+       toast.success("File shared successfully!");
+     } catch (err) {
+       toast.error("File upload failed.");
+     } finally {
+       setIsUploading(false);
+     }
+  };
+
+  const handleLeaveSession = () => {
+     if(confirm('Are you sure you want to leave this session?')) {
+        router.push(`/dashboard/courses/${params.id}`);
+     }
+  };
+
   return (
     <div className="flex h-screen bg-slate-950 overflow-hidden text-white">
-      {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0 h-full">
         {/* Header */}
         <header className="h-16 flex items-center justify-between px-8 bg-slate-900/50 border-b border-white/10 shrink-0">
           <div className="flex items-center gap-4">
             <div className="bg-red-500 px-3 py-1 rounded-md text-[10px] font-black uppercase tracking-wider animate-pulse">Live</div>
             <div>
-              <h2 className="text-lg font-bold">Advanced Pharmacology - Session 12</h2>
-              <p className="text-xs text-slate-400">Dr. Sarah Ahmed • {120 + messages.length} Students Present</p>
+              <h2 className="text-lg font-bold">{agoraConfig?.courseName || 'Live Session'}</h2>
+              <p className="text-xs text-slate-400">{participants.length} Participants Present</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <button className="p-2.5 bg-slate-800 hover:bg-slate-700 rounded-xl transition-colors">
+            <button onClick={() => setActiveTab('participants')} className="p-2.5 bg-slate-800 hover:bg-slate-700 rounded-xl transition-colors">
               <Users className="w-5 h-5 text-slate-300" />
             </button>
-            <button className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl flex items-center gap-2 transition-all">
+            <button 
+              onClick={handleLeaveSession}
+              className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl flex items-center gap-2 transition-all"
+            >
               <LogOut className="w-4 h-4" />
               Leave Session
             </button>
@@ -104,162 +164,139 @@ export default function LiveClassPage() {
             {loading ? (
               <div className="w-full h-full flex flex-col items-center justify-center">
                  <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4" />
-                 <p className="text-slate-400 font-black uppercase tracking-widest text-xs">Authenticating Session...</p>
+                 <p className="text-slate-400 font-black uppercase tracking-widest text-xs">Connecting to Secure Session...</p>
               </div>
             ) : isJoined && agoraConfig ? (
               <div className="w-full h-full flex flex-col gap-4">
                 {showWhiteboard && agoraConfig.whiteboard ? (
                   <div className="flex-1 min-h-0 bg-white rounded-3xl overflow-hidden shadow-2xl relative">
                     <AgoraWhiteboard 
-                      appId={agoraConfig.whiteboard.appId}
+                      appId={'876dc55e0241436fb6c63433afeb9563'} // Shared App ID
                       uuid={agoraConfig.whiteboard.uuid}
                       token={agoraConfig.whiteboard.token}
                       uid={agoraConfig.uid}
                     />
-                    <button 
-                      onClick={() => setShowWhiteboard(false)}
-                      className="absolute top-4 right-4 p-2 bg-slate-900/80 text-white rounded-full hover:bg-slate-900 transition-all z-20"
-                    >
-                      <X className="w-5 h-5" />
-                    </button>
+                    <button onClick={() => setShowWhiteboard(false)} className="absolute top-4 right-4 p-2 bg-slate-900/80 text-white rounded-full z-20"><X className="w-5 h-5" /></button>
                   </div>
                 ) : (
                   <div className="flex-1 min-h-0">
-                    <AgoraVideoPlayer 
-                      {...agoraConfig} 
-                      isScreenSharing={isScreenSharing}
-                      onScreenShareEnd={() => setIsScreenSharing(false)}
-                    />
-                  </div>
-                )}
-                
-                {/* Secondary PiP/Grid if Whiteboard is on */}
-                {showWhiteboard && (
-                  <div className="h-48 flex gap-4 overflow-x-auto pb-2">
-                     <div className="aspect-video h-full">
-                        <AgoraVideoPlayer 
-                          {...agoraConfig} 
-                          isScreenSharing={isScreenSharing} 
-                          onScreenShareEnd={() => setIsScreenSharing(false)}
-                        />
-                     </div>
+                    <AgoraVideoPlayer {...agoraConfig} isScreenSharing={isScreenSharing} onScreenShareEnd={() => setIsScreenSharing(false)} />
                   </div>
                 )}
               </div>
             ) : (
               <div className="w-full h-full bg-slate-900 rounded-3xl flex flex-col items-center justify-center border-2 border-dashed border-white/10">
-                <div className="w-24 h-24 bg-blue-600/20 text-blue-500 rounded-full flex items-center justify-center mb-6">
-                  <Video className="w-12 h-12" />
-                </div>
+                <div className="w-24 h-24 bg-blue-600/20 text-blue-500 rounded-full flex items-center justify-center mb-6"><Video className="w-12 h-12" /></div>
                 <h3 className="text-2xl font-bold mb-2">Ready to join your class?</h3>
-                <p className="text-slate-400 mb-8 max-w-sm text-center">Ensure your camera and microphone are working. You are joining as a **Lecturer**.</p>
-                <div className="flex gap-4">
-                  <button 
-                    disabled={!agoraConfig}
-                    onClick={() => setIsJoined(true)}
-                    className="px-10 py-4 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-2xl shadow-xl shadow-blue-900/20 transition-all hover:-translate-y-1 disabled:opacity-50 disabled:translate-y-0"
-                  >
-                    {!agoraConfig ? 'Connection Failed' : 'Start Your Lecture'}
-                  </button>
-                </div>
+                <p className="text-slate-400 mb-8 max-w-sm text-center">Join as <span className="text-blue-400 font-bold uppercase">{user?.role}</span></p>
+                <button 
+                  disabled={!agoraConfig}
+                  onClick={() => setIsJoined(true)}
+                  className="px-10 py-4 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-2xl shadow-xl transition-all disabled:opacity-50"
+                >
+                  {user?.role === 'STUDENT' ? 'Enter Classroom' : 'Start Lecture'}
+                </button>
               </div>
             )}
           </div>
 
-          {/* Chat Sidebar */}
-          {showChat && (
-            <div className="w-80 bg-slate-900 rounded-3xl border border-white/10 flex flex-col shrink-0">
-              <div className="p-6 border-b border-white/5 flex items-center justify-between">
-                <h3 className="font-bold flex items-center gap-2">
-                  <MessageSquare className="w-4 h-4 text-blue-500" />
-                  Live Interaction
-                </h3>
-                <button onClick={() => setShowChat(false)} className="p-1 hover:bg-white/5 rounded-md transition-colors">
-                  <X className="w-4 h-4 text-slate-400" />
-                </button>
-              </div>
-              <div className="flex-1 overflow-y-auto p-6 space-y-6">
-                {messages.length === 0 && (
-                  <p className="text-center text-slate-500 text-xs py-10 italic">No messages yet. Start the conversation!</p>
-                )}
-                {messages.map((m, i) => (
-                  <div key={i} className="flex flex-col gap-1.5 animate-in slide-in-from-right-2 duration-300">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">{m.time}</p>
-                    <p className="text-sm leading-relaxed">
-                      <span className={`font-bold ${m.from === 'Me' ? 'text-blue-400' : 'text-purple-400'}`}>{m.from}:</span> {m.msg}
-                    </p>
-                  </div>
-                ))}
-              </div>
-              <div className="p-6 pt-0">
-                <div className="relative group">
-                  <input 
-                    type="text" 
-                    value={inputMessage}
-                    onChange={(e) => setInputMessage(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-                    placeholder="Send a message..." 
-                    className="w-full bg-slate-800 border-transparent rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all pr-12"
-                  />
-                  <button 
-                    onClick={handleSendMessage}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 bg-blue-600 p-1.5 rounded-lg text-white hover:bg-blue-500 transition-colors"
-                  >
-                    <Send className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
+          {/* Dynamic Sidebar */}
+          <div className="w-85 bg-slate-900 rounded-3xl border border-white/10 flex flex-col shrink-0">
+            <div className="flex border-b border-white/5">
+               {['chat', 'participants', 'files'].map((tab) => (
+                 <button 
+                  key={tab}
+                  onClick={() => setActiveTab(tab as any)}
+                  className={`flex-1 py-4 text-[9px] font-black uppercase tracking-widest transition-all ${activeTab === tab ? 'text-blue-500 border-b-2 border-blue-500 bg-blue-500/5' : 'text-slate-500 hover:text-slate-300'}`}
+                 >
+                   {tab}
+                 </button>
+               ))}
             </div>
-          )}
+
+            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+               {activeTab === 'chat' && (
+                 <>
+                   {messages.map((m, i) => (
+                     <div key={i} className="flex flex-col gap-1 anim-fade-in">
+                       <p className="text-[9px] font-black text-slate-500 uppercase">{m.time}</p>
+                       <p className="text-sm"><span className="font-bold text-blue-400">{m.from}:</span> {m.msg}</p>
+                     </div>
+                   ))}
+                 </>
+               )}
+
+               {activeTab === 'participants' && (
+                 <div className="space-y-4">
+                   {participants.map((p, i) => (
+                     <div key={i} className="flex items-center gap-3 p-3 bg-white/5 rounded-2xl border border-white/5">
+                        <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center font-bold">{p.name[0]}</div>
+                        <div>
+                          <p className="text-sm font-bold">{p.name}</p>
+                          <p className="text-[10px] text-slate-500 uppercase font-black">{p.role}</p>
+                        </div>
+                     </div>
+                   ))}
+                 </div>
+               )}
+
+               {activeTab === 'files' && (
+                 <div className="space-y-4">
+                   <div className="relative">
+                      <input type="file" onChange={handleFileUpload} className="absolute inset-0 opacity-0 cursor-pointer" />
+                      <button disabled={isUploading} className="w-full py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-xs font-bold transition-all">
+                        {isUploading ? 'Uploading...' : 'Share a File'}
+                      </button>
+                   </div>
+                   {sharedFiles.map((f, i) => (
+                     <a key={i} href={f.url} target="_blank" className="block p-4 bg-blue-500/10 border border-blue-500/20 rounded-2xl hover:bg-blue-500/20 transition-all">
+                        <p className="text-sm font-bold text-blue-400 truncate">{f.name}</p>
+                        <p className="text-[9px] text-slate-500 uppercase mt-1">Shared by {f.sender}</p>
+                     </a>
+                   ))}
+                 </div>
+               )}
+            </div>
+
+            {activeTab === 'chat' && (
+              <div className="p-6 pt-0">
+                 <div className="relative">
+                   <input 
+                    value={inputMessage} onChange={(e) => setInputMessage(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+                    placeholder="Message..." className="w-full bg-slate-800 rounded-xl px-4 py-3 text-sm outline-none border-2 border-transparent focus:border-blue-500 transition-all" 
+                   />
+                   <button onClick={handleSendMessage} className="absolute right-2 top-1/2 -translate-y-1/2 bg-blue-600 p-1.5 rounded-lg"><Send className="w-4 h-4" /></button>
+                 </div>
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Controls Bar */}
-        <div className="h-24 flex items-center justify-center gap-4 bg-slate-900/80 backdrop-blur-xl border-t border-white/5 shrink-0 px-8 relative">
-          <div className="absolute left-8 flex items-center gap-3">
-             <button onClick={() => setShowChat(!showChat)} className={`p-4 rounded-2xl transition-all ${showChat ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'}`}>
-              <MessageSquare className="w-6 h-6" />
-            </button>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <button 
-              onClick={() => setIsMicOn(!isMicOn)}
-              className={`p-5 rounded-2xl transition-all ${isMicOn ? 'bg-slate-800 text-white hover:bg-slate-700' : 'bg-red-500/20 text-red-500 border border-red-500/50'}`}
-            >
-              {isMicOn ? <Mic className="w-7 h-7" /> : <MicOff className="w-7 h-7" />}
-            </button>
-            <button 
-              onClick={() => setIsCamOn(!isCamOn)}
-              className={`p-5 rounded-2xl transition-all ${isCamOn ? 'bg-slate-800 text-white hover:bg-slate-700' : 'bg-red-500/20 text-red-500 border border-red-500/50'}`}
-            >
-              {isCamOn ? <Video className="w-7 h-7" /> : <VideoOff className="w-7 h-7" />}
-            </button>
-            <button 
-              className={`p-5 rounded-2xl shadow-xl transition-all hover:-translate-y-1 ${isScreenSharing ? 'bg-blue-600 text-white ring-4 ring-blue-500/30' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'}`}
-              title="Share Screen"
-              onClick={() => setIsScreenSharing(!isScreenSharing)}
-            >
-              <ScreenShare className="w-7 h-7" />
-            </button>
-            <button 
-              className={`p-5 rounded-2xl shadow-xl transition-all hover:-translate-y-1 ${showWhiteboard ? 'bg-purple-600 text-white ring-4 ring-purple-500/30' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'}`}
-              title="Open Whiteboard"
-              onClick={() => {
-                if (!agoraConfig?.whiteboard) {
-                  return alert('Whiteboard not initialized for this session yet. Please refresh.');
-                }
-                setShowWhiteboard(!showWhiteboard);
-              }}
-            >
-              <PenTool className="w-7 h-7" />
-            </button>
-          </div>
-
-          <div className="absolute right-8">
-            <button className="p-4 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-2xl transition-colors">
-              <Settings className="w-6 h-6" />
-            </button>
-          </div>
+        {/* Controls */}
+        <div className="h-24 flex items-center justify-center gap-4 bg-slate-900/80 backdrop-blur-xl border-t border-white/5 shrink-0 px-8">
+          <button onClick={() => setIsMicOn(!isMicOn)} className={`p-5 rounded-2xl transition-all ${isMicOn ? 'bg-slate-800 text-white' : 'bg-red-500/20 text-red-500'}`}>
+            {isMicOn ? <Mic className="w-7 h-7" /> : <MicOff className="w-7 h-7" />}
+          </button>
+          <button onClick={() => setIsCamOn(!isCamOn)} className={`p-5 rounded-2xl transition-all ${isCamOn ? 'bg-slate-800 text-white' : 'bg-red-500/20 text-red-500'}`}>
+            {isCamOn ? <Video className="w-7 h-7" /> : <VideoOff className="w-7 h-7" />}
+          </button>
+          {user?.role !== 'STUDENT' && (
+            <>
+              <button 
+                onClick={() => setIsScreenSharing(!isScreenSharing)}
+                className={`p-5 rounded-2xl transition-all ${isScreenSharing ? 'bg-blue-600' : 'bg-slate-800 text-slate-400'}`}
+              >
+                <ScreenShare className="w-7 h-7" />
+              </button>
+              <button 
+                onClick={() => setShowWhiteboard(!showWhiteboard)}
+                className={`p-5 rounded-2xl transition-all ${showWhiteboard ? 'bg-purple-600' : 'bg-slate-800 text-slate-400'}`}
+              >
+                <PenTool className="w-7 h-7" />
+              </button>
+            </>
+          )}
         </div>
       </div>
     </div>

@@ -988,7 +988,7 @@ export default function CoursesPage() {
                                </div>
                              </div>
                              <Link 
-                               href={`/dashboard/courses/${cls.courseId}/live?classId=${cls.id}`}
+                               href={`/dashboard/courses/${cls.courseId}/live?sessionId=${cls.id}`}
                                className="px-10 py-4 bg-green-600 text-white font-black rounded-2xl shadow-xl shadow-green-100 uppercase text-xs tracking-[0.2em] hover:bg-green-700 transition-all hover:scale-105 active:scale-95"
                              >
                                Join Classroom

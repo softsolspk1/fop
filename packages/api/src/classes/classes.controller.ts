@@ -226,6 +226,30 @@ router.get('/:id/join', authenticateToken, async (req: AuthRequest, res: Respons
   }
 });
 
+// Get participants joined in a class
+router.get('/:id/participants', authenticateToken, async (req: AuthRequest, res: Response) => {
+  const { id } = req.params;
+  try {
+    const attendees = await prisma.attendance.findMany({
+      where: { classId: id },
+      include: {
+        user: {
+          select: { 
+            id: true, 
+            name: true, 
+            role: true, 
+            designation: true, 
+            rollNumber: true 
+          }
+        }
+      }
+    });
+    res.json(attendees.map(a => a.user));
+  } catch (err) {
+    res.status(500).json({ message: 'Error fetching participants' });
+  }
+});
+
 // Save a recording and trigger AI transcription
 router.post('/:id/recordings', authenticateToken, authorizeRoles('FACULTY'), async (req: AuthRequest, res: Response) => {
   try {
