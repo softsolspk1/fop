@@ -9,7 +9,7 @@ const AgoraWhiteboard = dynamic(() => import('../../../../../components/dashboar
   ssr: false,
 });
 import api from '../../../../../lib/api';
-import { Mic, MicOff, Video, VideoOff, ScreenShare, MessageSquare, Users, Settings, X, LogOut, Send, PenTool } from 'lucide-react';
+import { Mic, MicOff, Video, VideoOff, ScreenShare, MessageSquare, Users, Settings, X, LogOut, Send, PenTool, FileText } from 'lucide-react';
 import { useAuth } from '../../../../../context/AuthContext';
 import { toast } from 'react-hot-toast';
 
@@ -301,10 +301,21 @@ export default function LiveClassPage() {
                       </button>
                    </div>
                    {sharedFiles.map((f, i) => (
-                     <a key={i} href={f.url} target="_blank" className="block p-4 bg-blue-500/10 border border-blue-500/20 rounded-2xl hover:bg-blue-500/20 transition-all">
-                        <p className="text-sm font-bold text-blue-400 truncate">{f.name}</p>
-                        <p className="text-[9px] text-slate-500 uppercase mt-1">Shared by {f.sender}</p>
-                     </a>
+                     <div key={i} className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-2xl hover:bg-blue-500/20 transition-all overflow-hidden">
+                        <p className="text-sm font-bold text-blue-400 truncate mb-2">{f.name}</p>
+                        {f.type === 'video' ? (
+                          <video src={f.url} controls className="w-full h-auto rounded-lg mb-2 shadow-lg" />
+                        ) : (
+                          <div className="flex items-center gap-2 text-[9px] text-blue-300 mb-1">
+                             <FileText className="w-3 h-3" />
+                             Attachment
+                          </div>
+                        )}
+                        <div className="flex justify-between items-center mt-1">
+                           <p className="text-[8px] text-slate-500 uppercase">Shared by {f.sender}</p>
+                           <a href={f.url} target="_blank" className="text-[8px] font-bold text-blue-400 hover:underline">Download</a>
+                        </div>
+                     </div>
                    ))}
                  </div>
                )}
