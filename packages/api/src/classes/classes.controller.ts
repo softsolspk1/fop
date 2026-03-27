@@ -225,9 +225,25 @@ router.delete('/:id', authenticateToken, authorizeRoles('FACULTY', 'SUPER_ADMIN'
 router.get('/:id/join', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
-    const classSession = await prisma.class.findUnique({ where: { id: String(id) } });
+    let classSession = await prisma.class.findUnique({ where: { id: String(id) } });
+
+    // Fallback: If not found by ID, maybe 'id' is a courseId? find active session for it
+    if (!classSession) {
+      classSession = await prisma.class.findFirst({
+        where: { 
+          courseId: String(id),
+          actualStartTime: { not: null },
+          actualEndTime: null
+        }
+      });
+    }
 
     if (!classSession || !classSession.agoraChannel) {
+      // Return 404 but with a more descriptive message if it's a course without active session
+      const course = await prisma.course.findUnique({ where: { id: String(id) } });
+      if (course) {
+         return res.status(404).json({ message: `No active live session found for ${course.name}.` });
+      }
       return res.status(404).json({ message: 'Class session not found or channel not initialized' });
     }
 
@@ -236,6 +252,7 @@ router.get('/:id/join', authenticateToken, async (req: AuthRequest, res: Respons
     const token = generateAgoraToken(classSession.agoraChannel, uid);
 
     res.json({
+      id: classSession.id,
       token,
       channel: classSession.agoraChannel,
       uid,

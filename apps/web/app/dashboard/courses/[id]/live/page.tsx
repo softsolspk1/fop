@@ -33,7 +33,7 @@ export default function LiveClassPage() {
   const [inputMessage, setInputMessage] = useState('');
   const [isUploading, setIsUploading] = useState(false);
 
-  const sessionId = searchParams.get('sessionId') || searchParams.get('classId');
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(searchParams.get('sessionId') || searchParams.get('classId') || null);
   
   const [agoraConfig, setAgoraConfig] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -42,46 +42,59 @@ export default function LiveClassPage() {
     const fetchJoinData = async () => {
       try {
         setLoading(true);
-        if (!sessionId) {
-          toast.error("No active session ID provided.");
-          router.push(`/dashboard/courses/${params.id}`);
-          return;
+        // Use sessionId from URL if available, otherwise use params.id (which backend now treats as fallback)
+        const idToJoin = currentSessionId || params.id;
+        console.log('[Live] Attempting to join session/course ID:', idToJoin);
+        
+        const res = await (api as any).get(`/classes/${idToJoin}/join`);
+        console.log('[Live] Join authenticated for class:', res.data.channel);
+        
+        // Update currentSessionId if the backend redirected us to an auto-found session
+        if (res.data.id && res.data.id !== currentSessionId) {
+           setCurrentSessionId(res.data.id);
         }
 
-        const res = await (api as any).get(`/classes/${sessionId}/join`);
         setAgoraConfig({
           appId: res.data.appId,
           channel: res.data.channel,
           token: res.data.token,
           uid: res.data.uid,
-          whiteboard: res.data.whiteboard,
           role: user?.role === 'STUDENT' ? 'audience' : 'host',
           courseName: res.data.courseName || 'Live Session',
           isFaculty: user?.role !== 'STUDENT'
         });
 
+        // Use the actual target session ID for participants/sync
+        const targetId = res.data.id || idToJoin;
+
         // Fetch initial participants
-        const partsRes = await (api as any).get(`/classes/${sessionId}/participants`);
-        setParticipants(partsRes.data);
-      } catch (err) {
-        console.error('Error fetching join data:', err);
-        toast.error("Failed to authenticate session.");
+        try {
+          const partsRes = await (api as any).get(`/classes/${targetId}/participants`);
+          setParticipants(partsRes.data);
+        } catch (err) {}
+      } catch (err: any) {
+        console.error('[Live] Error fetching join data:', err.response?.data || err.message);
+        toast.error(err.response?.data?.message || "Failed to authenticate session.");
+        if (err.response?.status === 404) {
+          router.push(`/dashboard/courses/${params.id}`);
+        }
       } finally {
         setLoading(false);
       }
     };
     if (user) fetchJoinData();
-  }, [params.id, sessionId, user, router]);
+  }, [params.id, user, router]); // currentSessionId removed from deps to prevent re-join loop
 
   useEffect(() => {
     let syncInterval: any;
     let heartbeatInterval: any;
+    const targetId = currentSessionId || params.id;
 
-    if (isJoined && agoraConfig && sessionId) {
+    if (isJoined && agoraConfig && targetId) {
       // Sync function
       const syncSession = async () => {
         try {
-          const res = await (api as any).get(`/classes/${sessionId}/sync`);
+          const res = await (api as any).get(`/classes/${targetId}/sync`);
           if (res.data.participants) setParticipants(res.data.participants);
           if (res.data.messages) setMessages(res.data.messages);
           if (res.data.assets) setSharedFiles(res.data.assets);
@@ -93,7 +106,7 @@ export default function LiveClassPage() {
       // Heartbeat function
       const sendHeartbeat = async () => {
         try {
-          await (api as any).post(`/classes/${sessionId}/heartbeat`, { agoraUid: agoraConfig.uid });
+          await (api as any).post(`/classes/${targetId}/heartbeat`, { agoraUid: agoraConfig.uid });
         } catch (err) {}
       };
 
