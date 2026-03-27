@@ -22,16 +22,28 @@ export default function AgoraWhiteboard({ appId, uuid, token, uid }: AgoraWhiteb
     }
 
     let sdk: WhiteWebSdk;
-    try {
-      sdk = new WhiteWebSdk({
-        appIdentifier: appId,
-        region: 'in-mum',
-      });
-    } catch (e: any) {
-      console.error('[Whiteboard]: SDK Init Error:', e);
-      setError('Failed to initialize whiteboard SDK');
-      return;
-    }
+      // Defensive check for App ID
+      if (!appId || appId === '876dc55e0241436fb6c63433afeb9563') {
+        console.error('[Whiteboard]: Invalid or missing Whiteboard App ID. Falling back to Video App ID detected.');
+        setError('Whiteboard not configured. Please provide a valid Netless App Identifier in .env');
+        return;
+      }
+
+      try {
+        sdk = new WhiteWebSdk({
+          appIdentifier: appId,
+          region: 'in-mum', // Targeted region for Pakistan/India proximity
+        });
+      } catch (e: any) {
+        console.error('[Whiteboard]: SDK Init Error:', e);
+        setError(`Whiteboard Initialization Failed: ${e.message || 'Check App ID/Region'}`);
+        return;
+      }
+
+      if (!uuid || !token) {
+        setError('Whiteboard UUID or Room Token missing. Contact administrator.');
+        return;
+      }
 
     const joinRoom = async () => {
       try {

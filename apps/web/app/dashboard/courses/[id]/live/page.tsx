@@ -9,7 +9,7 @@ const AgoraWhiteboard = dynamic(() => import('../../../../../components/dashboar
   ssr: false,
 });
 import api from '../../../../../lib/api';
-import { Mic, MicOff, Video, VideoOff, ScreenShare, MessageSquare, Users, Settings, X, LogOut, Send, PenTool, FileText } from 'lucide-react';
+import { Mic, MicOff, Video, VideoOff, ScreenShare, MessageSquare, Users, Settings, X, LogOut, Send, PenTool, FileText, Loader2, Upload } from 'lucide-react';
 import { useAuth } from '../../../../../context/AuthContext';
 import { toast } from 'react-hot-toast';
 
@@ -22,7 +22,9 @@ export default function LiveClassPage() {
   const [isJoined, setIsJoined] = useState(false);
   const [isMicOn, setIsMicOn] = useState(true);
   const [isCamOn, setIsCamOn] = useState(true);
-  const [activeTab, setActiveTab] = useState<'chat' | 'participants' | 'files'>('chat');
+  const [activeTab, setActiveTab] = useState<'chat' | 'participants' | 'files' | 'whiteboard'>('chat');
+  const [isFullScreen, setIsFullScreen] = useState(false);
+  const [activeStageId, setActiveStageId] = useState<number | null>(null);
   const [showWhiteboard, setShowWhiteboard] = useState(false);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [messages, setMessages] = useState<any[]>([]);
@@ -153,7 +155,7 @@ export default function LiveClassPage() {
         try {
           await (api as any).post(`/classes/${sessionId}/leave`);
         } catch (e) {}
-        router.push(`/dashboard/courses/${params.id}`);
+        router.push(`/dashboard/courses`);
      }
   };
 
@@ -163,203 +165,268 @@ export default function LiveClassPage() {
          await (api as any).put(`/classes/${sessionId}/stop`);
          await (api as any).post(`/classes/${sessionId}/leave`);
        } catch (e) {}
-       router.push(`/dashboard/courses/${params.id}`);
+       router.push(`/dashboard/courses`);
     }
   };
 
   return (
-    <div className="flex h-screen bg-slate-950 overflow-hidden text-white">
-      <div className="flex-1 flex flex-col min-w-0 h-full">
+    <div className="flex h-screen bg-slate-950 overflow-hidden text-white font-sans">
+      <div className="flex-1 flex flex-col min-w-0 h-full relative">
         {/* Header */}
-        <header className="h-16 flex items-center justify-between px-8 bg-slate-900/50 border-b border-white/10 shrink-0">
+        <header className="h-16 flex items-center justify-between px-8 bg-slate-900/50 border-b border-white/10 shrink-0 z-30">
           <div className="flex items-center gap-4">
-            <div className="bg-red-500 px-3 py-1 rounded-md text-[10px] font-black uppercase tracking-wider animate-pulse">Live</div>
+            <div className="bg-red-500 px-3 py-1 rounded-md text-[10px] font-black uppercase tracking-wider animate-pulse flex items-center gap-1">
+              <span className="w-1.5 h-1.5 bg-white rounded-full"></span>
+              Live
+            </div>
             <div>
-              <h2 className="text-lg font-bold">{agoraConfig?.courseName || 'Live Session'}</h2>
-              <p className="text-xs text-slate-400">{participants.length} Participants Present</p>
+              <h2 className="text-sm font-bold truncate max-w-[200px] md:max-w-[400px]">{agoraConfig?.courseName || 'Live Session'}</h2>
+              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{participants.length} Active Participants</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <button onClick={() => setActiveTab('participants')} className="p-2.5 bg-slate-800 hover:bg-slate-700 rounded-xl transition-colors">
-              <Users className="w-5 h-5 text-slate-300" />
-            </button>
-            {user?.role === 'FACULTY' || user?.role === 'SUPER_ADMIN' ? (
-              <button 
-                onClick={handleStopSession}
-                className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl flex items-center gap-2 transition-all"
-              >
-                <X className="w-4 h-4" />
-                End Session
-              </button>
-            ) : (
-              <button 
-                onClick={handleLeaveSession}
-                className="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl flex items-center gap-2 transition-all"
-              >
-                <LogOut className="w-4 h-4" />
-                Leave Session
-              </button>
-            )}
+             {user?.role === 'FACULTY' || user?.role === 'SUPER_ADMIN' ? (
+               <button 
+                 onClick={handleStopSession}
+                 className="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white text-xs font-black uppercase tracking-widest rounded-xl flex items-center gap-2 transition-all shadow-lg"
+               >
+                 <X className="w-4 h-4" />
+                 End Session
+               </button>
+             ) : (
+               <button 
+                 onClick={handleLeaveSession}
+                 className="px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-white text-xs font-black uppercase tracking-widest rounded-xl flex items-center gap-2 transition-all"
+               >
+                 <LogOut className="w-4 h-4" />
+                 Leave
+               </button>
+             )}
           </div>
         </header>
 
-        {/* Video Area */}
-        <div className="flex-1 p-6 overflow-hidden flex gap-6">
-          <div className="flex-1 min-w-0">
-            {loading ? (
-              <div className="w-full h-full flex flex-col items-center justify-center">
-                 <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4" />
-                 <p className="text-slate-400 font-black uppercase tracking-widest text-xs">Connecting to Secure Session...</p>
-              </div>
-            ) : isJoined && agoraConfig ? (
-              <div className="w-full h-full flex flex-col gap-4">
-                {showWhiteboard && agoraConfig.whiteboard ? (
-                  <div className="flex-1 min-h-0 bg-white rounded-3xl overflow-hidden shadow-2xl relative">
-                    <AgoraWhiteboard 
-                      appId={'876dc55e0241436fb6c63433afeb9563'} // Shared App ID
-                      uuid={agoraConfig.whiteboard.uuid}
-                      token={agoraConfig.whiteboard.token}
-                      uid={agoraConfig.uid}
-                    />
-                    <button onClick={() => setShowWhiteboard(false)} className="absolute top-4 right-4 p-2 bg-slate-900/80 text-white rounded-full z-20"><X className="w-5 h-5" /></button>
-                  </div>
-                ) : (
-                  <div className="flex-1 min-h-0">
-                    <AgoraVideoPlayer 
-                      {...agoraConfig} 
-                      participants={participants}
-                      isScreenSharing={isScreenSharing} 
-                      onScreenShareEnd={() => setIsScreenSharing(false)} 
-                    />
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="w-full h-full bg-slate-900 rounded-3xl flex flex-col items-center justify-center border-2 border-dashed border-white/10">
-                <div className="w-24 h-24 bg-blue-600/20 text-blue-500 rounded-full flex items-center justify-center mb-6"><Video className="w-12 h-12" /></div>
-                <h3 className="text-2xl font-bold mb-2">Ready to join your class?</h3>
-                <p className="text-slate-400 mb-8 max-w-sm text-center">Join as <span className="text-blue-400 font-bold uppercase">{user?.role}</span></p>
-                <button 
-                  disabled={!agoraConfig}
-                  onClick={() => setIsJoined(true)}
-                  className="px-10 py-4 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-2xl shadow-xl transition-all disabled:opacity-50"
-                >
-                  {user?.role === 'STUDENT' ? 'Enter Classroom' : 'Start Lecture'}
-                </button>
-              </div>
-            )}
-          </div>
+        {/* Main Content Area */}
+        <div className="flex-1 flex overflow-hidden p-6 gap-6 relative">
+          {/* Main Stage (Video or Whiteboard) */}
+          <div className={`flex-1 flex flex-col min-w-0 transition-all ${isFullScreen ? 'fixed inset-0 z-50 bg-slate-950 p-4' : ''}`}>
+             {!isJoined ? (
+               <div className="flex-1 bg-slate-900 rounded-[32px] flex flex-col items-center justify-center border-2 border-dashed border-white/10 shadow-inner">
+                  <div className="w-24 h-24 bg-blue-600/20 text-blue-500 rounded-3xl flex items-center justify-center mb-6 animate-bounce"><Video className="w-12 h-12" /></div>
+                  <h3 className="text-3xl font-black mb-2 uppercase tracking-tighter">Ready to join your class?</h3>
+                  <p className="text-slate-400 mb-10 max-w-sm text-center font-medium">Connecting as <span className="text-blue-400 font-black uppercase">{user?.role}</span></p>
+                  <button 
+                    disabled={!agoraConfig || loading}
+                    onClick={() => setIsJoined(true)}
+                    className="px-12 py-5 bg-blue-600 hover:bg-blue-700 text-white font-black text-sm uppercase tracking-widest rounded-2xl shadow-2xl transition-all disabled:opacity-50 hover:-translate-y-1 active:scale-95 flex items-center gap-3"
+                  >
+                    {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (user?.role === 'STUDENT' ? 'Enter Classroom' : 'Start Lecture')}
+                  </button>
+               </div>
+             ) : (
+               <div className="flex-1 rounded-[32px] bg-slate-900 border border-white/5 shadow-2xl overflow-hidden relative group">
+                  {activeTab === 'whiteboard' ? (
+                     <AgoraWhiteboard 
+                       appId={process.env.NEXT_PUBLIC_AGORA_WHITEBOARD_APP_ID || '876dc55e0241436fb6c63433afeb9563'} 
+                       uuid={agoraConfig?.whiteboard?.uuid} 
+                       token={agoraConfig?.whiteboard?.token}
+                       uid={agoraConfig?.uid || 0}
+                     />
+                  ) : (
+                     <AgoraVideoPlayer 
+                       {...agoraConfig}
+                       participants={participants}
+                       isScreenSharing={isScreenSharing}
+                       onScreenShareEnd={() => setIsScreenSharing(false)}
+                     />
+                  )}
 
-          {/* Dynamic Sidebar */}
-          <div className="w-85 bg-slate-900 rounded-3xl border border-white/10 flex flex-col shrink-0">
-            <div className="flex border-b border-white/5">
-               {['chat', 'participants', 'files'].map((tab) => (
-                 <button 
-                  key={tab}
-                  onClick={() => setActiveTab(tab as any)}
-                  className={`flex-1 py-4 text-[9px] font-black uppercase tracking-widest transition-all ${activeTab === tab ? 'text-blue-500 border-b-2 border-blue-500 bg-blue-500/5' : 'text-slate-500 hover:text-slate-300'}`}
-                 >
-                   {tab}
-                 </button>
-               ))}
-            </div>
-
-            <div className="flex-1 overflow-y-auto p-6 space-y-4">
-               {activeTab === 'chat' && (
-                 <>
-                    {messages.map((m, i) => (
-                      <div key={i} className="flex flex-col gap-1 anim-fade-in">
-                        <p className="text-[9px] font-black text-slate-500 uppercase">
-                          {new Date(m.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </p>
-                        <p className="text-sm"><span className="font-bold text-blue-400">{m.from}:</span> {m.msg}</p>
-                      </div>
-                    ))}
-                 </>
-               )}
-
-               {activeTab === 'participants' && (
-                 <div className="space-y-4">
-                   {participants.map((p, i) => (
-                     <div key={i} className="flex items-center gap-3 p-3 bg-white/5 rounded-2xl border border-white/5">
-                        <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center font-bold">{p.name[0]}</div>
-                        <div>
-                          <p className="text-sm font-bold">{p.name}</p>
-                          <p className="text-[10px] text-slate-500 uppercase font-black">{p.role}</p>
-                        </div>
-                     </div>
-                   ))}
-                 </div>
-               )}
-
-               {activeTab === 'files' && (
-                 <div className="space-y-4">
-                   <div className="relative">
-                      <input type="file" onChange={handleFileUpload} className="absolute inset-0 opacity-0 cursor-pointer" />
-                      <button disabled={isUploading} className="w-full py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-xs font-bold transition-all">
-                        {isUploading ? 'Uploading...' : 'Share a File'}
+                  {/* Stage Utilities */}
+                  <div className="absolute bottom-6 right-6 flex gap-3 z-30 opacity-0 group-hover:opacity-100 transition-opacity">
+                     <button 
+                        onClick={() => setIsFullScreen(!isFullScreen)}
+                        className="p-3 bg-slate-900/80 hover:bg-slate-800 backdrop-blur-md rounded-2xl border border-white/10 text-white shadow-xl transition-all hover:scale-110"
+                        title={isFullScreen ? "Exit Full Screen" : "Fill Screen"}
+                      >
+                        {isFullScreen ? <X className="w-5 h-5" /> : <ScreenShare className="w-5 h-5" />}
                       </button>
-                   </div>
-                   {sharedFiles.map((f, i) => (
-                     <div key={i} className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-2xl hover:bg-blue-500/20 transition-all overflow-hidden">
-                        <p className="text-sm font-bold text-blue-400 truncate mb-2">{f.name}</p>
-                        {f.type === 'video' ? (
-                          <video src={f.url} controls className="w-full h-auto rounded-lg mb-2 shadow-lg" />
-                        ) : (
-                          <div className="flex items-center gap-2 text-[9px] text-blue-300 mb-1">
-                             <FileText className="w-3 h-3" />
-                             Attachment
-                          </div>
-                        )}
-                        <div className="flex justify-between items-center mt-1">
-                           <p className="text-[8px] text-slate-500 uppercase">Shared by {f.sender}</p>
-                           <a href={f.url} target="_blank" className="text-[8px] font-bold text-blue-400 hover:underline">Download</a>
+                  </div>
+               </div>
+             )}
+          </div>
+
+          {/* Sidebar Area */}
+          {!isFullScreen && (
+            <div className="w-80 bg-slate-900/50 rounded-[32px] border border-white/10 flex flex-col shrink-0 overflow-hidden shadow-2xl">
+               {/* Sidebar Tabs */}
+               <div className="flex border-b border-white/5 p-2 gap-1 bg-slate-950/20">
+                  {['chat', 'participants', 'files', 'whiteboard'].map((tab) => (
+                    <button 
+                      key={tab}
+                      onClick={() => setActiveTab(tab as any)}
+                      className={`flex-1 py-3 text-[9px] font-black uppercase tracking-widest rounded-xl transition-all ${activeTab === tab ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'}`}
+                    >
+                      {tab}
+                    </button>
+                  ))}
+               </div>
+
+               {/* Tab Content */}
+               <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
+                  {activeTab === 'chat' && (
+                    <div className="space-y-4">
+                       {messages.length === 0 ? (
+                         <div className="py-20 text-center text-slate-600 font-bold uppercase tracking-widest text-[10px]">No messages yet</div>
+                       ) : (
+                         messages.map((m, i) => (
+                           <div key={i} className="flex flex-col gap-1 anim-fade-in group">
+                             <div className="flex justify-between items-center">
+                               <p className="text-[10px] font-black text-blue-400 uppercase tracking-tighter">{m.sender}</p>
+                               <p className="text-[8px] font-bold text-slate-600">{m.time}</p>
+                             </div>
+                             <div className="bg-white/5 p-3 rounded-2xl border border-white/5 group-hover:border-white/10 transition-all">
+                               <p className="text-xs text-slate-200 leading-relaxed">{m.text}</p>
+                             </div>
+                           </div>
+                         ))
+                       )}
+                    </div>
+                  )}
+
+                  {activeTab === 'participants' && (
+                    <div className="space-y-3">
+                      {participants.map((p, i) => (
+                        <div key={i} className="flex items-center gap-3 p-3 bg-white/5 rounded-2xl border border-white/5 hover:bg-white/10 transition-all">
+                           <div className="w-10 h-10 bg-blue-600 text-white rounded-xl flex items-center justify-center font-black uppercase shadow-lg">{p.name[0]}</div>
+                           <div className="flex-1 min-w-0">
+                             <p className="text-xs font-bold truncate">{p.name}</p>
+                             <p className="text-[9px] text-slate-500 uppercase font-black tracking-widest">{p.role}</p>
+                           </div>
+                           <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]"></div>
                         </div>
-                     </div>
-                   ))}
-                 </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {activeTab === 'files' && (
+                    <div className="space-y-4">
+                       {(user?.role === 'FACULTY' || user?.role === 'SUPER_ADMIN') && (
+                          <div className="relative group">
+                             <input type="file" onChange={handleFileUpload} className="absolute inset-0 opacity-0 cursor-pointer z-10" />
+                             <button disabled={isUploading} className="w-full py-4 bg-blue-600/10 hover:bg-blue-600/20 border border-blue-600/20 rounded-2xl text-[10px] font-black uppercase tracking-widest text-blue-400 transition-all flex items-center justify-center gap-2 group-hover:scale-[1.02] active:scale-95">
+                               {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                               {isUploading ? 'Uploading...' : 'Share Resource'}
+                             </button>
+                          </div>
+                       )}
+                       
+                       <div className="space-y-3">
+                          {sharedFiles.length === 0 ? (
+                            <div className="py-20 text-center text-slate-600 font-bold uppercase tracking-widest text-[10px]">No shared resources</div>
+                          ) : (
+                            sharedFiles.map((f, i) => (
+                              <div key={i} className="p-4 bg-white/5 border border-white/5 rounded-2xl hover:bg-white/10 transition-all group overflow-hidden">
+                                 <p className="text-xs font-bold text-slate-200 truncate mb-3">{f.name}</p>
+                                 {f.type === 'video' ? (
+                                   <video src={f.url} controls className="w-full h-auto rounded-xl mb-3 shadow-2xl border border-white/10" />
+                                 ) : (
+                                   <div className="flex items-center gap-2 py-3 px-4 bg-slate-950/40 rounded-xl mb-3 border border-white/5">
+                                      <FileText className="w-4 h-4 text-blue-400" />
+                                      <span className="text-[9px] font-bold text-slate-400 uppercase">Document Asset</span>
+                                   </div>
+                                 )}
+                                 <div className="flex justify-between items-center bg-slate-950/20 -m-4 mt-2 px-4 py-3">
+                                    <p className="text-[8px] font-black text-slate-500 uppercase">BY {f.sender}</p>
+                                    <a href={f.url} download target="_blank" className="text-[9px] font-black text-blue-400 hover:text-blue-300 uppercase underline-offset-4 hover:underline">Download</a>
+                                 </div>
+                              </div>
+                            ))
+                          )}
+                       </div>
+                    </div>
+                  )}
+
+                  {activeTab === 'whiteboard' && (
+                    <div className="h-full flex flex-col items-center justify-center text-center p-6 bg-purple-600/5 rounded-3xl border border-purple-600/10">
+                       <PenTool className="w-12 h-12 text-purple-600 mb-4 animate-pulse" />
+                       <h4 className="text-sm font-black uppercase tracking-tighter text-purple-600 mb-2">Interactive Board Active</h4>
+                       <p className="text-[10px] text-slate-500 font-medium leading-relaxed">The whiteboard is currently active on the main stage. You can illustrate and explain concepts in real-time.</p>
+                       <button 
+                        onClick={() => setActiveTab('chat')}
+                        className="mt-6 px-6 py-3 bg-purple-600/10 hover:bg-purple-600/20 text-purple-600 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all"
+                       >
+                         Back to Chat
+                       </button>
+                    </div>
+                  )}
+               </div>
+
+               {/* Message Input (Only for Chat Tab) */}
+               {activeTab === 'chat' && (
+                  <div className="p-4 bg-slate-950/40 border-t border-white/5">
+                    <div className="relative">
+                      <input 
+                        value={inputMessage}
+                        onChange={(e) => setInputMessage(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+                        placeholder="Type a message..."
+                        className="w-full bg-slate-800/50 rounded-2xl px-5 py-4 text-xs font-medium outline-none border border-white/5 focus:border-blue-500 focus:bg-slate-800 transition-all shadow-inner placeholder:text-slate-600"
+                      />
+                      <button 
+                        onClick={handleSendMessage}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 bg-blue-600 hover:bg-blue-700 p-2.5 rounded-xl text-white shadow-lg transition-all active:scale-95"
+                      >
+                        <Send className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
                )}
             </div>
-
-            {activeTab === 'chat' && (
-              <div className="p-6 pt-0">
-                 <div className="relative">
-                   <input 
-                    value={inputMessage} onChange={(e) => setInputMessage(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-                    placeholder="Message..." className="w-full bg-slate-800 rounded-xl px-4 py-3 text-sm outline-none border-2 border-transparent focus:border-blue-500 transition-all" 
-                   />
-                   <button onClick={handleSendMessage} className="absolute right-2 top-1/2 -translate-y-1/2 bg-blue-600 p-1.5 rounded-lg"><Send className="w-4 h-4" /></button>
-                 </div>
-              </div>
-            )}
-          </div>
+          )}
         </div>
 
-        {/* Controls */}
-        <div className="h-24 flex items-center justify-center gap-4 bg-slate-900/80 backdrop-blur-xl border-t border-white/5 shrink-0 px-8">
-          <button onClick={() => setIsMicOn(!isMicOn)} className={`p-5 rounded-2xl transition-all ${isMicOn ? 'bg-slate-800 text-white' : 'bg-red-500/20 text-red-500'}`}>
-            {isMicOn ? <Mic className="w-7 h-7" /> : <MicOff className="w-7 h-7" />}
-          </button>
-          <button onClick={() => setIsCamOn(!isCamOn)} className={`p-5 rounded-2xl transition-all ${isCamOn ? 'bg-slate-800 text-white' : 'bg-red-500/20 text-red-500'}`}>
-            {isCamOn ? <Video className="w-7 h-7" /> : <VideoOff className="w-7 h-7" />}
-          </button>
-          {user?.role !== 'STUDENT' && (
-            <>
-              <button 
-                onClick={() => setIsScreenSharing(!isScreenSharing)}
-                className={`p-5 rounded-2xl transition-all ${isScreenSharing ? 'bg-blue-600' : 'bg-slate-800 text-slate-400'}`}
-              >
-                <ScreenShare className="w-7 h-7" />
-              </button>
-              <button 
-                onClick={() => setShowWhiteboard(!showWhiteboard)}
-                className={`p-5 rounded-2xl transition-all ${showWhiteboard ? 'bg-purple-600' : 'bg-slate-800 text-slate-400'}`}
-              >
-                <PenTool className="w-7 h-7" />
-              </button>
-            </>
-          )}
+        {/* Global Controls Overlay/Footer */}
+        <div className="h-24 flex items-center justify-center gap-6 bg-slate-900/80 backdrop-blur-3xl border-t border-white/5 shrink-0 px-8 z-30">
+          <div className="flex items-center gap-3">
+            <button onClick={() => setIsMicOn(!isMicOn)} className={`p-4 rounded-2xl transition-all shadow-xl hover:-translate-y-1 active:scale-95 ${isMicOn ? 'bg-slate-800 text-white' : 'bg-red-500 text-white shadow-[0_0_15px_rgba(239,68,68,0.4)]'}`}>
+              {isMicOn ? <Mic className="w-6 h-6" /> : <MicOff className="w-6 h-6" />}
+            </button>
+            <button onClick={() => setIsCamOn(!isCamOn)} className={`p-4 rounded-2xl transition-all shadow-xl hover:-translate-y-1 active:scale-95 ${isCamOn ? 'bg-slate-800 text-white' : 'bg-red-500 text-white shadow-[0_0_15px_rgba(239,68,68,0.4)]'}`}>
+              {isCamOn ? <Video className="w-6 h-6" /> : <VideoOff className="w-6 h-6" />}
+            </button>
+          </div>
+          
+          <div className="w-px h-10 bg-white/10 mx-2" />
+
+          <div className="flex items-center gap-3">
+             <button 
+               onClick={() => {
+                 setActiveTab('whiteboard');
+                 setIsFullScreen(false);
+               }}
+               className={`p-4 rounded-2xl transition-all shadow-xl hover:-translate-y-1 active:scale-95 ${activeTab === 'whiteboard' ? 'bg-purple-600 text-white' : 'bg-slate-800 text-slate-400'}`}
+               title="Interactive Whiteboard"
+             >
+               <PenTool className="w-6 h-6" />
+             </button>
+             {user?.role !== 'STUDENT' && (
+               <button 
+                 onClick={() => setIsScreenSharing(!isScreenSharing)}
+                 className={`p-4 rounded-2xl transition-all shadow-xl hover:-translate-y-1 active:scale-95 ${isScreenSharing ? 'bg-green-600 text-white' : 'bg-slate-800 text-slate-400'}`}
+                 title="Share Screen"
+               >
+                 <ScreenShare className="w-6 h-6" />
+               </button>
+             )}
+          </div>
+          
+          <div className="hidden lg:flex absolute right-8 items-center gap-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+             <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                HD Connection
+             </div>
+             <div className="h-4 w-px bg-white/10" />
+             AES-256 Encrypted
+          </div>
         </div>
       </div>
     </div>

@@ -143,7 +143,7 @@ export default function AgoraVideoPlayer({
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 h-full bg-slate-900/50 p-4 rounded-3xl relative overflow-hidden">
                {role === 'host' && (
                 <div className="relative aspect-video bg-slate-800 rounded-2xl overflow-hidden border-2 border-blue-500 shadow-lg group">
-                  <div ref={videoRef} className="w-full h-full" />
+                  <div ref={videoRef} className="w-full h-full [&>div]:!object-cover" />
                   <div className="absolute bottom-4 left-4 flex items-center gap-2 bg-black/50 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/20">
                     <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
                     <span className="text-xs font-bold text-white uppercase tracking-wider">Host (You)</span>
@@ -198,7 +198,7 @@ function RemoteVideo({ user, name }: { user: any, name: string }) {
 
   return (
     <div className="relative aspect-video bg-slate-800 rounded-2xl overflow-hidden border border-white/10 shadow-sm transition-transform hover:scale-[1.02] w-full h-full">
-      <div ref={containerRef} className="w-full h-full" />
+      <div ref={containerRef} className="w-full h-full [&>div]:!object-cover" />
       <div className="absolute bottom-4 left-4 flex items-center gap-2 bg-black/50 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/20">
         <span className="text-xs font-bold text-white uppercase tracking-wider">{name}</span>
       </div>

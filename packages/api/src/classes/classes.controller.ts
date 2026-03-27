@@ -300,9 +300,10 @@ router.get('/:id/sync', authenticateToken, async (req: AuthRequest, res: Respons
     res.json({
       participants,
       messages: messages.map((m: any) => ({
-        from: m.sender.name,
-        msg: m.content,
-        time: m.createdAt,
+        id: m.id,
+        sender: m.sender.name,
+        text: m.content,
+        time: m.createdAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         senderId: m.senderId
       })),
       assets: assets.map((a: any) => ({
