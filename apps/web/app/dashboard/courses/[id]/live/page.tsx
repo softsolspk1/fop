@@ -110,12 +110,20 @@ export default function LiveClassPage() {
 
   const handleSendMessage = async () => {
     if (inputMessage.trim() && sessionId) {
+      const pendingText = inputMessage;
+      setInputMessage(''); // Clear immediately for UX
       try {
-        await (api as any).post(`/classes/${sessionId}/messages`, { content: inputMessage });
-        setMessages((prev) => [...prev, { from: user?.name || 'Me', msg: inputMessage, time: new Date() }]);
-        setInputMessage('');
+        await (api as any).post(`/classes/${sessionId}/messages`, { content: pendingText });
+        // Optionally add to state immediately with formatted time
+        setMessages((prev) => [...prev, { 
+          sender: user?.name || 'Me', 
+          text: pendingText, 
+          time: new Date().toISOString(),
+          senderId: user?.id 
+        }]);
       } catch (err) {
         toast.error("Failed to send message");
+        setInputMessage(pendingText); // Restore on failure
       }
     }
   };
@@ -281,7 +289,9 @@ export default function LiveClassPage() {
                            <div key={i} className="flex flex-col gap-1 anim-fade-in group">
                              <div className="flex justify-between items-center">
                                <p className="text-[10px] font-black text-blue-400 uppercase tracking-tighter">{m.sender}</p>
-                               <p className="text-[8px] font-bold text-slate-600">{m.time}</p>
+                               <p className="text-[8px] font-bold text-slate-600">
+                                 {m.time ? new Date(m.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '...'}
+                               </p>
                              </div>
                              <div className="bg-white/5 p-3 rounded-2xl border border-white/5 group-hover:border-white/10 transition-all">
                                <p className="text-xs text-slate-200 leading-relaxed">{m.text}</p>

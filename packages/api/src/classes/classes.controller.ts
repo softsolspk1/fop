@@ -303,7 +303,7 @@ router.get('/:id/sync', authenticateToken, async (req: AuthRequest, res: Respons
         id: m.id,
         sender: m.sender.name,
         text: m.content,
-        time: m.createdAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        time: m.createdAt, // Raw ISO string
         senderId: m.senderId
       })),
       assets: assets.map((a: any) => ({

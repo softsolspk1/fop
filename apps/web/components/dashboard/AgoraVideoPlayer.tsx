@@ -140,9 +140,9 @@ export default function AgoraVideoPlayer({
                 </div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 h-full bg-slate-900/50 p-4 rounded-3xl relative overflow-hidden">
+            <div className={`w-full h-full bg-slate-900/50 p-2 rounded-3xl relative overflow-hidden flex flex-wrap gap-2 justify-center items-center`}>
                {role === 'host' && (
-                <div className="relative aspect-video bg-slate-800 rounded-2xl overflow-hidden border-2 border-blue-500 shadow-lg group">
+                <div className={`relative bg-slate-800 rounded-2xl overflow-hidden border-2 border-blue-500 shadow-lg group transition-all duration-500 ${remoteUsers.length === 0 ? 'w-full h-full max-h-[85vh]' : 'aspect-video flex-1 min-w-[300px]'}`}>
                   <div ref={videoRef} className="w-full h-full [&>div]:!object-cover" />
                   <div className="absolute bottom-4 left-4 flex items-center gap-2 bg-black/50 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/20">
                     <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
@@ -152,15 +152,17 @@ export default function AgoraVideoPlayer({
               )}
 
               {remoteUsers.map((user) => (
-                <RemoteVideo key={user.uid} user={user} name={getUserName(user.uid)} />
+                <div key={user.uid} className={`relative bg-slate-800 rounded-2xl overflow-hidden border border-white/10 shadow-sm transition-all duration-500 ${remoteUsers.length === 1 && role !== 'host' ? 'w-full h-full max-h-[85vh]' : 'aspect-video flex-1 min-w-[300px]'}`}>
+                   <RemoteVideo user={user} name={getUserName(user.uid)} />
+                </div>
               ))}
 
               {remoteUsers.length === 0 && role !== 'host' && (
-                <div className="col-span-full h-full flex flex-col items-center justify-center text-slate-400 space-y-4">
-                  <div className="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center animate-pulse">
-                    <div className="w-8 h-8 border-2 border-slate-600 border-t-blue-500 rounded-full animate-spin"></div>
+                <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 space-y-4">
+                  <div className="w-20 h-20 bg-slate-800 rounded-full flex items-center justify-center animate-pulse">
+                    <div className="w-10 h-10 border-2 border-slate-600 border-t-blue-500 rounded-full animate-spin"></div>
                   </div>
-                  <p className="text-lg font-medium tracking-tight">Waiting for the lecturer to join...</p>
+                  <p className="text-xl font-black uppercase tracking-widest text-slate-500">Waiting for Lecture to Start...</p>
                 </div>
               )}
             </div>

@@ -14,55 +14,56 @@ export default function AgoraWhiteboard({ appId, uuid, token, uid }: AgoraWhiteb
   const roomRef = useRef<Room | null>(null);
   const [phase, setPhase] = useState<RoomPhase>(RoomPhase.Connecting);
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (typeof window === 'undefined' || !containerRef.current || !appId || !uuid || !token) {
-      console.warn('[Whiteboard]: Missing required props for initialization');
       return;
     }
 
     let sdk: WhiteWebSdk;
-      // Defensive check for App ID
-      if (!appId || appId === '876dc55e0241436fb6c63433afeb9563') {
-        console.error('[Whiteboard]: Invalid or missing Whiteboard App ID. Falling back to Video App ID detected.');
-        setError('Whiteboard not configured. Please provide a valid Netless App Identifier in .env');
-        return;
-      }
+    // Defensive check for App ID
+    if (!appId || appId === '876dc55e0241436fb6c63433afeb9563') {
+      setError('Whiteboard not configured. Please provide a valid Netless App Identifier in .env');
+      setIsLoading(false);
+      return;
+    }
 
-      try {
-        sdk = new WhiteWebSdk({
-          appIdentifier: appId,
-          region: 'in-mum', // Targeted region for Pakistan/India proximity
-        });
-      } catch (e: any) {
-        console.error('[Whiteboard]: SDK Init Error:', e);
-        setError(`Whiteboard Initialization Failed: ${e.message || 'Check App ID/Region'}`);
-        return;
-      }
-
-      if (!uuid || !token) {
-        setError('Whiteboard UUID or Room Token missing. Contact administrator.');
-        return;
-      }
+    try {
+      sdk = new WhiteWebSdk({
+        appIdentifier: appId,
+        region: 'in-mum', 
+      });
+    } catch (e: any) {
+      setError(`Whiteboard Initialization Failed: ${e.message || 'Check App ID'}`);
+      setIsLoading(false);
+      return;
+    }
 
     const joinRoom = async () => {
       try {
         const room = await sdk.joinRoom({
-          uuid,
+          uuid: uuid,
           roomToken: token,
-          uid: uid.toString(),
+          uid: String(uid)
         });
         roomRef.current = room;
-        room.bindHtmlElement(containerRef.current);
+        
+        if (containerRef.current) {
+          room.bindHtmlElement(containerRef.current);
+        }
+        
         room.setViewMode(ViewMode.Broadcaster); 
         setPhase(room.phase);
         
         room.callbacks.on("onPhaseChanged", (p: RoomPhase) => {
           setPhase(p);
         });
+        setIsLoading(false);
       } catch (err: any) {
-        console.error('[Whiteboard]: Join Error:', err);
-        setError(`Failed to join whiteboard: ${err.message || 'Unknown error'}`);
+        console.error('[Whiteboard]: Join error:', err);
+        setError(`Failed to join whiteboard: ${err.message || 'Check credentials'}`);
+        setIsLoading(false);
       }
     };
 

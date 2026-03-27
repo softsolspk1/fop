@@ -50,7 +50,7 @@ Also create Demo Accounts for all User Type with default password.
 
 
 ===========================
-
+Email Address: noreply@softsols.pk
 Username: noreply@softsols.pk
 Password: ???Aakay@12345
 Incoming Server: softsols.pk
@@ -58,3 +58,70 @@ IMAP Port: 993
 POP3 Port: 995
 Outgoing Server: softsols.pk
 SMTP Port: 465
+
+
+====================================
+
+
+
+
+Demo Accounts (Standardized)
+Default demo accounts have been created for all roles for instant system testing:
+
+Vice Chancellor: vc@uok.edu.pk (Password: 123456)
+Dean: dean@uok.edu.pk (Password: 123456)
+Dean Office: office@uok.edu.pk (Password: 123456)
+HOD: hod@uok.edu.pk (Password: 123456)
+Faculty: teacher@uok.edu.pk (Password: 123456)
+Student: student@uok.edu.pk (Password: 123456)
+
+
+
+Add All HOD and Faculty Members in the system.
+Take information from PDF File /ph1.pdf available.
+
+
+Add Courses Description of FIRST YEAR (1st and 2nd Semester). Take information from PDF File /ph1.pdf available.
+Add Courses Desription of Second, Third, Fourth and Fifth Professional both 1st and 2nd Semester. Take content from images  available in attachment as well in the folder C:\Users\softs\Desktop\KU APP\course
+
+
+
+Sudent Side: Access
+1) Courses shown to the respective Class (Professional) wise. Like if Student is of First Professional, then only courses of First Year will be shown to the respective Student. Similarly for all Professional Year Students.
+
+2) Dashboard Analytics showing respective student Analytics
+
+3) Visual Lab showing Labs of Respective Professional Year to the Student
+
+4) Examination showing Respective Professional Year Date Sheet and Student personal Results.
+
+5) 
+
+
+I am login as a Fourth Professional Student but:
+1) The COurse Catelogue not showing any Course.
+2) Live session of fourth Professional not showing in Live Classes
+
+Also Dashboard Analytics showing respective student Analytics.
+Make these fixes for all Prfofessional Year Wise.
+
+
+
+From Admin Side, I started Online Session. From Student Side, it is showing Session but instead of joining it start as a Separate Session.
+Student of Relevant Course must Join the Same Session started by Admin or Faculty.
+In Session, also show the joined participants and also add an option to attach any file to share with participants.
+Make Live Session Fixed and make sure it works perfectly.
+
+
+No issue reolved.
+In Live Session, student succesfully join meeting but:
+1) Chat is not working. When i click to send chat message it gives an Error as:
+Application error: a client-side exception has occurred while loading fopps-uok.online (see the browser console for more information).
+2) File shared by faculty member not showing to student
+3) Screen shared by faculty not showing to Student
+6) Faculty side when click on White Board gives an Error as:
+Failed to join whiteboard: (0 , c6.render) is not a function
+
+7) Video should be optimized as per screen to the Faculty and Student Side also. Icrease the Video Screen Size. See the attached image and optimized the size
+Fix all issues and make sure the Live Session between faculty member and students will work 100% functional and smoothly.
+
