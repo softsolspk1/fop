@@ -181,7 +181,68 @@ router.post('/self-mark', authenticateToken, authorizeRoles('STUDENT'), async (r
   }
 });
 
-// Get Cumulative Attendance (YTD)
+// Get all attendance records with advanced filtering
+router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
+  try {
+    const { departmentId, courseId, classId, userId: queryUserId, status } = req.query;
+    const userRole = req.user!.role;
+    const currentUserId = req.user!.userId;
+
+    let whereClause: any = {};
+
+    // 1. Role-based scoping
+    if (userRole === 'STUDENT') {
+      whereClause.userId = currentUserId;
+    } else if (userRole === 'FACULTY') {
+      whereClause.class = { course: { teacherId: currentUserId } };
+    } else if (userRole === 'HOD') {
+      // HODs see their department
+      const user = await prisma.user.findUnique({ where: { id: currentUserId } });
+      if (user?.departmentId) {
+        whereClause.class = { course: { departmentId: user.departmentId } };
+      }
+    }
+    // MAIN_ADMIN, SUPER_ADMIN see everything by default
+
+    // 2. Query filters
+    if (departmentId) {
+       whereClause.class = { ...whereClause.class, course: { ...whereClause.class?.course, departmentId: String(departmentId) } };
+    }
+    if (courseId) {
+       whereClause.class = { ...whereClause.class, course: { ...whereClause.class?.course, id: String(courseId) } };
+    }
+    if (classId) {
+       whereClause.classId = String(classId);
+    }
+    if (queryUserId && userRole !== 'STUDENT') {
+       whereClause.userId = String(queryUserId);
+    }
+    if (status) {
+       whereClause.status = String(status);
+    }
+
+    const attendance = await prisma.attendance.findMany({
+      where: whereClause,
+      include: {
+        user: { select: { name: true, rollNumber: true, email: true } },
+        class: { 
+          include: { 
+            course: { include: { department: true } } 
+          } 
+        }
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 100 // Limit for performance, pagination can be added if needed
+    });
+
+    res.json(attendance);
+  } catch (error) {
+    console.error('[Attendance Fetch Error]:', error);
+    res.status(500).json({ message: 'Internal server error', error });
+  }
+});
+
+// Get Attendance (YTD Stats)
 router.get('/cumulative', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     const { studentId, courseId, departmentId, professional } = req.query;

@@ -306,13 +306,25 @@ export default function LiveClassPage() {
                   {activeTab === 'participants' && (
                     <div className="space-y-3">
                       {participants.map((p, i) => (
-                        <div key={i} className="flex items-center gap-3 p-3 bg-white/5 rounded-2xl border border-white/5 hover:bg-white/10 transition-all">
+                        <div key={i} className="flex items-center gap-3 p-3 bg-white/5 rounded-2xl border border-white/5 hover:bg-white/10 transition-all group">
                            <div className="w-10 h-10 bg-blue-600 text-white rounded-xl flex items-center justify-center font-black uppercase shadow-lg">{p.name[0]}</div>
                            <div className="flex-1 min-w-0">
-                             <p className="text-xs font-bold truncate">{p.name}</p>
-                             <p className="text-[9px] text-slate-500 uppercase font-black tracking-widest">{p.role}</p>
+                             <p className="text-xs font-bold truncate group-hover:text-blue-400 transition-colors">{p.name}</p>
+                             <div className="flex items-center gap-2">
+                               <p className="text-[9px] text-slate-500 uppercase font-black tracking-widest">{p.role}</p>
+                               {p.role === 'STUDENT' && (
+                                 <span className={`text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded ${p.status === 'PRESENT' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-400'}`}>
+                                   {p.status}
+                                 </span>
+                               )}
+                             </div>
                            </div>
-                           <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]"></div>
+                           <div className="flex flex-col items-end gap-1">
+                              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]"></div>
+                              <span className="text-[8px] font-black text-slate-500 uppercase tracking-tighter">
+                                {p.joinTime ? new Date(p.joinTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Joining'}
+                              </span>
+                           </div>
                         </div>
                       ))}
                     </div>

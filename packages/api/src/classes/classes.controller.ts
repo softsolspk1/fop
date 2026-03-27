@@ -81,7 +81,11 @@ router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
     const isStudent = req.user?.role === 'STUDENT';
     const userId = req.user?.userId;
 
+    const { courseId } = req.query;
+
     const whereClause: any = {};
+    if (courseId) whereClause.courseId = String(courseId);
+
     if (isStudent) {
       // Get student details
       const student = await prisma.user.findUnique({
@@ -240,6 +244,27 @@ router.post('/:id/heartbeat', authenticateToken, async (req: AuthRequest, res: R
       create: { userId, classId, lastSeen: new Date(), agoraUid: agoraUid ? Number(agoraUid) : undefined }
     });
 
+    // Auto-mark Attendance if student
+    if (req.user?.role === 'STUDENT') {
+      const session = await prisma.class.findUnique({ where: { id: String(classId) } });
+      if (session && session.actualStartTime) {
+        const arrivalTime = new Date();
+        const diffMins = (arrivalTime.getTime() - session.actualStartTime.getTime()) / (1000 * 60);
+        const status = diffMins <= 15 ? 'PRESENT' : 'LATE';
+
+        await prisma.attendance.upsert({
+          where: { userId_classId: { userId, classId: String(classId) } },
+          update: {}, 
+          create: {
+            userId,
+            classId: String(classId),
+            status,
+            markedStartAt: arrivalTime
+          }
+        });
+      }
+    }
+
     res.status(204).send();
   } catch (error) {
     res.status(500).json({ error: 'Heartbeat failed' });
@@ -271,15 +296,28 @@ router.get('/:id/sync', authenticateToken, async (req: AuthRequest, res: Respons
     // Get active participants (heartbeat in last 60 seconds)
     const activeTime = new Date(Date.now() - 60000);
     const presences = await (prisma as any).sessionPresence.findMany({
-      where: { classId, lastSeen: { gte: activeTime } },
-      include: { user: { select: { name: true, role: true } } }
+      where: { classId },
+      include: { 
+        user: { 
+          select: { 
+            name: true, 
+            role: true,
+            attendances: {
+              where: { classId },
+              take: 1
+            }
+          } 
+        } 
+      }
     });
 
     const participants = presences.map((p: any) => ({
       uid: p.userId, 
-      agoraUid: p.agoraUid, // crucial for mapping video to name
+      agoraUid: p.agoraUid,
       name: p.user.name,
-      role: p.user.role
+      role: p.user.role,
+      status: p.user.attendances?.[0]?.status || 'JOINING',
+      joinTime: p.user.attendances?.[0]?.markedStartAt || p.createdAt
     }));
 
     // Get recent messages
