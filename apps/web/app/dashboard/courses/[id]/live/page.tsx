@@ -9,7 +9,7 @@ const AgoraWhiteboard = dynamic(() => import('../../../../../components/dashboar
   ssr: false,
 });
 import api from '../../../../../lib/api';
-import { Mic, MicOff, Video, VideoOff, ScreenShare, MessageSquare, Users, Settings, X, LogOut, Send, PenTool, FileText, Loader2, Upload } from 'lucide-react';
+import { Mic, MicOff, Video, VideoOff, ScreenShare, MessageSquare, Users, Settings, X, LogOut, Send, PenTool, FileText, Loader2, Upload, Trash2 } from 'lucide-react';
 import { useAuth } from '../../../../../context/AuthContext';
 import { toast } from 'react-hot-toast';
 

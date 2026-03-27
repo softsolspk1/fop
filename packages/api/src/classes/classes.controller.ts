@@ -192,7 +192,6 @@ router.put('/:id/stop', authenticateToken, authorizeRoles('FACULTY', 'SUPER_ADMI
       where: { id: String(id) },
       data: { actualEndTime: new Date() }
     });
-});
     res.json({ message: 'Session stopped successfully', session });
   } catch (error) {
     res.status(500).json({ message: 'Error stopping session', error });
