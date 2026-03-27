@@ -29,13 +29,16 @@ export default function DashboardPage() {
           const { data } = await api.get('/reports/dashboard-stats/stats');
           setDashboardStats(data);
         } else if (user?.role === 'STUDENT') {
-          const coursesRes = await api.get('/courses');
+          const [coursesRes, statsRes] = await Promise.all([
+            api.get('/courses'),
+            api.get('/reports/dashboard-stats/stats')
+          ]);
           setStudentCourses(coursesRes.data);
           setDashboardStats({
-            totalCourses: coursesRes.data.length,
-            completedAssignments: 12,
-            upcomingQuizzes: 2,
-            gpa: '3.8'
+            totalCourses: statsRes.data.courses,
+            completedAssignments: statsRes.data.assignments,
+            upcomingQuizzes: statsRes.data.upcomingQuizzes,
+            gpa: statsRes.data.gpa
           });
         }
       } catch (err) {

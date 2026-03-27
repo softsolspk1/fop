@@ -20,7 +20,10 @@ export default function DashboardScreen() {
           attendance: data.attendance || 0,
           courses: data.courses || 0,
           labs: data.labs || 0,
-          exams: data.exams || 0
+          exams: data.exams || 0,
+          assignments: data.assignments || 0,
+          upcomingQuizzes: data.upcomingQuizzes || 0,
+          gpa: data.gpa || '0.0'
         });
       } else {
         const { data } = await api.get('/departments/my-stats');
@@ -37,6 +40,16 @@ export default function DashboardScreen() {
       setRefreshing(false);
     }
   }, [user]);
+
+  const StatCircle = ({ icon: Icon, label, value, color }: any) => (
+    <Card style={styles.statCard}>
+      <View style={[styles.statIcon, { backgroundColor: color + '15' }]}>
+        <Icon size={24} color={color} />
+      </View>
+      <Text style={styles.statValue}>{value || '0'}</Text>
+      <Text style={styles.statLabel}>{label}</Text>
+    </Card>
+  );
 
   useEffect(() => {
     fetchStats();
@@ -102,9 +115,9 @@ export default function DashboardScreen() {
         <Text style={styles.sectionTitle}>Quick Overview</Text>
         <View style={styles.statsGrid}>
           <StatCircle icon={BookOpen} label="Courses" value={stats?.courses} color="#2563eb" />
-          <StatCircle icon={Users} label="Students" value={stats?.students || stats?.attendance} color="#16a34a" />
-          <StatCircle icon={Video} label="Live" value="0" color="#ef4444" />
-          <StatCircle icon={FlaskConical} label="Labs" value={stats?.labs || '---'} color="#ea580c" />
+          <StatCircle icon={Award} label="GPA" value={stats?.gpa} color="#16a34a" />
+          <StatCircle icon={Calendar} label="Quizzes" value={stats?.upcomingQuizzes} color="#7c3aed" />
+          <StatCircle icon={FileText} label="Tasks" value={stats?.assignments} color="#ea580c" />
         </View>
 
         <View style={styles.upcomingSection}>

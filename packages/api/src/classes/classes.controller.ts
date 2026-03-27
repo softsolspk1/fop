@@ -54,8 +54,11 @@ router.get('/active', authenticateToken, async (req: AuthRequest, res: Response)
       include: {
         course: {
           include: {
-            teacher: { select: { name: true } }
+            teacher: { select: { name: true, designation: true } }
           }
+        },
+        _count: {
+          select: { attendance: true }
         }
       }
     });
@@ -110,8 +113,11 @@ router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
       include: {
         course: {
           include: {
-            teacher: { select: { name: true } }
+            teacher: { select: { name: true, designation: true } }
           }
+        },
+        _count: {
+          select: { attendance: true }
         }
       }
     });

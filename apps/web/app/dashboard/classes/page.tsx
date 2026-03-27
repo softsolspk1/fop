@@ -151,7 +151,7 @@ export default function LiveClassesPage() {
                       <div className="p-3 bg-slate-50 text-slate-400 rounded-xl"><User className="w-4 h-4" /></div>
                       <div>
                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Instructor</p>
-                        <p className="font-bold text-slate-800">{cls.faculty?.user?.name || 'Not Assigned'}</p>
+                        <p className="font-bold text-slate-800">{cls.course?.teacher?.name || 'Not Assigned'}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
@@ -165,7 +165,7 @@ export default function LiveClassesPage() {
                       <div className="p-3 bg-slate-50 text-slate-400 rounded-xl"><Users className="w-4 h-4" /></div>
                       <div>
                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Attendees</p>
-                        <p className="font-bold text-slate-800">42 Students Joined</p>
+                        <p className="font-bold text-slate-800">{cls._count?.attendance || 0} Students Joined</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">

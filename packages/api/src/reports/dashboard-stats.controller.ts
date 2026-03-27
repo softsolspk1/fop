@@ -30,21 +30,40 @@ router.get('/stats', authenticateToken, async (req: any, res) => {
         totalLabs,
         totalExams,
         attendanceCount,
-        assignmentsCount
+        submissionsCount,
+        allAssignments,
+        upcomingQuizzes,
+        allResults
       ] = await Promise.all([
         prisma.course.count({ where: { professional: year, isActive: true } }),
         prisma.lab.count({ where: { year: year } }),
         prisma.exam.count({ where: { course: { professional: year } } }),
         prisma.attendance.count({ where: { userId: req.user.userId, status: 'PRESENT' } }),
-        prisma.submission.count({ where: { studentId: req.user.userId } })
+        prisma.submission.count({ where: { studentId: req.user.userId } }),
+        prisma.assignment.count({ where: { course: { professional: year } } }),
+        prisma.quiz.count({ 
+          where: { 
+            course: { professional: year },
+            endTime: { gt: new Date() },
+            status: 'APPROVED'
+          } 
+        }),
+        prisma.result.findMany({ where: { studentId: req.user.userId } })
       ]);
+
+      const gradeToGPA: any = { 'A': 4.0, 'A-': 3.7, 'B+': 3.3, 'B': 3.0, 'B-': 2.7, 'C+': 2.3, 'C': 2.0, 'C-': 1.7, 'D': 1.0, 'F': 0.0 };
+      const gpa = allResults.length > 0 
+        ? (allResults.reduce((acc, curr) => acc + (gradeToGPA[curr.grade.toUpperCase()] || 0), 0) / allResults.length).toFixed(2)
+        : "0.0";
 
       return res.json({
         courses: totalCourses,
         labs: totalLabs,
         exams: totalExams,
         attendance: attendanceCount,
-        assignments: assignmentsCount,
+        assignments: allAssignments - submissionsCount, // Simplified pending
+        upcomingQuizzes: upcomingQuizzes,
+        gpa: gpa,
         professionalYear: year,
         lastUpdated: new Date()
       });
