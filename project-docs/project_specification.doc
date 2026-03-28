@@ -1,0 +1,244 @@
+<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+<head>
+    <meta charset="utf-8">
+    <title>Project Specification - Pharmacy Portal</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 1in;
+        }
+        body {
+            font-family: 'Calibri', 'Arial', sans-serif;
+            font-size: 11pt;
+            line-height: 1.5;
+            color: #333;
+        }
+        .title-page {
+            text-align: center;
+            padding-top: 50px;
+            padding-bottom: 50px;
+        }
+        h1 {
+            color: #1a365d;
+            font-size: 28pt;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        h2 {
+            color: #2c5282;
+            font-size: 18pt;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 5px;
+            margin-top: 30px;
+        }
+        h3 {
+            color: #2d3748;
+            font-size: 14pt;
+            margin-top: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            margin-bottom: 15px;
+        }
+        th {
+            background-color: #f7fafc;
+            color: #2d3748;
+            font-weight: bold;
+            text-align: left;
+            padding: 10px;
+            border: 1px solid #e2e8f0;
+        }
+        td {
+            padding: 10px;
+            border: 1px solid #e2e8f0;
+            vertical-align: top;
+        }
+        .badge {
+            font-weight: bold;
+            color: #2b6cb0;
+        }
+        .footer {
+            margin-top: 50px;
+            font-size: 9pt;
+            color: #718096;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="title-page">
+        <h1>PROJECT SPECIFICATION DOCUMENT</h1>
+        <p style="font-size: 16pt; color: #4a5568;">Faculty of Pharmacy Academic Portal</p>
+        <br><br>
+        <p><strong>Date:</strong> March 28, 2026</p>
+        <p><strong>Developed By:</strong> SoftSols PK</p>
+        <p><strong>Status:</strong> Final Production Version</p>
+    </div>
+
+    <h2>1. Project Overview</h2>
+    <h3>Description</h3>
+    <p>The Pharmacy Portal is a high-fidelity, dual-platform (Web & Mobile) ecosystem designed specifically for the Faculty of Pharmacy. It addresses the unique needs of pharmaceutical education through advanced simulations, real-time broadcasting, and AI-driven academic support. The system ensures a seamless flow of information between administration, faculty, and students, maintaining full functional parity across all devices.</p>
+
+    <h2>2. System Overview</h2>
+    <h3>Technical Architecture</h3>
+    <p>The system operates on a synchronized monorepo architecture. When a faculty member uploads a resource or starts a live session on the web, students receive instant notifications and can join/access the content via their mobile application. All data is persisted in a real-time PostgreSQL database with Cloudinary-backed secure storage for academic materials.</p>
+    <ul>
+        <li><strong>Web Portal:</strong> Optimized for administration and faculty management.</li>
+        <li><strong>Mobile Application:</strong> Rebuilt from scratch using Expo Router for a premium experience on iOS and Android.</li>
+    </ul>
+
+    <h2>3. User Roles & Navigation Matrix</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>User Role</th>
+                <th>Designation</th>
+                <th>Key Access Areas</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Vice Chancellor (V.C.)</strong></td>
+                <td>Executive Head</td>
+                <td>Global Analytics, Faculty Performance, System Audit.</td>
+            </tr>
+            <tr>
+                <td><strong>Super Admin</strong></td>
+                <td>IT / Root Admin</td>
+                <td>Full System Control, Database Management, Security.</td>
+            </tr>
+            <tr>
+                <td><strong>Sub-Admin</strong></td>
+                <td>Dean Office / Admin</td>
+                <td>Enrollments, Fee Management, Academic Reports, Exams.</td>
+            </tr>
+            <tr>
+                <td><strong>HOD</strong></td>
+                <td>Dept. Head</td>
+                <td>Faculty Assignment, Dept. Analytics, Course Oversight.</td>
+            </tr>
+            <tr>
+                <td><strong>Faculty Member</strong></td>
+                <td>Teacher</td>
+                <td>Assigned Courses, Live Classes, Labs, Assessments.</td>
+            </tr>
+            <tr>
+                <td><strong>Student</strong></td>
+                <td>Learner</td>
+                <td>Course Hub, Virtual Lab, AI Tutor, Live Attendance.</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>4. Detailed Role-Based Menus</h2>
+    
+    <h3>A. Sub-Admin (Dean Office / Admin Role)</h3>
+    <p><em>Responsible for the operational heart of the faculty.</em></p>
+    <ul>
+        <li><strong>Dashboard:</strong> Enrollment trends and fee collection overview.</li>
+        <li><strong>Enrollments:</strong> Manage student registrations and role approvals.</li>
+        <li><strong>Attendance:</strong> Faculty and student attendance monitoring.</li>
+        <li><strong>Academic Reports:</strong> Deep-dive reports into course progress and department performance.</li>
+        <li><strong>Fee Management:</strong> Tracking payments, dues, and financial status.</li>
+        <li><strong>Examination:</strong> Scheduling global exams and managing datesheets.</li>
+        <li><strong>Results:</strong> Verifying and publishing semester results.</li>
+        <li><strong>Time Table:</strong> Configuring the master academic schedule.</li>
+        <li><strong>Settings:</strong> System-level configuration.</li>
+    </ul>
+
+    <h3>B. HOD (Head of Department)</h3>
+    <p><em>Focuses on departmental excellence and faculty coordination.</em></p>
+    <ul>
+        <li><strong>Dashboard:</strong> Department-specific analytics and performance metrics.</li>
+        <li><strong>Course Catalogue:</strong> View all active courses within the relevant department.</li>
+        <li><strong>Assign Course:</strong> Assign specific courses to registered faculty members.</li>
+        <li><strong>Attendance:</strong> Monitor attendance for department-specific courses.</li>
+        <li><strong>Live Interaction:</strong> Oversee Live Chat and Live Classes.</li>
+        <li><strong>Visual Lab:</strong> Review lab experiment submissions for the department.</li>
+        <li><strong>Academic Reports:</strong> Generate reports for departmental KPIs.</li>
+    </ul>
+
+    <h3>C. Faculty Member (Teacher)</h3>
+    <p><em>Focuses on course delivery and student engagement.</em></p>
+    <ul>
+        <li><strong>Dashboard:</strong> Teacher performance analytics and recent class stats.</li>
+        <li><strong>Course Hub:</strong> Manage active, assigned courses and resources.</li>
+        <li><strong>Attendance:</strong> Mark and track attendance for assigned classes.</li>
+        <li><strong>Live Classes:</strong> Host Agora-powered video sessions and real-time chat.</li>
+        <li><strong>Visual Lab:</strong> Manage simulations and review student lab reports.</li>
+        <li><strong>Exam & Results:</strong> Grading and assessment management for assigned courses.</li>
+    </ul>
+
+    <h2>5. Modules & Features Breakdown</h2>
+    <h3>I. Course Management Hub</h3>
+    <p>Centralized repository for academic documents with integrated permission controls. Includes resource expiration features to protect sensitive content.</p>
+    
+    <h3>II. Live Session Module (Agora Powered)</h3>
+    <p>High-definition video broadcasting with real-time participant tracking and integrated resource sharing during lectures.</p>
+
+    <h3>III. Virtual Lab (Pharmacy Simulations)</h3>
+    <p>Interactive simulations for Dissolution Tests, Tablet Formulation, and Emulsion Stability. Features real-time data plotting and digital report submission.</p>
+
+    <h3>IV. AI Academic Tutor (Gemini Integration)</h3>
+    <p>24/7 AI-powered support specifically trained on the Pharmacy curriculum to answer student queries instantly.</p>
+
+    <h2>6. System Workflow</h2>
+    <ol>
+        <li><strong>Onboarding:</strong> Automated signup and administrative approval flow.</li>
+        <li><strong>Provisioning:</strong> HOD assigns courses to Faculty members via the management portal.</li>
+        <li><strong>Execution:</strong> Faculty hosts Live Classes or enables Virtual Lab modules.</li>
+        <li><strong>Evaluation:</strong> Student submits digital reports; Faculty reviews and grades on-platform.</li>
+        <li><strong>Reporting:</strong> Analytics are aggregated for V.C. and Dean Office review.</li>
+    </ol>
+
+    <h2>7. Administrative Credentials Matrix</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Designation</th>
+                <th>Email Address</th>
+                <th>Password</th>
+                <th>Role</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Vice Chancellor (V.C.)</td>
+                <td>vc@uok.edu.pk</td>
+                <td>Softsols@123</td>
+                <td>MAIN_ADMIN</td>
+            </tr>
+            <tr>
+                <td>Super Admin</td>
+                <td>admin@uok.edu.pk</td>
+                <td>Softsols@123</td>
+                <td>SUPER_ADMIN</td>
+            </tr>
+            <tr>
+                <td>Dean Office</td>
+                <td>dean@uok.edu.pk</td>
+                <td>Softsols@123</td>
+                <td>SUB_ADMIN</td>
+            </tr>
+            <tr>
+                <td>General Admin</td>
+                <td>sysadmin@uok.edu.pk</td>
+                <td>Softsols@123</td>
+                <td>SUB_ADMIN</td>
+            </tr>
+            <tr>
+                <td>HOD (Pharmacology)</td>
+                <td>hod.pharma@uok.edu.pk</td>
+                <td>Softsols@123</td>
+                <td>HOD</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="footer">
+        <p>&copy; 2026 Faculty of Pharmacy - Developed with Excellence by SoftSols PK</p>
+    </div>
+</body>
+</html>
