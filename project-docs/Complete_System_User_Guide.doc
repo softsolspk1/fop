@@ -1,0 +1,189 @@
+<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+<head>
+    <meta charset="utf-8">
+    <title>Complete System User Guide - Pharmacy Portal</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 1in;
+        }
+        body {
+            font-family: 'Calibri', 'Arial', sans-serif;
+            font-size: 11pt;
+            line-height: 1.6;
+            color: #333;
+        }
+        .title-page {
+            text-align: center;
+            padding-top: 100px;
+            padding-bottom: 100px;
+        }
+        h1 {
+            color: #1a365d;
+            font-size: 32pt;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .subtitle {
+            font-size: 18pt;
+            color: #4a5568;
+            margin-bottom: 50px;
+        }
+        h2 {
+            color: #2c5282;
+            font-size: 20pt;
+            border-bottom: 2px solid #3182ce;
+            padding-bottom: 5px;
+            margin-top: 40px;
+            page-break-before: always;
+        }
+        h3 {
+            color: #2d3748;
+            font-size: 16pt;
+            margin-top: 25px;
+            background-color: #f7fafc;
+            padding: 5px 10px;
+            border-left: 5px solid #3182ce;
+        }
+        p {
+            margin-bottom: 15px;
+        }
+        .screenshot-container {
+            text-align: center;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            border: 1px solid #e2e8f0;
+            padding: 10px;
+            background-color: #fff;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+        .caption {
+            font-size: 10pt;
+            color: #718096;
+            margin-top: 5px;
+            font-style: italic;
+        }
+        .feature-list {
+            margin-left: 20px;
+            margin-bottom: 20px;
+        }
+        .feature-item {
+            margin-bottom: 8px;
+        }
+        .footer {
+            margin-top: 50px;
+            font-size: 9pt;
+            color: #a0aec0;
+            text-align: center;
+            border-top: 1px solid #edf2f7;
+            padding-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="title-page">
+        <h1>COMPLETE SYSTEM USER GUIDE</h1>
+        <div class="subtitle">Faculty of Pharmacy & Pharmaceutical Sciences (UOK)</div>
+        <p><strong>A Comprehensive Illustrated Guide to the Student Experience and Administrative Control Panel</strong></p>
+        <br><br><br>
+        <p><strong>Date:</strong> March 28, 2026</p>
+        <p><strong>Developed By:</strong> SoftSols PK</p>
+        <p><strong>Official Link:</strong> https://fopps-uok.online/</p>
+    </div>
+
+    <h2>1. Introduction</h2>
+    <p>This document provides a high-fidelity visual walkthrough of the Integrated Academic Management System designed for the Faculty of Pharmacy. It is divided into two primary sections: the <strong>Student Journey</strong>, detailing the lifecycle from registration to active learning, and the <strong>Admin Panel Deep Dive</strong>, showcasing the robust administrative tools available to the faculty management.</p>
+
+    <h2>2. Student Journey: Registration & Onboarding</h2>
+    <h3>A. Student Registration Form</h3>
+    <p>The first step for any student is to create an institutional account. The registration form is designed to be comprehensive yet intuitive, capturing key academic data such as Shift, Academic Year, and Enrollment details.</p>
+    
+    <div class="screenshot-container">
+        <img src="file:///C:/Users/softs/.gemini/antigravity/brain/dac64dd6-13b5-4338-97c7-fafa67b4fcf3/student_registration_form_1774672753672.png" alt="Student Registration Form">
+        <div class="caption">Figure 1: High-fidelity Student Registration Portal with real-time field validation.</div>
+    </div>
+
+    <p><strong>Key Features:</strong></p>
+    <ul class="feature-list">
+        <li class="feature-item">Role-based signup with secure password hashing.</li>
+        <li class="feature-item">Automated department and year selection.</li>
+        <li class="feature-item">Institutional email verification.</li>
+    </ul>
+
+    <h2>3. Admin Panel: Comprehensive Operational Guide</h2>
+    
+    <h3>A. Command Center (Dashboard)</h3>
+    <p>The Admin Dashboard provides a real-time "System Overview." From here, administrators can monitor student counts, department distributions, and active course performance at a glance.</p>
+    
+    <div class="screenshot-container">
+        <img src="file:///C:/Users/softs/.gemini/antigravity/brain/dac64dd6-13b5-4338-97c7-fafa67b4fcf3/admin_dashboard_1774672810937.png" alt="Admin Dashboard">
+        <div class="caption">Figure 2: Super Admin Dashboard showing system-wide analytics.</div>
+    </div>
+
+    <h3>B. Enrollment & Academic Records</h3>
+    <p>The Enrollments module is where the lifecycle of the student is managed. Administrators can approve registrations, assign students to specific sections, and manage their academic status.</p>
+    
+    <div class="screenshot-container">
+        <img src="file:///C:/Users/softs/.gemini/antigravity/brain/dac64dd6-13b5-4338-97c7-fafa67b4fcf3/enrollments_module_1774672824103.png" alt="Enrollments Module">
+        <div class="caption">Figure 3: Detailed Enrollment Management interface.</div>
+    </div>
+
+    <h3>C. Departmental & User Management</h3>
+    <p>The system features a structured management layer for Departments and a full User Directory to ensure fine-grained control over roles (V.C., Dean, HOD, Faculty, Student).</p>
+    
+    <div class="screenshot-container">
+        <img src="file:///C:/Users/softs/.gemini/antigravity/brain/dac64dd6-13b5-4338-97c7-fafa67b4fcf3/departments_module_1774673037761.png" alt="Departments Module" style="margin-bottom: 10px;">
+        <img src="file:///C:/Users/softs/.gemini/antigravity/brain/dac64dd6-13b5-4338-97c7-fafa67b4fcf3/user_directory_module_admin_1774673050616.png" alt="User Directory Module">
+        <div class="caption">Figure 4 & 5: Departmental structure and global User Management directory.</div>
+    </div>
+
+    <h3>D. Fee & Financial Management</h3>
+    <p>A unified portal for tracking student fees, generating ledger reports, and maintaining financial records for each academic cycle.</p>
+    
+    <div class="screenshot-container">
+        <img src="file:///C:/Users/softs/.gemini/antigravity/brain/dac64dd6-13b5-4338-97c7-fafa67b4fcf3/fee_management_module_1774672881045.png" alt="Fee Management">
+        <div class="caption">Figure 6: Financial dashboard for fee tracking and auditing.</div>
+    </div>
+
+    <h3>E. Examination & Results Publication</h3>
+    <p>The system automates the examination lifecycle, from scheduling datesheets to the final publication of semester results.</p>
+    
+    <div class="screenshot-container">
+        <img src="file:///C:/Users/softs/.gemini/antigravity/brain/dac64dd6-13b5-4338-97c7-fafa67b4fcf3/examination_module_1774672899460.png" alt="Examination Module" style="margin-bottom: 10px;">
+        <img src="file:///C:/Users/softs/.gemini/antigravity/brain/dac64dd6-13b5-4338-97c7-fafa67b4fcf3/results_module_1774672916737.png" alt="Results Module">
+        <div class="caption">Figure 7 & 8: Institutional exam management and result processing portal.</div>
+    </div>
+
+    <h3>F. Virtual Laboratory & Advanced Learning</h3>
+    <p>The portal includes high-fidelity laboratory simulations (Visual Lab) and real-time live class capabilities, ensuring that practical and theoretical learning continue without interruption.</p>
+    
+    <div class="screenshot-container">
+        <img src="file:///C:/Users/softs/.gemini/antigravity/brain/dac64dd6-13b5-4338-97c7-fafa67b4fcf3/visual_lab_module_1774673087836.png" alt="Visual Lab Module">
+        <div class="caption">Figure 9: Integrated Virtual Laboratory simulating pharmaceutical experiments.</div>
+    </div>
+
+    <h3>G. Targeted Announcements (Message Box)</h3>
+    <p>The official broadcast center for the faculty. Administrators can send targeted announcements to specific years, departments, or shifts with high visibility.</p>
+    
+    <div class="screenshot-container">
+        <img src="file:///C:/Users/softs/.gemini/antigravity/brain/dac64dd6-13b5-4338-97c7-fafa67b4fcf3/announcements_module_1774672973429.png" alt="Announcements Module">
+        <div class="caption">Figure 10: Targeted messaging system for institutional broadcasts.</div>
+    </div>
+
+    <h3>H. Global System Settings</h3>
+    <p>Full platform configuration including security policies, institution branding, and system-wide parameters.</p>
+    
+    <div class="screenshot-container">
+        <img src="file:///C:/Users/softs/.gemini/antigravity/brain/dac64dd6-13b5-4338-97c7-fafa67b4fcf3/system_settings_module_1774672959216.png" alt="System Settings">
+        <div class="caption">Figure 11: Backend configuration panel for system security and maintenance.</div>
+    </div>
+
+    <div class="footer">
+        <p>&copy; 2026 Faculty of Pharmacy and Pharmaceutical Sciences - UOK</p>
+        <p><em>Developed and maintained with precision by SoftSols PK.</em></p>
+    </div>
+</body>
+</html>
