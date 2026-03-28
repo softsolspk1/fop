@@ -39,6 +39,7 @@ model User {
   uploadedMaterials Material[]         @relation("MaterialUploader")
   receivedMessages  Message[]          @relation("ReceivedMessages")
   sentMessages      Message[]          @relation("SentMessages")
+  sentAnnouncements Announcement[]     @relation("SentAnnouncements")
   quizzes           QuizResult[]
   studentResults    Result[]           @relation("ResultStudent")
   resultsPosted     Result[]           @relation("ResultTeacher")
@@ -447,6 +448,21 @@ model SessionAsset {
   classId   String
   createdAt DateTime @default(now())
   sender    User     @relation(fields: [senderId], references: [id])
+}
+
+model Announcement {
+  id           String    @id @default(uuid())
+  title        String
+  content      String
+  senderId     String
+  targetRole   Role?     // Optional filter: MAIN_ADMIN, STUDENT, etc.
+  targetYear   String?   // Optional filter: 1st Year, 2nd Year, etc.
+  targetShift  String?   // Optional filter: MORNING, EVENING
+  departmentId String?   // Optional filter: Pharmacy, etc.
+  courseId     String?   // Optional filter: Specific course
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  sender       User      @relation("SentAnnouncements", fields: [senderId], references: [id])
 }
 
 enum Role {

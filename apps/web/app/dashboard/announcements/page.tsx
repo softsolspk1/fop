@@ -1,10 +1,10 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import DashboardLayout from '../../../../components/dashboard/DashboardLayout';
-import { Bell, Send, Users, Filter, Trash2, Calendar, Target, MegaPhone, Loader2, X, GraduationCap, Building2, Clock } from 'lucide-react';
-import { useAuth } from '../../../../context/AuthContext';
-import api from '../../../../lib/api';
+import DashboardLayout from '../../../components/dashboard/DashboardLayout';
+import { Bell, Send, Users, Filter, Trash2, Calendar, Target, Megaphone, Loader2, X, GraduationCap, Building2, Clock } from 'lucide-react';
+import { useAuth } from '../../../context/AuthContext';
+import api from '../../../lib/api';
 import { toast } from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -129,7 +129,7 @@ export default function AnnouncementsPage() {
                 <div className="flex justify-between items-start gap-4 mb-6">
                   <div className="flex items-center gap-4">
                     <div className="w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center group-hover:bg-blue-50 transition-colors">
-                      <MegaPhone className="w-6 h-6 text-slate-400 group-hover:text-blue-500 transition-colors" />
+                      <Megaphone className="w-6 h-6 text-slate-400 group-hover:text-blue-500 transition-colors" />
                     </div>
                     <div>
                       <h3 className="text-xl font-black text-slate-800 tracking-tight">{ann.title}</h3>
