@@ -17,12 +17,12 @@ async function main() {
     {
       email: 'sysadmin@uok.edu.pk',
       name: 'System Administrator',
-      role: Role.MAIN_ADMIN,
+      role: Role.SUB_ADMIN,
     },
     {
       email: 'dean@uok.edu.pk',
       name: 'Dean Faculty of Pharmacy',
-      role: Role.MAIN_ADMIN,
+      role: Role.SUB_ADMIN,
     },
     {
       email: 'hod.pharma@uok.edu.pk',
