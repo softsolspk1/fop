@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { BookOpen, Users, Video, FileText, LayoutDashboard, Settings, ChevronRight, GraduationCap } from 'lucide-react';
