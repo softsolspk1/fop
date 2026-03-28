@@ -60,7 +60,7 @@ router.post('/materials', authenticateToken, authorizeRoles('FACULTY', 'SUPER_AD
       }
     }
 
-    let { title, url, type, courseId, expiresAt, isDownloadable } = req.body;
+    let { title, url, type, courseId, expiresAt, isDownloadable, isScheduled, scheduledAt } = req.body;
     const userId = req.user?.userId;
     let publicId = null;
 
@@ -74,6 +74,18 @@ router.post('/materials', authenticateToken, authorizeRoles('FACULTY', 'SUPER_AD
     if (isYoutube) {
       console.log('[LMS]: YouTube link detected:', url);
       type = 'YOUTUBE';
+    }
+
+    // Google Drive Link Detection for VIDEO type
+    if (type === 'VIDEO' || type === 'SCHEDULED_LECTURE') {
+      if (!url) {
+        if (filePath && fs.existsSync(filePath)) fs.unlinkSync(filePath);
+        return res.status(400).json({ message: 'Google Drive Link is required for videos and scheduled lectures' });
+      }
+      if (req.file) {
+        console.warn(`[LMS]: File uploaded for ${type} type, but will be ignored for Google Drive Link.`);
+        if (filePath && fs.existsSync(filePath)) fs.unlinkSync(filePath);
+      }
     }
 
     // If a file is uploaded, use Cloudinary
@@ -114,7 +126,9 @@ router.post('/materials', authenticateToken, authorizeRoles('FACULTY', 'SUPER_AD
         uploadedById: userId,
         status: 'APPROVED',
         expiresAt: expiresAt ? new Date(expiresAt) : null,
-        isDownloadable: isDownloadable === 'true' || isDownloadable === true
+        isDownloadable: isDownloadable === 'true' || isDownloadable === true,
+        isScheduled: isScheduled === 'true' || isScheduled === true,
+        scheduledAt: scheduledAt ? new Date(scheduledAt) : null
       }
     });
 

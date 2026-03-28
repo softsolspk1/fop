@@ -184,3 +184,27 @@ D) Student Role:
 Student Role and Navigation Menu is perfect.
 Only one issue need to resolve is that the Student Dashboard and Course Catalogue in Student will show only Active Courses of their Professional Year. Currently InActive courses also showing.
 
+==================================================
+
+1) In Live Session: 
+a) there is an issue in File Sharing. Use same fiel sharing module as in Course Resource to share in Online Session.
+b) When I close Screen sharing, the host video not started properly rather it stucks.
+c) Remove the button of Delete Session during Live Session Page at top right.
+Fix both issues of Live Session.
+
+2) Add a Confirmation message after student signup form submission in web and in mobile app also.
+
+3) I also need a Message Bix in Admin to send custom message to all or selected users like any class, any department or only faculty member etc
+
+4) After it, 
+can you develop mobile app from scratch now and using all features as the current web following user roles as well as the student registration form will be same as in web.
+
+
+ 
+files are stored: 
+C:\Users\softs.gemini\antigravity\brain\dac64dd6-13b5-4338-97c7-fafa67b4fcf3\
+
+
+
+eas build --platform android --profile preview
+

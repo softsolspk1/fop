@@ -1,0 +1,36 @@
+Act as a Project Manager and write a detailed  Project  Document to present to Client:
+
+1. Project Overview
+Project Name:
+Description:
+Developed By:
+
+
+System Overview
+Brief explanation of how the system works
+Platform (Web / Mobile / Desktop)
+Technologies used (optional)
+
+3. User Roles & Permissions
+
+Create a table like this:
+
+User Role	Description	Key Permissions
+Admin	Full system control	Manage users, settings, reports
+
+
+4. Modules / Features Breakdown
+For each module, explain clearly:
+
+
+5. Workflow / Process Flow
+Explain how users interact with the system step-by-step:
+
+
+6. Login Details / Access Information
+URL / App link
+Test credentials (if sharing)
+
+7. User Login Credentials of V.C., Super Admin, Admin, Dean Office and HODs
+
+I need a complete and detailed document in word format showcasing each and every feature/modules/flow and everything

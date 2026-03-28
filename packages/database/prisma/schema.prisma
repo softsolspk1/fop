@@ -183,6 +183,8 @@ model Material {
   publicId       String?
   expiresAt      DateTime?
   isDownloadable Boolean          @default(true)
+  isScheduled    Boolean          @default(false)
+  scheduledAt    DateTime?
   course         Course           @relation(fields: [courseId], references: [id])
   uploadedBy     User?            @relation("MaterialUploader", fields: [uploadedById], references: [id])
 }

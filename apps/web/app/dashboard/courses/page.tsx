@@ -240,6 +240,29 @@ export default function CoursesPage() {
     fetchCourseDetails();
   }, [viewingCourse?.id]);
 
+  // Auto-Start effect for Scheduled Lectures
+  useEffect(() => {
+    if (!viewingCourse?.materials) return;
+    
+    const checkScheduled = () => {
+      const now = new Date();
+      viewingCourse.materials.forEach((mat: any) => {
+        if (mat.isScheduled && mat.status === 'APPROVED' && mat.type === 'SCHEDULED_LECTURE') {
+          const scheduledDate = new Date(mat.scheduledAt);
+          // If scheduled time is reached within the last 10 seconds (to avoid spamming)
+          const diff = now.getTime() - scheduledDate.getTime();
+          if (diff >= 0 && diff < 10000) {
+            toast.success(`Lecture Starting: ${mat.title}`, { duration: 10000 });
+            window.open(mat.url, '_blank');
+          }
+        }
+      });
+    };
+
+    const interval = setInterval(checkScheduled, 5000); // Check every 5 seconds
+    return () => clearInterval(interval);
+  }, [viewingCourse?.materials]);
+
   const parseToItems = (text: string) => {
     if (!text) return [];
     // Collapse whitespace but keep it readable
@@ -518,11 +541,12 @@ export default function CoursesPage() {
                           <option value="WORD">Word Document (DOC/DOCX)</option>
                           <option value="PPT">PowerPoint (PPTX)</option>
                           <option value="IMAGE">Image / Diagram</option>
-                          <option value="VIDEO">Video Upload</option>
+                          <option value="VIDEO">Video (Google Drive Link)</option>
+                          <option value="SCHEDULED_LECTURE">Scheduled Lecture (Auto-Play)</option>
                           <option value="YOUTUBE">YouTube Link</option>
                         </select>
                       </div>
-                      <div className="md:col-span-2 space-y-1.5 px-1">
+                      <div className={`md:col-span-2 space-y-1.5 px-1 ${(document.getElementById('mat-type') as HTMLSelectElement)?.value === 'VIDEO' || (document.getElementById('mat-type') as HTMLSelectElement)?.value === 'SCHEDULED_LECTURE' ? 'hidden' : ''}`}>
                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Direct File Upload (Cloudinary)</label>
                         <input 
                           type="file" 
@@ -532,7 +556,7 @@ export default function CoursesPage() {
                         />
                       </div>
                       <div className="md:col-span-2 space-y-1.5 px-1">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">OR URL / Resource Link</label>
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{(document.getElementById('mat-type') as HTMLSelectElement)?.value === 'VIDEO' || (document.getElementById('mat-type') as HTMLSelectElement)?.value === 'SCHEDULED_LECTURE' ? 'Google Drive Link / Video URL' : 'OR URL / Resource Link'}</label>
                         <input 
                           type="text" 
                           placeholder="https://..."
@@ -542,7 +566,7 @@ export default function CoursesPage() {
                       </div>
                       <div className="space-y-1.5 px-1 col-span-1">
                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-2">
-                           <Calendar className="w-3 h-3 text-blue-500" /> Expiration Date (Optional)
+                           <Calendar className="w-3 h-3 text-blue-500" /> {(document.getElementById('mat-type') as HTMLSelectElement)?.value === 'SCHEDULED_LECTURE' ? 'Lecture Date & Time' : 'Expiration Date (Optional)'}
                         </label>
                         <input 
                           type="datetime-local" 
@@ -586,8 +610,14 @@ export default function CoursesPage() {
                               formData.append('courseId', managingMaterials.id);
                               if (file) formData.append('file', file);
                               if (url) formData.append('url', url);
-                              if (expiresAt) formData.append('expiresAt', expiresAt);
-                              formData.append('isDownloadable', String(isDownloadable));
+                              if (expiresAt) {
+                                if (type === 'SCHEDULED_LECTURE') {
+                                  formData.append('scheduledAt', expiresAt);
+                                  formData.append('isScheduled', 'true');
+                                } else {
+                                  formData.append('expiresAt', expiresAt);
+                                }
+                              }
 
                               await api.post('/lms/materials', formData, {
                                 headers: { 'Content-Type': 'multipart/form-data' }
@@ -1211,27 +1241,62 @@ export default function CoursesPage() {
                            </div>
                          ) : (
                            viewingCourse.materials.filter((m: any) => m.status === 'APPROVED').map((mat: any) => (
-                             <a 
-                               key={mat.id} 
-                               href={mat.url} 
-                               target="_blank" 
-                               rel="noopener noreferrer"
-                               className="p-5 bg-white border border-slate-100 rounded-2xl flex items-center gap-4 hover:border-green-200 hover:shadow-lg hover:shadow-green-100/20 transition-all group"
-                             >
-                               <div className="p-3 bg-green-50 text-green-600 rounded-xl group-hover:bg-green-600 group-hover:text-white transition-all">
-                                  {mat.type === 'VIDEO' || mat.type === 'YOUTUBE' ? <Video className="w-5 h-5" /> : <FileText className="w-5 h-5" />}
-                               </div>
-                               <div className="overflow-hidden">
-                                 <p className="font-black text-slate-800 text-sm truncate">{mat.title}</p>
-                                 <div className="flex items-center gap-2 mt-0.5">
-                                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{mat.type}</span>
-                                    <div className="w-1 h-1 bg-slate-200 rounded-full" />
-                                    <span className="text-[9px] font-black text-green-600 uppercase tracking-widest flex items-center gap-1">
-                                       <ShieldCheck className="w-2.5 h-2.5" /> Verified
-                                    </span>
-                                 </div>
-                               </div>
-                             </a>
+                             <div 
+                                key={mat.id} 
+                                className={`p-5 bg-white border border-slate-100 rounded-2xl flex items-center gap-4 transition-all group ${mat.isScheduled && new Date(mat.scheduledAt) > new Date() ? 'opacity-70 grayscale pointer-events-none' : 'hover:border-green-200 hover:shadow-lg hover:shadow-green-100/20'}`}
+                              >
+                                <div className={`p-3 rounded-xl transition-all ${mat.type === 'VIDEO' || mat.type === 'YOUTUBE' || mat.type === 'SCHEDULED_LECTURE' ? 'bg-blue-50 text-blue-600 group-hover:bg-blue-600 group-hover:text-white' : 'bg-green-50 text-green-600 group-hover:bg-green-600 group-hover:text-white'}`}>
+                                   {mat.type === 'VIDEO' || mat.type === 'YOUTUBE' || mat.type === 'SCHEDULED_LECTURE' ? <Video className="w-5 h-5" /> : <FileText className="w-5 h-5" />}
+                                </div>
+                                <div className="overflow-hidden flex-1">
+                                  <div className="flex items-center justify-between">
+                                     <p className="font-black text-slate-800 text-sm truncate">{mat.title}</p>
+                                     {mat.isScheduled && new Date(mat.scheduledAt) > new Date() && (
+                                        <div className="flex items-center gap-1.5 px-2 py-0.5 bg-orange-50 text-orange-600 rounded-md">
+                                           <span className="relative flex h-1.5 w-1.5">
+                                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
+                                             <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-orange-500"></span>
+                                           </span>
+                                           <span className="text-[8px] font-black uppercase tracking-tight">Starts in: {(() => {
+                                              const diff = new Date(mat.scheduledAt).getTime() - new Date().getTime();
+                                              const mins = Math.max(0, Math.floor(diff / 60000));
+                                              const hours = Math.floor(mins / 60);
+                                              if (hours > 0) return `${hours}h ${mins % 60}m`;
+                                              return `${mins}m`;
+                                           })()}</span>
+                                        </div>
+                                     )}
+                                     {mat.isScheduled && new Date(mat.scheduledAt) <= new Date() && (
+                                        <div className="flex items-center gap-1.5 px-2 py-0.5 bg-red-50 text-red-600 rounded-md">
+                                           <span className="relative flex h-1.5 w-1.5">
+                                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                                             <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500"></span>
+                                           </span>
+                                           <span className="text-[8px] font-black uppercase tracking-tight">LIVE NOW</span>
+                                        </div>
+                                     )}
+                                  </div>
+                                  <div className="flex items-center justify-between mt-0.5">
+                                     <div className="flex items-center gap-2">
+                                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{mat.type}</span>
+                                        <div className="w-1 h-1 bg-slate-200 rounded-full" />
+                                        <span className="text-[9px] font-black text-green-600 uppercase tracking-widest flex items-center gap-1">
+                                           <ShieldCheck className="w-2.5 h-2.5" /> Verified
+                                        </span>
+                                     </div>
+                                     {(!mat.isScheduled || new Date(mat.scheduledAt) <= new Date()) && (
+                                        <a 
+                                          href={mat.url} 
+                                          target="_blank" 
+                                          rel="noopener noreferrer"
+                                          className="px-3 py-1 bg-slate-100 text-slate-600 text-[8px] font-black uppercase tracking-widest rounded-lg hover:bg-blue-600 hover:text-white transition-all shadow-sm"
+                                        >
+                                           Join Now
+                                        </a>
+                                     )}
+                                  </div>
+                                </div>
+                              </div>
                            ))
                          )}
                        </div>
