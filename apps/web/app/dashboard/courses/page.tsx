@@ -36,6 +36,7 @@ export default function CoursesPage() {
   const [quizAnswers, setQuizAnswers] = useState<any>({});
   const [activeClasses, setActiveClasses] = useState<any[]>([]);
   const [quizTimer, setQuizTimer] = useState(0);
+  const [selectedMaterialType, setSelectedMaterialType] = useState('DOCUMENT');
 
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -536,7 +537,12 @@ export default function CoursesPage() {
                       </div>
                       <div className="space-y-1.5 px-1">
                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Content Type</label>
-                        <select id="mat-type" className="w-full px-5 py-3.5 bg-white border-2 border-slate-100 rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-400 transition-all shadow-sm">
+                        <select 
+                          id="mat-type" 
+                          value={selectedMaterialType}
+                          onChange={(e) => setSelectedMaterialType(e.target.value)}
+                          className="w-full px-5 py-3.5 bg-white border-2 border-slate-100 rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-400 transition-all shadow-sm"
+                        >
                           <option value="DOCUMENT">Document (PDF)</option>
                           <option value="WORD">Word Document (DOC/DOCX)</option>
                           <option value="PPT">PowerPoint (PPTX)</option>
@@ -546,7 +552,7 @@ export default function CoursesPage() {
                           <option value="YOUTUBE">YouTube Link</option>
                         </select>
                       </div>
-                      <div className={`md:col-span-2 space-y-1.5 px-1 ${(document.getElementById('mat-type') as HTMLSelectElement)?.value === 'VIDEO' || (document.getElementById('mat-type') as HTMLSelectElement)?.value === 'SCHEDULED_LECTURE' ? 'hidden' : ''}`}>
+                      <div className={`md:col-span-2 space-y-1.5 px-1 ${['VIDEO', 'SCHEDULED_LECTURE', 'YOUTUBE'].includes(selectedMaterialType) ? 'hidden' : ''}`}>
                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Direct File Upload (Cloudinary)</label>
                         <input 
                           type="file" 
@@ -556,7 +562,7 @@ export default function CoursesPage() {
                         />
                       </div>
                       <div className="md:col-span-2 space-y-1.5 px-1">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{(document.getElementById('mat-type') as HTMLSelectElement)?.value === 'VIDEO' || (document.getElementById('mat-type') as HTMLSelectElement)?.value === 'SCHEDULED_LECTURE' ? 'Google Drive Link / Video URL' : 'OR URL / Resource Link'}</label>
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{['VIDEO', 'SCHEDULED_LECTURE', 'YOUTUBE'].includes(selectedMaterialType) ? 'Google Drive Link / Video URL' : 'OR URL / Resource Link'}</label>
                         <input 
                           type="text" 
                           placeholder="https://..."
@@ -566,7 +572,7 @@ export default function CoursesPage() {
                       </div>
                       <div className="space-y-1.5 px-1 col-span-1">
                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-2">
-                           <Calendar className="w-3 h-3 text-blue-500" /> {(document.getElementById('mat-type') as HTMLSelectElement)?.value === 'SCHEDULED_LECTURE' ? 'Lecture Date & Time' : 'Expiration Date (Optional)'}
+                           <Calendar className="w-3 h-3 text-blue-500" /> {selectedMaterialType === 'SCHEDULED_LECTURE' ? 'Lecture Date & Time' : 'Expiration Date (Optional)'}
                         </label>
                         <input 
                           type="datetime-local" 
