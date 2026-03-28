@@ -15,13 +15,13 @@ export default function LandingPage() {
         isOpen={activeModal === 'dean'} 
         onClose={() => setActiveModal(null)}
         title="Dean's Message"
-        imageSrc="/dean-message.png"
+        imageSrc="/dean.jpg"
       />
       <MessageModal 
         isOpen={activeModal === 'vc'} 
         onClose={() => setActiveModal(null)}
         title="Vice Chancellor Message"
-        imageSrc="/vc-message.png"
+        imageSrc="/VC.jpg"
       />
 
       <nav className="flex items-center justify-between px-8 py-5 bg-white shadow-sm sticky top-0 z-50 border-b border-slate-100">
