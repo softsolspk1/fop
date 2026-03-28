@@ -78,7 +78,7 @@ export default function SignupPage() {
               href="/signup/graduate"
               className="px-4 py-2 bg-white border border-blue-600 text-blue-600 font-bold rounded-xl hover:bg-blue-50 transition-all text-[10px] uppercase tracking-widest shadow-sm"
             >
-              M.Phil and Ph.D Registration
+              Post Graduate Registration
             </Link>
         </div>
         <h2 className="text-center text-3xl font-extrabold text-slate-900 tracking-tight">

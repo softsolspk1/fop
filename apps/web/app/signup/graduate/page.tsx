@@ -111,7 +111,7 @@ export default function GraduateSignupPage() {
             <div className="w-12 h-10" /> {/* Spacer */}
         </div>
         <h2 className="text-center text-3xl font-black text-slate-900 tracking-tight">
-          Graduate Registration
+          Post Graduate Registration
         </h2>
         <p className="mt-2 text-center text-sm text-slate-600 font-medium">
           M.Phil and Ph.D Program - Pharmacy UOK
@@ -298,7 +298,7 @@ export default function GraduateSignupPage() {
                   </>
                 ) : (
                   <>
-                    Register Graduate Account
+                    Register Post Graduate Account
                     <ArrowRight className="w-5 h-5" />
                   </>
                 )}
