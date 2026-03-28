@@ -36,7 +36,7 @@ router.get('/my-stats', authenticateToken, authorizeRoles('HOD'), async (req: Au
 });
 
 // Get all departments
-router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
+router.get('/', async (req, res, next) => {
   try {
     const departments = await prisma.department.findMany({
       include: {
