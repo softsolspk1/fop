@@ -130,6 +130,10 @@ export default function AgoraVideoPlayer({
           // Restore camera after screen share
           if (localVideoTrack) {
              await clientRef.current.publish(localVideoTrack);
+             // CRITICAL: Re-play the video track to the current videoRef
+             if (videoRef.current) {
+                localVideoTrack.play(videoRef.current);
+             }
           }
         }
         screenTrack.close();
@@ -139,6 +143,13 @@ export default function AgoraVideoPlayer({
 
     startScreenShare();
   }, [isScreenSharing, role, localVideoTrack]);
+
+  // Ensure local video track plays when it's active and not screening
+  useEffect(() => {
+    if (localVideoTrack && !screenTrack && videoRef.current) {
+      localVideoTrack.play(videoRef.current);
+    }
+  }, [localVideoTrack, screenTrack]);
 
   return (
     <div className="flex flex-col h-full gap-4">

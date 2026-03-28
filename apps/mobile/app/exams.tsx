@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
 import { useRouter } from 'expo-router';
-import { ChevronLeft, GraduationCap, Calendar, Award, MapPin, Clock } from 'lucide-react-native';
+import { ChevronLeft, GraduationCap, Calendar, Award, MapPin, Clock, MoreVertical, FileText } from 'lucide-react-native';
 import api from '../lib/api';
+import { Colors, Card } from '../components/UI';
 
 export default function ExamsScreen() {
   const router = useRouter();
@@ -12,98 +13,110 @@ export default function ExamsScreen() {
   const [activeTab, setActiveTab] = useState<'schedule' | 'results'>('schedule');
   const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const [examsRes, resultsRes] = await Promise.all([
         api.get('/exams/schedule'),
         api.get('/exams/my-results')
       ]);
-      setExams(examsRes.data);
-      setResults(resultsRes.data);
+      setExams(Array.isArray(examsRes.data) ? examsRes.data : []);
+      setResults(Array.isArray(resultsRes.data) ? resultsRes.data : []);
     } catch (error) {
       console.error(error);
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
+  }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchData();
   };
 
   const renderExamItem = ({ item }: { item: any }) => (
-    <View style={styles.card}>
+    <Card style={styles.card}>
       <View style={styles.cardHeader}>
         <View style={styles.iconContainer}>
-          <Calendar size={20} color="#2563eb" />
+          <Calendar size={22} color={Colors.primary} />
         </View>
         <View style={styles.titleContainer}>
           <Text style={styles.examTitle}>{item.title}</Text>
-          <Text style={styles.courseName}>{item.course?.name || 'Pharmacy Course'}</Text>
+          <Text style={styles.courseName}>{item.course?.name || 'Academic Course'}</Text>
         </View>
       </View>
+      <View style={styles.divider} />
       <View style={styles.detailsRow}>
         <View style={styles.detail}>
-          <Clock size={14} color="#64748b" />
+          <Clock size={14} color={Colors.textSecondary} />
           <Text style={styles.detailText}>{new Date(item.date).toLocaleDateString()}</Text>
         </View>
         <View style={styles.detail}>
-          <MapPin size={14} color="#64748b" />
-          <Text style={styles.detailText}>{item.location}</Text>
+          <MapPin size={14} color={Colors.textSecondary} />
+          <Text style={styles.detailText}>{item.location || 'Examination Hall'}</Text>
         </View>
       </View>
-    </View>
+    </Card>
   );
 
   const renderResultItem = ({ item }: { item: any }) => (
-    <View style={styles.card}>
+    <Card style={styles.card}>
       <View style={styles.cardHeader}>
         <View style={[styles.iconContainer, { backgroundColor: '#f0fdf4' }]}>
-          <Award size={20} color="#16a34a" />
+          <Award size={22} color="#16a34a" />
         </View>
         <View style={styles.titleContainer}>
           <Text style={styles.examTitle}>{item.exam?.title}</Text>
           <Text style={styles.courseName}>{item.exam?.course?.name}</Text>
         </View>
         <View style={styles.gradeBadge}>
-          <Text style={styles.gradeText}>{item.grade}</Text>
+          <Text style={styles.gradeText}>{item.grade || 'P'}</Text>
         </View>
       </View>
+      <View style={styles.divider} />
       <View style={styles.scoreRow}>
-        <Text style={styles.scoreLabel}>Score obtained:</Text>
-        <Text style={styles.scoreValue}>{item.score}/100</Text>
+        <Text style={styles.scoreLabel}>Performance Score:</Text>
+        <Text style={styles.scoreValue}>{item.score || 0}/100</Text>
       </View>
-    </View>
+    </Card>
   );
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <ChevronLeft size={24} color="#1e293b" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Examinations</Text>
-      </View>
+        <View style={styles.headerTop}>
+           <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+             <ChevronLeft size={24} color={Colors.text} />
+           </TouchableOpacity>
+           <Text style={styles.headerTitle}>Examinations</Text>
+           <TouchableOpacity style={styles.moreBtn}>
+              <MoreVertical size={24} color={Colors.text} />
+           </TouchableOpacity>
+        </View>
 
-      <View style={styles.tabBar}>
-        <TouchableOpacity 
-          style={[styles.tab, activeTab === 'schedule' && styles.activeTab]} 
-          onPress={() => setActiveTab('schedule')}
-        >
-          <Text style={[styles.tabText, activeTab === 'schedule' && styles.activeTabText]}>Schedule</Text>
-        </TouchableOpacity>
-        <TouchableOpacity 
-          style={[styles.tab, activeTab === 'results' && styles.activeTab]} 
-          onPress={() => setActiveTab('results')}
-        >
-          <Text style={[styles.tabText, activeTab === 'results' && styles.activeTabText]}>Results</Text>
-        </TouchableOpacity>
+        <View style={styles.tabBar}>
+          <TouchableOpacity 
+            style={[styles.tab, activeTab === 'schedule' && styles.activeTab]} 
+            onPress={() => setActiveTab('schedule')}
+          >
+            <Text style={[styles.tabText, activeTab === 'schedule' && styles.activeTabText]}>Schedule</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.tab, activeTab === 'results' && styles.activeTab]} 
+            onPress={() => setActiveTab('results')}
+          >
+            <Text style={[styles.tabText, activeTab === 'results' && styles.activeTabText]}>Results</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {loading ? (
         <View style={styles.center}>
-          <ActivityIndicator size="large" color="#2563eb" />
+          <ActivityIndicator size="large" color={Colors.primary} />
         </View>
       ) : (
         <FlatList
@@ -111,13 +124,12 @@ export default function ExamsScreen() {
           renderItem={activeTab === 'schedule' ? renderExamItem : renderResultItem}
           keyExtractor={item => item.id}
           contentContainerStyle={styles.list}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchData(); }} />
-          }
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
           ListEmptyComponent={
             <View style={styles.empty}>
-              <GraduationCap size={48} color="#cbd5e1" />
+              <FileText size={64} color={Colors.border} />
               <Text style={styles.emptyText}>No {activeTab} available</Text>
+              <Text style={styles.emptySub}>Examination data is synced periodically.</Text>
             </View>
           }
         />
@@ -127,31 +139,35 @@ export default function ExamsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f8fafc' },
-  header: { padding: 16, paddingTop: 60, flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff' },
-  backBtn: { marginRight: 12 },
-  headerTitle: { fontSize: 20, fontWeight: 'bold', color: '#1e293b' },
-  tabBar: { flexDirection: 'row', backgroundColor: '#fff', paddingHorizontal: 16, paddingBottom: 8, borderBottomWidth: 1, borderBottomColor: '#f1f5f9' },
-  tab: { flex: 1, paddingVertical: 12, alignItems: 'center', borderRadius: 12 },
-  activeTab: { backgroundColor: '#eff6ff' },
-  tabText: { fontSize: 14, fontWeight: '600', color: '#64748b' },
-  activeTabText: { color: '#2563eb' },
+  container: { flex: 1, backgroundColor: Colors.background },
+  header: { padding: 24, paddingTop: 60, backgroundColor: Colors.surface, borderBottomLeftRadius: 40, borderBottomRightRadius: 40, shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.05, shadowRadius: 20 },
+  headerTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 },
+  backBtn: { width: 48, height: 48, backgroundColor: Colors.slate50, borderRadius: 16, justifyContent: 'center', alignItems: 'center' },
+  headerTitle: { fontSize: 16, fontWeight: '900', color: Colors.textSecondary, textTransform: 'uppercase', letterSpacing: 1 },
+  moreBtn: { width: 48, height: 48, backgroundColor: Colors.slate50, borderRadius: 16, justifyContent: 'center', alignItems: 'center' },
+  tabBar: { flexDirection: 'row', backgroundColor: Colors.slate50, padding: 4, borderRadius: 20, gap: 4 },
+  tab: { flex: 1, paddingVertical: 12, alignItems: 'center', borderRadius: 16 },
+  activeTab: { backgroundColor: Colors.white, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 5, elevation: 2 },
+  tabText: { fontSize: 13, fontWeight: '800', color: Colors.textSecondary },
+  activeTabText: { color: Colors.primary },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  list: { padding: 16 },
-  card: { backgroundColor: '#fff', borderRadius: 20, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: '#f1f5f9' },
-  cardHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
-  iconContainer: { width: 40, height: 40, borderRadius: 10, backgroundColor: '#eff6ff', alignItems: 'center', justifyContent: 'center', marginRight: 12 },
+  list: { padding: 24, paddingBottom: 100 },
+  card: { padding: 16, marginBottom: 16 },
+  cardHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 16 },
+  iconContainer: { width: 52, height: 52, borderRadius: 16, backgroundColor: Colors.primaryLight, alignItems: 'center', justifyContent: 'center', marginRight: 16 },
   titleContainer: { flex: 1 },
-  examTitle: { fontSize: 16, fontWeight: 'bold', color: '#1e293b' },
-  courseName: { fontSize: 12, color: '#64748b', marginTop: 2 },
-  detailsRow: { flexDirection: 'row', gap: 16, marginTop: 4 },
+  examTitle: { fontSize: 16, fontWeight: '800', color: Colors.text, letterSpacing: -0.3 },
+  courseName: { fontSize: 13, color: Colors.textSecondary, marginTop: 2, fontWeight: '600' },
+  divider: { height: 1, backgroundColor: Colors.slate50, marginBottom: 16 },
+  detailsRow: { flexDirection: 'row', gap: 20 },
   detail: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  detailText: { fontSize: 12, color: '#64748b' },
-  gradeBadge: { backgroundColor: '#f0fdf4', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
-  gradeText: { fontSize: 14, fontWeight: 'bold', color: '#16a34a' },
-  scoreRow: { flexDirection: 'row', justifyContent: 'space-between', borderTopWidth: 1, borderTopColor: '#f1f5f9', paddingTop: 12 },
-  scoreLabel: { fontSize: 12, color: '#64748b' },
-  scoreValue: { fontSize: 12, fontWeight: 'bold', color: '#1e293b' },
+  detailText: { fontSize: 12, color: Colors.textSecondary, fontWeight: '700' },
+  gradeBadge: { width: 36, height: 36, backgroundColor: '#f0fdf4', borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  gradeText: { fontSize: 16, fontWeight: '900', color: '#16a34a' },
+  scoreRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  scoreLabel: { fontSize: 13, color: Colors.textSecondary, fontWeight: '600' },
+  scoreValue: { fontSize: 14, fontWeight: '900', color: Colors.text },
   empty: { alignItems: 'center', marginTop: 100 },
-  emptyText: { color: '#94a3b8', fontSize: 16, marginTop: 16 },
+  emptyText: { color: Colors.text, fontSize: 18, fontWeight: '900', marginTop: 24 },
+  emptySub: { color: Colors.textSecondary, fontSize: 14, fontWeight: '600', marginTop: 8, textAlign: 'center' },
 });

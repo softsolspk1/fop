@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import AgoraVideoPlayer from '../../../../../components/dashboard/AgoraVideoPlayer';
 import dynamic from 'next/dynamic';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const AgoraWhiteboard = dynamic(() => import('../../../../../components/dashboard/AgoraWhiteboard'), {
   ssr: false,
@@ -143,34 +144,18 @@ export default function LiveClassPage() {
     }
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-     const file = e.target.files?.[0];
+   // handleFileUpload replacement logic is now in the modal
+
+  const [isMaterialModalOpen, setIsMaterialModalOpen] = useState(false);
+
+  // Re-fetch materials when modal is opened or shared
+  const fetchSessionAssets = async () => {
      const targetId = currentSessionId || params.id;
-     if (!file || !targetId) return;
-
-     setIsUploading(true);
-     const formData = new FormData();
-     formData.append('file', file);
-     formData.append('upload_preset', 'ml_default');
-
-     try {
-       const res = await fetch(`https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || 'dq78ed4vu'}/upload`, {
-         method: 'POST',
-         body: formData,
-       });
-       const data = await res.json();
-       
-       const title = file.name;
-       const url = data.secure_url;
-       const type = file.type.includes('video') ? 'video' : 'file';
-
-       await (api as any).post(`/classes/${targetId}/assets`, { title, url, type });
-       
-       toast.success(`${type === 'video' ? 'Video' : 'File'} shared successfully!`);
-     } catch (err) {
-       toast.error("Share failed.");
-     } finally {
-       setIsUploading(false);
+     if (targetId) {
+        try {
+          const res = await (api as any).get(`/classes/${targetId}/sync`);
+          if (res.data.assets) setSharedFiles(res.data.assets);
+        } catch (err) {}
      }
   };
 
@@ -196,6 +181,106 @@ export default function LiveClassPage() {
   return (
     <div className="flex h-screen bg-slate-950 overflow-hidden text-white font-sans">
       <div className="flex-1 flex flex-col min-w-0 h-full relative">
+        
+        {/* Material Upload Modal (Linked to Course Resources) */}
+        <AnimatePresence>
+          {isMaterialModalOpen && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+               <motion.div 
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                onClick={() => setIsMaterialModalOpen(false)}
+                className="absolute inset-0 bg-slate-900/80 backdrop-blur-xl"
+              />
+              <motion.div 
+                initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                className="relative bg-white w-full max-w-xl rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+              >
+                <div className="p-8 border-b border-slate-100 flex items-center justify-between text-slate-800">
+                  <div>
+                    <h3 className="text-xl font-black tracking-tight">Upload Course Resource</h3>
+                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">This file will be shared in this session and saved to course resources.</p>
+                  </div>
+                  <button onClick={() => setIsMaterialModalOpen(false)} className="p-2 hover:bg-slate-50 rounded-xl transition-colors">
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
+
+                <div className="flex-1 overflow-y-auto p-8 space-y-6 text-slate-800">
+                    <div className="grid grid-cols-1 gap-5">
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Resource Title</label>
+                        <input type="text" id="mat-title" placeholder="e.g. Lecture Presentation" className="w-full px-5 py-3.5 bg-slate-50 border-2 border-slate-50 rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-400 transition-all placeholder:text-slate-300" />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                         <div className="space-y-1.5">
+                           <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Type</label>
+                           <select id="mat-type" className="w-full px-5 py-3.5 bg-slate-50 border-2 border-slate-50 rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-400">
+                             <option value="DOCUMENT">Document</option>
+                             <option value="PPT">PowerPoint</option>
+                             <option value="VIDEO">Video</option>
+                             <option value="IMAGE">Image</option>
+                           </select>
+                         </div>
+                         <div className="space-y-1.5">
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Downloadable</label>
+                            <select id="mat-download" className="w-full px-5 py-3.5 bg-slate-50 border-2 border-slate-50 rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-400">
+                              <option value="true">Yes</option>
+                              <option value="false">No</option>
+                            </select>
+                         </div>
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Select File</label>
+                        <input type="file" id="mat-file" className="w-full px-5 py-3.5 bg-slate-50 border-2 border-slate-50 rounded-2xl font-bold text-slate-900 outline-none file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-[10px] file:font-black file:bg-blue-600 file:text-white" />
+                      </div>
+                      <button 
+                        onClick={async (e) => {
+                           const btn = e.currentTarget;
+                           const title = (document.getElementById('mat-title') as HTMLInputElement).value;
+                           const type = (document.getElementById('mat-type') as HTMLSelectElement).value;
+                           const isDownloadable = (document.getElementById('mat-download') as HTMLSelectElement).value === 'true';
+                           const file = (document.getElementById('mat-file') as HTMLInputElement).files?.[0];
+                           const courseId = params.id;
+                           const classId = currentSessionId || params.id;
+
+                           if(!title || !file) return toast.error("Provide title and file");
+
+                           try {
+                             btn.disabled = true; btn.innerHTML = 'Uploading...';
+                             const fd = new FormData();
+                             fd.append('title', title);
+                             fd.append('type', type);
+                             fd.append('courseId', String(courseId));
+                             fd.append('file', file);
+                             fd.append('isDownloadable', String(isDownloadable));
+
+                             // 1. Upload as Material (Persistence)
+                             const matRes = await api.post('/lms/materials', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+                             
+                             // 2. Also register as Session Asset (Immediate view in Live Class)
+                             await api.post(`/classes/${classId}/assets`, { 
+                               title, 
+                               url: matRes.data.url, 
+                               type: type.toLowerCase().includes('video') ? 'video' : 'file' 
+                             });
+
+                             toast.success("Resource shared and saved!");
+                             setIsMaterialModalOpen(false);
+                             fetchSessionAssets();
+                           } catch (err) { toast.error("Upload failed"); }
+                           finally { btn.disabled = false; btn.innerHTML = 'Confirm Share'; }
+                        }}
+                        className="w-full py-4.5 bg-blue-600 text-white font-black rounded-2xl shadow-xl shadow-blue-100 uppercase text-xs tracking-widest border-b-4 border-blue-800 active:border-b-0 active:translate-y-1 transition-all"
+                      >
+                        Confirm Share
+                      </button>
+                    </div>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+
         {/* Header */}
         <header className="h-16 flex items-center justify-between px-8 bg-slate-900/50 border-b border-white/10 shrink-0 z-30">
           <div className="flex items-center gap-4">
@@ -217,23 +302,6 @@ export default function LiveClassPage() {
                   >
                     <X className="w-4 h-4" />
                     End Session
-                  </button>
-                  <button 
-                    onClick={async () => {
-                      if (confirm('Are you sure you want to PERMANENTLY DELETE this session and all its data?')) {
-                        try {
-                          await api.delete(`/classes/${currentSessionId}`);
-                          toast.success("Session deleted successfully");
-                          router.push(`/dashboard/courses/${params.id}`);
-                        } catch (err) {
-                          toast.error("Failed to delete session");
-                        }
-                      }
-                    }}
-                    className="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white text-xs font-black uppercase tracking-widest rounded-xl flex items-center gap-2 transition-all shadow-xl"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                    Delete Session
                   </button>
                 </>
              ) : (
@@ -355,14 +423,16 @@ export default function LiveClassPage() {
                     </div>
                   )}
 
-                  {activeTab === 'files' && (
+                   {activeTab === 'files' && (
                     <div className="space-y-4">
                        {(user?.role === 'FACULTY' || user?.role === 'SUPER_ADMIN') && (
                           <div className="relative group">
-                             <input type="file" onChange={handleFileUpload} className="absolute inset-0 opacity-0 cursor-pointer z-10" />
-                             <button disabled={isUploading} className="w-full py-4 bg-blue-600/10 hover:bg-blue-600/20 border border-blue-600/20 rounded-2xl text-[10px] font-black uppercase tracking-widest text-blue-400 transition-all flex items-center justify-center gap-2 group-hover:scale-[1.02] active:scale-95">
-                               {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-                               {isUploading ? 'Uploading...' : 'Share Resource'}
+                             <button 
+                                onClick={() => setIsMaterialModalOpen(true)}
+                                className="w-full py-4 bg-blue-600/10 hover:bg-blue-600/20 border border-blue-600/20 rounded-2xl text-[10px] font-black uppercase tracking-widest text-blue-400 transition-all flex items-center justify-center gap-2 group-hover:scale-[1.02] active:scale-95"
+                              >
+                               <Upload className="w-4 h-4" />
+                               Share Resource
                              </button>
                           </div>
                        )}

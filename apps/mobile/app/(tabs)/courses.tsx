@@ -43,7 +43,7 @@ export default function CoursesScreen() {
   const renderCourse = ({ item }: { item: any }) => (
     <TouchableOpacity 
       activeOpacity={0.7}
-      onPress={() => router.push({ pathname: '/assignments', params: { courseId: item.id } })}
+      onPress={() => router.push({ pathname: '/course-details', params: { id: item.id } })}
     >
       <Card style={styles.courseCard}>
         <View style={styles.cardHeader}>

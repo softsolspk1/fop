@@ -39,6 +39,7 @@ import resultsRouter from './results/results.controller';
 import chatRouter from './chat/chat.controller';
 import simulationsRouter from './simulations/simulations.controller';
 import lmsRouter from './lms/lms.controller';
+import announcementsRouter from './announcements/announcements.controller';
 import prisma from './lib/prisma';
 
 
@@ -87,6 +88,7 @@ app.use('/results', resultsRouter);
 app.use('/chat', chatRouter);
 app.use('/api', simulationsRouter);
 app.use('/lms', lmsRouter);
+app.use('/announcements', announcementsRouter);
 
 
 app.get('/', (req, res) => {

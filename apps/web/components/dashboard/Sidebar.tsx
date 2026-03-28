@@ -46,6 +46,7 @@ const navItems = [
   { icon: FileText, label: 'Results', href: '/dashboard/results', roles: ['MAIN_ADMIN', 'SUPER_ADMIN', 'SUB_ADMIN', 'HOD', 'FACULTY', 'STUDENT'] },
   { icon: Calendar, label: 'Time Table', href: '/dashboard/calendar', roles: ['MAIN_ADMIN', 'SUPER_ADMIN', 'SUB_ADMIN', 'HOD', 'FACULTY', 'STUDENT'] },
   { icon: CheckCircle, label: 'Attendance', href: '/dashboard/attendance', roles: ['MAIN_ADMIN', 'SUPER_ADMIN', 'SUB_ADMIN', 'HOD', 'FACULTY', 'STUDENT'] },
+  { icon: Bell, label: 'Announcements', href: '/dashboard/announcements', roles: ['MAIN_ADMIN', 'SUPER_ADMIN', 'SUB_ADMIN', 'HOD', 'FACULTY', 'STUDENT'] },
   { icon: Settings, label: 'Settings', href: '/dashboard/settings', roles: ['MAIN_ADMIN', 'SUPER_ADMIN', 'SUB_ADMIN', 'HOD', 'FACULTY', 'STUDENT'] },
 ];
 
@@ -71,6 +72,7 @@ const Sidebar = () => {
         'Faculty', 
         'Time Table', 
         'Attendance',
+        'Announcements',
         'Settings'
       ];
       return allowedForStudent.includes(item.label);

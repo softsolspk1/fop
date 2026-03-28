@@ -1,106 +1,65 @@
+import React from 'react';
 import { Tabs } from 'expo-router';
-import { LayoutDashboard, BookOpen, Video, User, FileText, FlaskConical, MessageSquare, Users } from 'lucide-react-native';
+import { LayoutDashboard, BookOpen, Bell, Settings, MessageSquare } from 'lucide-react-native';
+import { Colors } from '../../components/UI';
 import { useAuth } from '../../context/AuthContext';
 
 export default function TabLayout() {
   const { user } = useAuth();
-  const rawRole = user?.role || 'STUDENT';
-  
-  // Alignment: Map legacy FACULTY to TEACHER and HOD to DEPT_ADMIN if needed
-  const role = (rawRole === 'FACULTY' ? 'FACULTY' : 
-                rawRole === 'HOD' ? 'HOD' : 
-                rawRole);
 
   return (
     <Tabs screenOptions={{
-      tabBarActiveTintColor: '#2563eb',
-      tabBarInactiveTintColor: '#64748b',
+      tabBarActiveTintColor: Colors.primary,
+      tabBarInactiveTintColor: Colors.secondary,
       tabBarStyle: {
         borderTopWidth: 1,
-        borderTopColor: '#f1f5f9',
-        height: 60,
+        borderTopColor: Colors.border,
+        height: 64,
         paddingBottom: 10,
-        paddingTop: 5,
+        paddingTop: 10,
+        backgroundColor: Colors.white,
       },
-      headerStyle: {
-        backgroundColor: '#fff',
+      tabBarLabelStyle: {
+        fontSize: 10,
+        fontWeight: '800',
+        textTransform: 'uppercase',
+        letterSpacing: 0.5,
       },
-      headerTitleStyle: {
-        fontWeight: 'bold',
-        color: '#1e293b',
-      },
+      headerShown: false,
     }}>
       <Tabs.Screen
         name="index"
         options={{
           title: 'Home',
-          tabBarIcon: ({ color }) => <LayoutDashboard size={20} color={color} />,
+          tabBarIcon: ({ color }) => <LayoutDashboard size={24} color={color} />,
         }}
       />
-      
-      {(role === 'STUDENT' || role === 'FACULTY' || role === 'SUPER_ADMIN') && (
-        <Tabs.Screen
-          name="courses"
-          options={{
-            title: 'Courses',
-            tabBarIcon: ({ color }) => <BookOpen size={24} color={color} />,
-          }}
-        />
-      )}
-
-      {(role === 'STUDENT' || role === 'FACULTY' || role === 'SUPER_ADMIN') && (
-        <Tabs.Screen
-          name="live"
-          options={{
-            title: 'Live',
-            tabBarIcon: ({ color }) => <Video size={24} color={color} />,
-          }}
-        />
-      )}
-
-      {(role === 'HOD' || role === 'FACULTY' || role === 'SUPER_ADMIN') && (
-        <Tabs.Screen
-          name="faculty"
-          options={{
-            title: 'Faculty',
-            tabBarIcon: ({ color }) => <Users size={24} color={color} />,
-          }}
-        />
-      )}
-
       <Tabs.Screen
-        name="labs"
+        name="courses"
         options={{
-          title: 'Virtual Lab',
-          tabBarIcon: ({ color }) => <FlaskConical size={24} color={color} />,
+          title: 'Courses',
+          tabBarIcon: ({ color }) => <BookOpen size={24} color={color} />,
         }}
       />
-
-      {(role === 'STUDENT' || role === 'FACULTY' || role === 'SUPER_ADMIN') && (
-        <Tabs.Screen
-          name="chat"
-          options={{
-            title: 'Chat',
-            tabBarIcon: ({ color }) => <MessageSquare size={24} color={color} />,
-          }}
-        />
-      )}
-
-      {role === 'STUDENT' && (
-        <Tabs.Screen
-          name="results"
-          options={{
-            title: 'Results',
-            tabBarIcon: ({ color }) => <FileText size={24} color={color} />,
-          }}
-        />
-      )}
-
       <Tabs.Screen
-        name="profile"
+        name="chat"
+        options={{
+          title: 'Chat',
+          tabBarIcon: ({ color }) => <MessageSquare size={24} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="announcements"
+        options={{
+          title: 'Alerts',
+          tabBarIcon: ({ color }) => <Bell size={24} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="settings"
         options={{
           title: 'Profile',
-          tabBarIcon: ({ color }) => <User size={24} color={color} />,
+          tabBarIcon: ({ color }) => <Settings size={24} color={color} />,
         }}
       />
     </Tabs>

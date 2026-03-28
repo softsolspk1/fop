@@ -11,6 +11,7 @@ export default function SignupPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isRegistered, setIsRegistered] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -30,7 +31,8 @@ export default function SignupPage() {
     
     try {
       await api.post('/auth/register', formData);
-      router.push('/login?registered=true');
+      setIsRegistered(true);
+      // We'll show the success state instead of router.push
     } catch (err: any) {
       console.error('Registration failed:', err);
       setError(err.response?.data?.message || 'Registration failed. Please check your details and try again.');
@@ -38,6 +40,32 @@ export default function SignupPage() {
       setIsLoading(false);
     }
   };
+
+  if (isRegistered) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <motion.div 
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="max-w-md w-full mx-auto bg-white p-10 rounded-[3rem] shadow-2xl border border-slate-100 text-center"
+        >
+          <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-8">
+            <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center text-white shadow-lg shadow-green-200">
+               <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
+            </div>
+          </div>
+          <h2 className="text-3xl font-black text-slate-900 mb-4 tracking-tight">Registration Successful!</h2>
+          <p className="text-slate-600 font-medium mb-8">Your account has been created. You can now use your email and password to access the portal.</p>
+          <button 
+            onClick={() => router.push('/login')}
+            className="w-full py-4 bg-blue-600 text-white font-black rounded-2xl shadow-xl shadow-blue-100 hover:bg-blue-700 transition-all uppercase text-xs tracking-widest"
+          >
+            Go to Login
+          </button>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">

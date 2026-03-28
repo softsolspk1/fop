@@ -5,16 +5,22 @@ import { LucideIcon } from 'lucide-react-native';
 // Professional HSL-based Color Palette
 export const Colors = {
   primary: '#2563eb',
+  primaryLight: '#eff6ff',
+  primaryDark: '#1e40af',
   secondary: '#64748b',
-  success: '#16a34a',
+  success: '#10b981',
   danger: '#ef4444',
   warning: '#f59e0b',
-  background: '#ffffff',
-  surface: '#f8fafc',
-  border: '#e2e8f0',
-  text: '#1e293b',
+  background: '#f8fafc',
+  surface: '#ffffff',
+  border: '#f1f5f9',
+  text: '#0f172a',
   textSecondary: '#64748b',
   white: '#ffffff',
+  slate50: '#f8fafc',
+  slate100: '#f1f5f9',
+  slate200: '#e2e8f0',
+  indigo: '#6366f1',
 };
 
 // Premium Button Component
