@@ -24,6 +24,9 @@ export default function UsersPage() {
   const [editingUser, setEditingUser] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterRole, setFilterRole] = useState('');
+  const [assigningCourseUser, setAssigningCourseUser] = useState<any>(null);
+  const [allCourses, setAllCourses] = useState<any[]>([]);
+  const [selectedCourseId, setSelectedCourseId] = useState('');
 
   // Form State
   const [formData, setFormData] = useState({
@@ -40,12 +43,14 @@ export default function UsersPage() {
     try {
       setLoading(true);
       setError(null);
-      const [usersRes, deptsRes] = await Promise.all([
+      const [usersRes, deptsRes, coursesRes] = await Promise.all([
         api.get('/users'),
-        api.get('/departments')
+        api.get('/departments'),
+        api.get('/courses')
       ]);
       setUsers(usersRes.data);
       setDepartments(deptsRes.data);
+      setAllCourses(coursesRes.data);
     } catch (err: any) {
       console.error('Error fetching users:', err);
       setError('Failed to load user directory.');
@@ -101,6 +106,23 @@ export default function UsersPage() {
     }
   };
 
+  const handleAssignCourse = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!assigningCourseUser || !selectedCourseId) return;
+    try {
+      await api.put(`/courses/${selectedCourseId}`, {
+        teacherId: assigningCourseUser.id
+      });
+      setAssigningCourseUser(null);
+      setSelectedCourseId('');
+      fetchData();
+      alert('Course assigned successfully');
+    } catch (err) {
+      console.error('Error assigning course:', err);
+      alert('Failed to assign course');
+    }
+  };
+
   const filteredUsers = users.filter(u => {
     const searchLow = searchQuery.toLowerCase();
     const nameMatch = u.name?.toLowerCase().includes(searchLow) ?? false;
@@ -131,13 +153,15 @@ export default function UsersPage() {
             <h2 className="text-2xl font-bold text-slate-800 tracking-tight">User Management</h2>
             <p className="text-slate-500 font-medium">Oversee all system users, assign roles, and manage permissions.</p>
           </div>
-          <button 
-            onClick={() => handleOpenModal()}
-            className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white font-black rounded-xl shadow-lg border-b-4 border-blue-800 active:border-b-0 active:translate-y-1 transition-all"
-          >
-            <Plus className="w-5 h-5" />
-            Create User
-          </button>
+          {['MAIN_ADMIN', 'SUPER_ADMIN', 'HOD'].includes(currentUser?.role || '') && (
+            <button 
+              onClick={() => handleOpenModal()}
+              className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white font-black rounded-xl shadow-lg border-b-4 border-blue-800 active:border-b-0 active:translate-y-1 transition-all"
+            >
+              <Plus className="w-5 h-5" />
+              Create User
+            </button>
+          )}
         </div>
 
         {error && (
@@ -242,8 +266,24 @@ export default function UsersPage() {
                       </td>
                       <td className="px-8 py-5 text-right">
                         <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-all duration-300">
-                          <button onClick={() => handleOpenModal(user)} className="p-2.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"><Edit2 className="w-4 h-4" /></button>
-                          <button onClick={() => handleDelete(user.id)} className="p-2.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"><Trash2 className="w-4 h-4" /></button>
+                          {['MAIN_ADMIN', 'SUPER_ADMIN', 'HOD'].includes(currentUser?.role || '') && ['FACULTY', 'HOD'].includes(user.role) && (
+                            <button 
+                              onClick={() => {
+                                setAssigningCourseUser(user);
+                                setSelectedCourseId('');
+                              }} 
+                              className="p-2.5 text-slate-400 hover:text-green-600 hover:bg-green-50 rounded-xl transition-all"
+                              title="Assign Course"
+                            >
+                              <GraduationCap className="w-4 h-4" />
+                            </button>
+                          )}
+                          {['MAIN_ADMIN', 'SUPER_ADMIN', 'HOD'].includes(currentUser?.role || '') && (
+                            <>
+                              <button onClick={() => handleOpenModal(user)} className="p-2.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"><Edit2 className="w-4 h-4" /></button>
+                              <button onClick={() => handleDelete(user.id)} className="p-2.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"><Trash2 className="w-4 h-4" /></button>
+                            </>
+                          )}
                           <button className="p-2.5 text-slate-400 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition-all"><MoreVertical className="w-4 h-4" /></button>
                         </div>
                       </td>
@@ -254,6 +294,61 @@ export default function UsersPage() {
             </table>
           </div>
         </div>
+
+        <AnimatePresence>
+          {assigningCourseUser && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+              <motion.div 
+                initial={{ opacity: 0 }} 
+                animate={{ opacity: 1 }} 
+                exit={{ opacity: 0 }}
+                onClick={() => setAssigningCourseUser(null)}
+                className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+              />
+              <motion.div 
+                initial={{ scale: 0.9, opacity: 0 }} 
+                animate={{ scale: 1, opacity: 1 }} 
+                exit={{ scale: 0.9, opacity: 0 }}
+                className="relative bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden p-8"
+              >
+                <div className="flex items-center justify-between mb-8">
+                  <div>
+                    <h3 className="text-2xl font-black text-slate-800 tracking-tight">Assign Course</h3>
+                    <p className="text-sm text-slate-500 font-medium">Assign a new course to {assigningCourseUser.name}</p>
+                  </div>
+                  <button onClick={() => setAssigningCourseUser(null)} className="p-2 hover:bg-slate-50 rounded-xl transition-colors text-slate-400">
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
+
+                <form onSubmit={handleAssignCourse} className="space-y-6">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Select Course</label>
+                    <select 
+                      required
+                      value={selectedCourseId}
+                      onChange={(e) => setSelectedCourseId(e.target.value)}
+                      className="w-full px-5 py-3.5 bg-white border-2 border-slate-100 rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-400 transition-all shadow-sm"
+                    >
+                      <option value="" className="text-slate-900">Select Course</option>
+                      {allCourses
+                        .filter(c => currentUser?.role !== 'HOD' || c.departmentId === currentUser.departmentId)
+                        .map((course: any) => (
+                          <option key={course.id} value={course.id} className="text-slate-900">{course.code} - {course.name}</option>
+                        ))}
+                    </select>
+                  </div>
+                  
+                  <div className="pt-4">
+                    <button type="submit" className="w-full py-4 bg-green-600 text-white font-black rounded-2xl shadow-xl shadow-green-200 hover:bg-green-700 active:scale-95 transition-all uppercase text-xs tracking-widest border-b-4 border-green-800">
+                      Confirm Assignment
+                    </button>
+                  </div>
+                </form>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
 
         {/* Create/Edit Modal */}
         <AnimatePresence>

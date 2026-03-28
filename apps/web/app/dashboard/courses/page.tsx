@@ -43,6 +43,7 @@ export default function CoursesPage() {
   const [filterSemester, setFilterSemester] = useState('');
   const [filterDepartment, setFilterDepartment] = useState('');
   const [isSyncing, setIsSyncing] = useState(false);
+  const [assigningTeacherCourse, setAssigningTeacherCourse] = useState<any>(null);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -163,6 +164,22 @@ export default function CoursesPage() {
     }
   };
 
+  const handleAssignTeacher = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!assigningTeacherCourse) return;
+    try {
+      await api.put(`/courses/${assigningTeacherCourse.id}`, {
+        teacherId: formData.teacherId
+      });
+      setAssigningTeacherCourse(null);
+      fetchData();
+      toast.success('Teacher assigned successfully');
+    } catch (err) {
+      console.error('Error assigning teacher:', err);
+      alert('Failed to assign teacher');
+    }
+  };
+
   const handleToggleActive = async (course: any) => {
     try {
       const updatedStatus = !course.isActive;
@@ -243,7 +260,7 @@ export default function CoursesPage() {
             <h2 className="text-2xl font-bold text-slate-800 tracking-tight">Course Catalog</h2>
             <p className="text-slate-500 font-medium">Manage academic courses, assign instructors, and monitor student enrollment.</p>
           </div>
-          {currentUser?.role !== 'STUDENT' && (
+          {['MAIN_ADMIN', 'SUPER_ADMIN', 'HOD'].includes(currentUser?.role || '') && (
             <button 
               onClick={() => handleOpenModal()}
               className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white font-black rounded-xl shadow-lg border-b-4 border-blue-800 active:border-b-0 active:translate-y-1 transition-all"
@@ -352,8 +369,18 @@ export default function CoursesPage() {
                   <div className="p-4 bg-blue-50 text-blue-600 rounded-2xl group-hover:bg-blue-600 group-hover:text-white transition-colors">
                     <BookOpen className="w-6 h-6" />
                   </div>
-                  {currentUser?.role !== 'STUDENT' && (
+                  {['MAIN_ADMIN', 'SUPER_ADMIN', 'HOD'].includes(currentUser?.role || '') && (
                     <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button 
+                        onClick={() => {
+                          setAssigningTeacherCourse(course);
+                          setFormData(prev => ({ ...prev, teacherId: course.teacherId }));
+                        }} 
+                        className="p-2 text-slate-400 hover:text-green-600 transition-colors"
+                        title="Assign Teacher"
+                      >
+                        <User className="w-4 h-4" />
+                      </button>
                       <button onClick={() => handleOpenModal(course)} className="p-2 text-slate-400 hover:text-blue-600 transition-colors"><Edit2 className="w-4 h-4" /></button>
                       <button onClick={() => handleDelete(course.id)} className="p-2 text-slate-400 hover:text-red-600 transition-colors"><Trash2 className="w-4 h-4" /></button>
                     </div>
@@ -1448,6 +1475,59 @@ export default function CoursesPage() {
                      </button>
                   )}
                </div>
+            </div>
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {assigningTeacherCourse && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+              <motion.div 
+                initial={{ opacity: 0 }} 
+                animate={{ opacity: 1 }} 
+                exit={{ opacity: 0 }}
+                onClick={() => setAssigningTeacherCourse(null)}
+                className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+              />
+              <motion.div 
+                initial={{ scale: 0.9, opacity: 0 }} 
+                animate={{ scale: 1, opacity: 1 }} 
+                exit={{ scale: 0.9, opacity: 0 }}
+                className="relative bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden p-8"
+              >
+                <div className="flex items-center justify-between mb-8">
+                  <div>
+                    <h3 className="text-2xl font-black text-slate-800 tracking-tight">Assign Teacher</h3>
+                    <p className="text-sm text-slate-500 font-medium">{assigningTeacherCourse.name}</p>
+                  </div>
+                  <button onClick={() => setAssigningTeacherCourse(null)} className="p-2 hover:bg-slate-50 rounded-xl transition-colors text-slate-400">
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
+
+                <form onSubmit={handleAssignTeacher} className="space-y-6">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Select Instructor</label>
+                    <select 
+                      required
+                      value={formData.teacherId}
+                      onChange={(e) => setFormData({...formData, teacherId: e.target.value})}
+                      className="w-full px-5 py-3.5 bg-white border-2 border-slate-100 rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-400 transition-all shadow-sm"
+                    >
+                      <option value="" className="text-slate-900">Select Teacher</option>
+                      {teachers.map((teacher: any) => (
+                        <option key={teacher.id} value={teacher.id} className="text-slate-900">{teacher.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  
+                  <div className="pt-4">
+                    <button type="submit" className="w-full py-4 bg-green-600 text-white font-black rounded-2xl shadow-xl shadow-green-200 hover:bg-green-700 active:scale-95 transition-all uppercase text-xs tracking-widest">
+                      Confirm Assignment
+                    </button>
+                  </div>
+                </form>
+              </motion.div>
             </div>
           )}
         </AnimatePresence>
