@@ -1,28 +1,59 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { User, Mail, Lock, Phone, Hash, BookOpen, Clock, ArrowRight, AlertCircle, Loader2 } from 'lucide-react';
+import { User, Mail, Lock, Phone, Hash, BookOpen, ArrowRight, AlertCircle, Loader2, Building2, ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import api from '../../lib/api';
+import api from '../../../lib/api';
 
-export default function SignupPage() {
+export default function GraduateSignupPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isRegistered, setIsRegistered] = useState(false);
+  const [departments, setDepartments] = useState<{id: string, name: string}[]>([]);
+  const [isLoadingDepts, setIsLoadingDepts] = useState(true);
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
     role: 'STUDENT',
-    shift: 'MORNING',
-    year: '1st Year',
+    year: 'M.Phil',
+    departmentId: '',
     rollNumber: '',
     enrollmentNumber: '',
     phoneNumber: '',
   });
+
+  useEffect(() => {
+    const fetchDepartments = async () => {
+      try {
+        const response = await api.get('/departments');
+        // Filter for specific graduate departments requested
+        const requestedDepts = [
+          'Department of Pharmaceutics',
+          'Department of Pharmacology',
+          'Department of Pharmacognosy',
+          'Department of Pharmaceutical Chemistry',
+          'Department of Pharmacy Practice'
+        ];
+        const filtered = response.data.filter((d: any) => 
+          requestedDepts.some(rd => d.name.toLowerCase().includes(rd.toLowerCase()) || rd.toLowerCase().includes(d.name.toLowerCase()))
+        );
+        setDepartments(filtered);
+        if (filtered.length > 0) {
+          setFormData(prev => ({ ...prev, departmentId: filtered[0].id }));
+        }
+      } catch (err) {
+        console.error('Failed to fetch departments:', err);
+      } finally {
+        setIsLoadingDepts(false);
+      }
+    };
+    fetchDepartments();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,7 +63,6 @@ export default function SignupPage() {
     try {
       await api.post('/auth/register', formData);
       setIsRegistered(true);
-      // We'll show the success state instead of router.push
     } catch (err: any) {
       console.error('Registration failed:', err);
       setError(err.response?.data?.message || 'Registration failed. Please check your details and try again.');
@@ -55,7 +85,7 @@ export default function SignupPage() {
             </div>
           </div>
           <h2 className="text-3xl font-black text-slate-900 mb-4 tracking-tight">Registration Successful!</h2>
-          <p className="text-slate-600 font-medium mb-8">Your account has been created. You can now use your email and password to access the portal.</p>
+          <p className="text-slate-600 font-medium mb-8">Your graduate account request has been submitted for approval.</p>
           <button 
             onClick={() => router.push('/login')}
             className="w-full py-4 bg-blue-600 text-white font-black rounded-2xl shadow-xl shadow-blue-100 hover:bg-blue-700 transition-all uppercase text-xs tracking-widest"
@@ -71,21 +101,20 @@ export default function SignupPage() {
     <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-between items-center mb-6">
+            <Link href="/signup" className="flex items-center gap-2 text-slate-500 hover:text-blue-600 transition-colors font-bold text-xs uppercase tracking-widest group">
+                <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                Back
+            </Link>
             <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center overflow-hidden shadow-xl">
                <img src="/logo.jpg" alt="Logo" className="w-full h-full object-cover" />
             </div>
-            <Link 
-              href="/signup/graduate"
-              className="px-4 py-2 bg-white border border-blue-600 text-blue-600 font-bold rounded-xl hover:bg-blue-50 transition-all text-[10px] uppercase tracking-widest shadow-sm"
-            >
-              M.Phil and Ph.D Registration
-            </Link>
+            <div className="w-12 h-10" /> {/* Spacer */}
         </div>
-        <h2 className="text-center text-3xl font-extrabold text-slate-900 tracking-tight">
-          Student Registration
+        <h2 className="text-center text-3xl font-black text-slate-900 tracking-tight">
+          Graduate Registration
         </h2>
-        <p className="mt-2 text-center text-sm text-slate-600">
-          Faculty of Pharmacy and Pharmaceutical Sciences UOK
+        <p className="mt-2 text-center text-sm text-slate-600 font-medium">
+          M.Phil and Ph.D Program - Pharmacy UOK
         </p>
       </div>
 
@@ -101,6 +130,7 @@ export default function SignupPage() {
               {error}
             </motion.div>
           )}
+
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Name */}
@@ -121,41 +151,46 @@ export default function SignupPage() {
                 </div>
               </div>
 
-              {/* Shift */}
+              {/* Class Selection */}
               <div>
-                <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Shift</label>
-                <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Clock className="h-5 w-5 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
-                  </div>
-                  <select
-                    className="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none bg-white transition-all"
-                    value={formData.shift}
-                    onChange={(e) => setFormData({...formData, shift: e.target.value})}
-                  >
-                    <option value="MORNING" className="text-slate-900">Morning</option>
-                    <option value="EVENING" className="text-slate-900">Evening</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Class/Year */}
-              <div>
-                <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Class / Academic Year</label>
+                <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Class (Degree Program)</label>
                 <div className="relative group">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <BookOpen className="h-5 w-5 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
                   </div>
                   <select
-                    className="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none bg-white transition-all"
+                    className="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none bg-white transition-all uppercase font-bold"
                     value={formData.year}
                     onChange={(e) => setFormData({...formData, year: e.target.value})}
                   >
-                    <option value="1st Year" className="text-slate-900">1st Year</option>
-                    <option value="2nd Year" className="text-slate-900">2nd Year</option>
-                    <option value="3rd Year" className="text-slate-900">3rd Year</option>
-                    <option value="4th Year" className="text-slate-900">4th Year</option>
-                    <option value="5th Year" className="text-slate-900">5th Year</option>
+                    <option value="M.Phil">M.Phil</option>
+                    <option value="Ph.D">Ph.D</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Department Selection */}
+              <div>
+                <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Department</label>
+                <div className="relative group">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Building2 className="h-5 w-5 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
+                  </div>
+                  <select
+                    className="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none bg-white transition-all"
+                    value={formData.departmentId}
+                    onChange={(e) => setFormData({...formData, departmentId: e.target.value})}
+                    disabled={isLoadingDepts}
+                  >
+                    {isLoadingDepts ? (
+                      <option>Loading departments...</option>
+                    ) : (
+                      departments.map(dept => (
+                        <option key={dept.id} value={dept.id}>
+                          {dept.name.replace('Department of ', '')}
+                        </option>
+                      ))
+                    )}
                   </select>
                 </div>
               </div>
@@ -171,7 +206,7 @@ export default function SignupPage() {
                     type="text"
                     required
                     className="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all placeholder-slate-400"
-                    placeholder="e.g. 23-PHA-124 or Form #1234"
+                    placeholder="e.g. 24-PHA-G-12"
                     value={formData.rollNumber}
                     onChange={(e) => setFormData({...formData, rollNumber: e.target.value})}
                   />
@@ -188,7 +223,7 @@ export default function SignupPage() {
                   <input
                     type="text"
                     className="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all placeholder-slate-400"
-                    placeholder="e.g. UOK-EN-2023-144"
+                    placeholder="e.g. UOK-EN-2024-G-44"
                     value={formData.enrollmentNumber}
                     onChange={(e) => setFormData({...formData, enrollmentNumber: e.target.value})}
                   />
@@ -224,7 +259,7 @@ export default function SignupPage() {
                     type="email"
                     required
                     className="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all placeholder-slate-400"
-                    placeholder="ali@student.uok.edu.pk"
+                    placeholder="name@uok.edu.pk"
                     value={formData.email}
                     onChange={(e) => setFormData({...formData, email: e.target.value})}
                   />
@@ -250,11 +285,11 @@ export default function SignupPage() {
               </div>
             </div>
 
-            <div>
+            <div className="pt-4">
               <button
                 type="submit"
-                disabled={isLoading}
-                className={`w-full flex justify-center items-center gap-2 py-4 px-4 border border-transparent rounded-2xl shadow-xl shadow-blue-900/10 text-base font-bold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all transform ${isLoading ? 'opacity-70 cursor-not-allowed' : 'hover:-translate-y-1'}`}
+                disabled={isLoading || isLoadingDepts}
+                className={`w-full flex justify-center items-center gap-2 py-4 px-4 border border-transparent rounded-2xl shadow-xl shadow-blue-900/10 text-base font-black text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all transform ${isLoading ? 'opacity-70 cursor-not-allowed' : 'hover:-translate-y-1 active:scale-[0.98]'}`}
               >
                 {isLoading ? (
                   <>
@@ -263,7 +298,7 @@ export default function SignupPage() {
                   </>
                 ) : (
                   <>
-                    Register as Student
+                    Register Graduate Account
                     <ArrowRight className="w-5 h-5" />
                   </>
                 )}
@@ -271,11 +306,11 @@ export default function SignupPage() {
             </div>
           </form>
 
-          <div className="mt-8 text-center">
-            <p className="text-sm text-slate-600 font-medium">
+          <div className="mt-8 text-center border-t border-slate-50 pt-8">
+            <p className="text-sm text-slate-500 font-bold uppercase tracking-widest">
               Already have an account?{' '}
-              <Link href="/login" className="text-blue-600 hover:text-blue-500 font-bold underline underline-offset-4">
-                Sign in here
+              <Link href="/login" className="text-blue-600 hover:text-blue-500 transition-colors underline underline-offset-4">
+                Sign in
               </Link>
             </p>
           </div>
