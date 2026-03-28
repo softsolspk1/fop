@@ -13,6 +13,8 @@ const transporter = nodemailer.createTransport({
 export const sendResetPasswordEmail = async (email: string, token: string) => {
   const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/reset-password?token=${token}`;
   
+  console.log(`[Mail]: Attempting to send reset email to ${email}`);
+  
   const mailOptions = {
     from: `"KU University Support" <${process.env.SMTP_USER}>`,
     to: email,
@@ -25,5 +27,12 @@ export const sendResetPasswordEmail = async (email: string, token: string) => {
     `,
   };
 
-  return transporter.sendMail(mailOptions);
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    console.log('[Mail]: Email sent successfully:', info.messageId);
+    return info;
+  } catch (error) {
+    console.error('[Mail]: Failed to send email:', error);
+    throw error;
+  }
 };

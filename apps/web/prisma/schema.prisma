@@ -1,0 +1,465 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-1.0.x", "rhel-openssl-1.1.x", "rhel-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String             @id @default(uuid())
+  email             String             @unique
+  password          String
+  name              String
+  role              Role               @default(STUDENT)
+  departmentId      String?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  rollNumber        String?
+  shift             String?
+  status            EnrollmentStatus   @default(PENDING)
+  enrollmentNumber  String?
+  phoneNumber       String?
+  bio               String?
+  designation       String?
+  qualification     String?
+  yearOfAssociation String?
+  year              String?
+  assessmentResults AssessmentResult[]
+  attendances       Attendance[]
+  teacherCourses    Course[]           @relation("TeacherCourses")
+  hodOf             Department[]       @relation("DeptHOD")
+  examResults       ExamResult[]
+  experiments       Experiment[]
+  fees              Fee[]
+  grades            Grade[]
+  labObservations   LabObservation[]
+  uploadedMaterials Material[]         @relation("MaterialUploader")
+  receivedMessages  Message[]          @relation("ReceivedMessages")
+  sentMessages      Message[]          @relation("SentMessages")
+  quizzes           QuizResult[]
+  studentResults    Result[]           @relation("ResultStudent")
+  resultsPosted     Result[]           @relation("ResultTeacher")
+  submissions       Submission[]
+  department        Department?        @relation(fields: [departmentId], references: [id])
+  groups            ChatGroup[]        @relation("GroupMembers")
+  studentCourses    Course[]           @relation("StudentCourses")
+  sessionMessages   SessionMessage[]
+  sessionPresences  SessionPresence[]
+  sessionAssets     SessionAsset[]
+}
+
+model Result {
+  id           String   @id @default(uuid())
+  studentId    String
+  courseId     String
+  teacherId    String
+  marks        Float
+  grade        String
+  semester     Int
+  academicYear String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  course       Course   @relation(fields: [courseId], references: [id])
+  student      User     @relation("ResultStudent", fields: [studentId], references: [id])
+  teacher      User     @relation("ResultTeacher", fields: [teacherId], references: [id])
+}
+
+model Fee {
+  id        String   @id @default(uuid())
+  title     String
+  amount    Float
+  dueDate   DateTime
+  status    String
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Exam {
+  id        String       @id @default(uuid())
+  title     String
+  date      DateTime
+  location  String?
+  courseId  String
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  course    Course       @relation(fields: [courseId], references: [id])
+  results   ExamResult[]
+}
+
+model ExamResult {
+  id        String   @id @default(uuid())
+  score     Float
+  grade     String?
+  userId    String
+  examId    String
+  createdAt DateTime @default(now())
+  exam      Exam     @relation(fields: [examId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Department {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  hodId     String?
+  courses   Course[]
+  hod       User?    @relation("DeptHOD", fields: [hodId], references: [id])
+  users     User[]
+}
+
+model Semester {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  startDate DateTime
+  endDate   DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  courses   Course[]
+}
+
+model Course {
+  id           String       @id @default(uuid())
+  name         String
+  code         String       @unique
+  departmentId String
+  teacherId    String
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  semesterId   String?
+  category     String?
+  contents     String?
+  creditHours  String?
+  outcomes     String?
+  professional String?
+  readings     String?
+  semesterName String?
+  isActive     Boolean      @default(true)
+  assignments  Assignment[]
+  chatGroup    ChatGroup?
+  classes      Class[]
+  department   Department   @relation(fields: [departmentId], references: [id])
+  semester     Semester?    @relation(fields: [semesterId], references: [id])
+  teacher      User         @relation("TeacherCourses", fields: [teacherId], references: [id])
+  exams        Exam[]
+  labs         Lab[]
+  materials    Material[]
+  quizzes      Quiz[]
+  results      Result[]
+  students     User[]       @relation("StudentCourses")
+}
+
+model Material {
+  id             String           @id @default(uuid())
+  title          String
+  url            String
+  type           String
+  courseId       String
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  status         EnrollmentStatus @default(PENDING)
+  uploadedById   String?
+  publicId       String?
+  expiresAt      DateTime?
+  isDownloadable Boolean          @default(true)
+  course         Course           @relation(fields: [courseId], references: [id])
+  uploadedBy     User?            @relation("MaterialUploader", fields: [uploadedById], references: [id])
+}
+
+model Class {
+  id              String       @id @default(uuid())
+  title           String
+  startTime       DateTime
+  endTime         DateTime
+  agoraChannel    String?
+  courseId        String
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  dayOfWeek       String       @default("Monday")
+  location        String       @default("Lecture Hall 1")
+  actualEndTime   DateTime?
+  actualStartTime DateTime?
+  classType       String       @default("Physical")
+  isRecurring     Boolean      @default(false)
+  recurrentMonths String[]
+  whiteboardUuid  String?
+  attendance      Attendance[]
+  course          Course       @relation(fields: [courseId], references: [id])
+  recordings      Recording[]
+}
+
+model Attendance {
+  id            String    @id @default(uuid())
+  status        String
+  userId        String
+  classId       String
+  createdAt     DateTime  @default(now())
+  remarks       String?
+  markedEndAt   DateTime?
+  markedStartAt DateTime?
+  class         Class     @relation(fields: [classId], references: [id])
+  user          User      @relation(fields: [userId], references: [id])
+
+  @@unique([userId, classId])
+}
+
+model Assignment {
+  id          String       @id @default(uuid())
+  title       String
+  description String
+  dueDate     DateTime?
+  courseId    String
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  fileUrl     String?
+  publicId    String?
+  startTime   DateTime?
+  totalMarks  Float?
+  endTime     DateTime?
+  course      Course       @relation(fields: [courseId], references: [id])
+  submissions Submission[]
+}
+
+model Submission {
+  id           String     @id @default(uuid())
+  fileUrl      String
+  status       String
+  plagiarism   Float?
+  assignmentId String
+  studentId    String
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  publicId     String?
+  grade        Grade?
+  assignment   Assignment @relation(fields: [assignmentId], references: [id])
+  student      User       @relation(fields: [studentId], references: [id])
+}
+
+model Quiz {
+  id                String           @id @default(uuid())
+  title             String
+  description       String?
+  timeLimit         Int
+  courseId          String
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  isExam            Boolean          @default(false)
+  status            EnrollmentStatus @default(PENDING)
+  endTime           DateTime?
+  passingPercentage Float            @default(50)
+  startTime         DateTime?
+  totalMarks        Float            @default(100)
+  questions         Question[]
+  course            Course           @relation(fields: [courseId], references: [id])
+  results           QuizResult[]
+}
+
+model Question {
+  id      String   @id @default(uuid())
+  text    String
+  options String[]
+  answer  String
+  quizId  String
+  quiz    Quiz     @relation(fields: [quizId], references: [id])
+}
+
+model QuizResult {
+  id        String   @id @default(uuid())
+  score     Float
+  userId    String
+  quizId    String
+  createdAt DateTime @default(now())
+  passed    Boolean  @default(false)
+  quiz      Quiz     @relation(fields: [quizId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Grade {
+  id           String     @id @default(uuid())
+  score        Float
+  feedback     String?
+  submissionId String     @unique
+  teacherId    String
+  createdAt    DateTime   @default(now())
+  submission   Submission @relation(fields: [submissionId], references: [id])
+  teacher      User       @relation(fields: [teacherId], references: [id])
+}
+
+model Recording {
+  id         String   @id @default(uuid())
+  url        String
+  transcript String?
+  classId    String
+  createdAt  DateTime @default(now())
+  class      Class    @relation(fields: [classId], references: [id])
+}
+
+model Lab {
+  id                String       @id @default(uuid())
+  title             String       @unique
+  description       String
+  department        String
+  provider          String
+  difficulty        String
+  url               String?
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+  objectives        String?
+  safety            String?
+  theory            String?
+  courseId          String?
+  year              String?
+  multimediaContent Json?
+  assessments       Assessment[]
+  experiments       Experiment[]
+  course            Course?      @relation(fields: [courseId], references: [id])
+}
+
+model Experiment {
+  id                 String        @id @default(uuid())
+  labId              String
+  studentId          String
+  status             String
+  inputs             Json?
+  resultData         Json?
+  grade              Float?
+  feedback           String?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+  studentObservation Json?
+  studentResult      Json?
+  lab                Lab           @relation(fields: [labId], references: [id])
+  student            User          @relation(fields: [studentId], references: [id])
+  observations       Observation[]
+}
+
+model Observation {
+  id           String     @id @default(uuid())
+  experimentId String
+  timeStep     Float?
+  reading      Float
+  notes        String?
+  createdAt    DateTime   @default(now())
+  experiment   Experiment @relation(fields: [experimentId], references: [id])
+}
+
+model Assessment {
+  id        String             @id @default(uuid())
+  labId     String
+  questions Json
+  createdAt DateTime           @default(now())
+  lab       Lab                @relation(fields: [labId], references: [id])
+  results   AssessmentResult[]
+}
+
+model LabObservation {
+  id        String   @id @default(uuid())
+  userId    String
+  labType   String
+  data      Json
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model AssessmentResult {
+  id           String     @id @default(uuid())
+  assessmentId String
+  studentId    String
+  score        Float
+  answers      Json
+  createdAt    DateTime   @default(now())
+  assessment   Assessment @relation(fields: [assessmentId], references: [id])
+  student      User       @relation(fields: [studentId], references: [id])
+}
+
+model FacultyMember {
+  id          String   @id @default(uuid())
+  name        String
+  designation String
+  department  String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Message {
+  id         String     @id @default(uuid())
+  content    String
+  senderId   String
+  receiverId String?
+  groupId    String?
+  createdAt  DateTime   @default(now())
+  group      ChatGroup? @relation(fields: [groupId], references: [id])
+  receiver   User?      @relation("ReceivedMessages", fields: [receiverId], references: [id])
+  sender     User       @relation("SentMessages", fields: [senderId], references: [id])
+}
+
+model ChatGroup {
+  id          String    @id @default(uuid())
+  name        String
+  description String?
+  courseId    String?   @unique
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  course      Course?   @relation(fields: [courseId], references: [id])
+  messages    Message[]
+  members     User[]    @relation("GroupMembers")
+}
+
+model PasswordResetToken {
+  id        String   @id @default(uuid())
+  email     String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model SessionMessage {
+  id        String   @id @default(uuid())
+  content   String
+  senderId  String
+  classId   String
+  createdAt DateTime @default(now())
+  sender    User     @relation(fields: [senderId], references: [id])
+}
+
+model SessionPresence {
+  id        String   @id @default(uuid())
+  userId    String
+  classId   String
+  agoraUid  Int?     // Add this to map RTC video to user name
+  lastSeen  DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@unique([userId, classId])
+}
+
+model SessionAsset {
+  id        String   @id @default(uuid())
+  title     String
+  url       String
+  type      String   // 'file' or 'video'
+  senderId  String
+  classId   String
+  createdAt DateTime @default(now())
+  sender    User     @relation(fields: [senderId], references: [id])
+}
+
+enum Role {
+  MAIN_ADMIN
+  SUPER_ADMIN
+  SUB_ADMIN
+  HOD
+  FACULTY
+  STUDENT
+}
+
+enum EnrollmentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}

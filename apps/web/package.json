@@ -7,8 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "vercel-build": "mkdir -p prisma && cp ../../packages/database/prisma/schema.prisma ./prisma/schema.prisma && npx prisma generate && next build",
-    "postinstall": "prisma generate --schema=../../packages/database/prisma/schema.prisma || echo 'Local generation failed, waiting for vercel-build'"
+    "vercel-build": "npx prisma generate --schema=prisma/schema.prisma && next build",
+    "postinstall": "prisma generate --schema=prisma/schema.prisma || echo 'Local generation failed, waiting for vercel-build'"
   },
   "dependencies": {
     "@prisma/client": "^6.19.2",
