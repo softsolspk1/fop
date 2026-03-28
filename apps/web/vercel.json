@@ -1,4 +1,6 @@
 {
-  "buildCommand": "mkdir -p prisma && cp ../../packages/database/prisma/schema.prisma ./prisma/schema.prisma && npx prisma generate && npx next build",
-  "framework": "nextjs"
+  "buildCommand": "npx prisma generate --schema=prisma/schema.prisma && next build",
+  "installCommand": "npm install",
+  "framework": "nextjs",
+  "ignoreCommand": "git diff --quiet HEAD^ HEAD ./"
 }
