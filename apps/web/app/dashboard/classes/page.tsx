@@ -6,7 +6,7 @@ import DashboardLayout from '../../../components/dashboard/DashboardLayout';
 import { Video, Calendar, Clock, User, AlertCircle, Play, Users, MapPin, Trash2 } from 'lucide-react';
 import api from '../../../lib/api';
 import { useAuth } from '../../../context/AuthContext';
-import { formatPKT, formatDatePKT, formatTimePKT } from '../../../lib/date-utils';
+import { formatPKT, formatDatePKT, formatTimePKT, parsePKTToUTC } from '../../../lib/date-utils';
 import { toast } from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 
