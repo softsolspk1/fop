@@ -111,12 +111,12 @@ export default function LiveScreen() {
                 </Text>
               </View>
               {new Date(lec.scheduledAt) <= new Date() && (
-                <TouchableOpacity 
+                <Button 
+                  title="Join" 
                   onPress={() => router.push({ pathname: '/video-player', params: { url: lec.url, title: lec.title } })}
-                  style={styles.playBtn}
-                >
-                  <Play size={14} color={Colors.white} />
-                </TouchableOpacity>
+                  style={styles.smallJoinBtn}
+                  textStyle={styles.smallBtnText}
+                />
               )}
             </Card>
           ))
@@ -152,5 +152,6 @@ const styles = StyleSheet.create({
   upcomingTitle: { fontSize: 15, fontWeight: 'bold', color: Colors.text },
   upcomingDate: { fontSize: 12, color: Colors.textSecondary, marginTop: 2 },
   emptySmall: { color: Colors.textSecondary, fontSize: 12, fontStyle: 'italic', marginLeft: 4 },
-  playBtn: { width: 32, height: 32, backgroundColor: Colors.primary, borderRadius: 16, justifyContent: 'center', alignItems: 'center' },
+  smallJoinBtn: { width: 64, height: 32, paddingVertical: 0, borderRadius: 10 },
+  smallBtnText: { fontSize: 10, fontWeight: '900' },
 });

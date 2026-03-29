@@ -306,4 +306,35 @@ router.delete('/:id', authenticateToken, authorizeRoles('MAIN_ADMIN'), async (re
   }
 });
 
+// Delete material
+router.delete('/materials/:id', authenticateToken, authorizeRoles('FACULTY', 'HOD', 'SUPER_ADMIN', 'MAIN_ADMIN'), async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const material = await prisma.material.findUnique({ where: { id: String(id) } });
+    if (!material) return res.status(404).json({ message: 'Material not found' });
+
+    // Permissions check: Only uploader or Admin can delete
+    if (req.user?.role !== 'SUPER_ADMIN' && req.user?.role !== 'MAIN_ADMIN' && material.uploadedById !== req.user?.userId) {
+       return res.status(403).json({ message: 'Forbidden: You did not upload this material' });
+    }
+
+    // Cleanup Cloudinary if publicId exists
+    if (material.publicId) {
+       try {
+         // Determine resource type: videos/scheduled lectures/etc often need 'video' type in destroy call
+         const resourceType = ['VIDEO', 'SCHEDULED_LECTURE'].includes(material.type) ? 'video' : 'raw';
+         await cloudinaryService.deleteFile(material.publicId, resourceType);
+       } catch (cloudinaryError) {
+         console.error('[Cloudinary Cleanup Error]:', cloudinaryError);
+         // Continue deletion from DB even if Cloudinary fails (or log specifically)
+       }
+    }
+
+    await prisma.material.delete({ where: { id: String(id) } });
+    res.json({ message: 'Material deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error deleting material', error });
+  }
+});
+
 export default router;

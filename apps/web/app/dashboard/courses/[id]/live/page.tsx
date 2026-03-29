@@ -35,6 +35,8 @@ export default function LiveClassPage() {
   const [isUploading, setIsUploading] = useState(false);
 
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(searchParams.get('sessionId') || searchParams.get('classId') || null);
+  const scheduledId = searchParams.get('scheduledId');
+  const [scheduledMaterial, setScheduledMaterial] = useState<any>(null);
   
   const [agoraConfig, setAgoraConfig] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -47,9 +49,19 @@ export default function LiveClassPage() {
         const idToJoin = currentSessionId || params.id;
         console.log('[Live] Attempting to join session/course ID:', idToJoin);
         
-        const res = await (api as any).get(`/classes/${idToJoin}/join`);
+        let path = `/classes/${idToJoin}/join`;
+        if (scheduledId) path += `?scheduledId=${scheduledId}`;
+        
+        const res = await (api as any).get(path);
         console.log('[Live] Join authenticated for class:', res.data.channel);
         
+        if (res.data.type === 'scheduled') {
+           setScheduledMaterial({
+             url: res.data.videoUrl,
+             title: res.data.title
+           });
+        }
+
         // Update currentSessionId if the backend redirected us to an auto-found session
         if (res.data.id && res.data.id !== currentSessionId) {
            setCurrentSessionId(res.data.id as string);
@@ -335,12 +347,27 @@ export default function LiveClassPage() {
                </div>
              ) : (
                <div className="flex-1 rounded-[32px] bg-slate-900 border border-white/5 shadow-2xl overflow-hidden relative group">
-                   <AgoraVideoPlayer 
-                     {...agoraConfig}
-                     participants={participants}
-                     isScreenSharing={isScreenSharing}
-                     onScreenShareEnd={() => setIsScreenSharing(false)}
-                   />
+                   {scheduledMaterial ? (
+                     <div className="w-full h-full bg-black flex flex-col items-center justify-center relative overflow-hidden group/video">
+                        <video 
+                          src={scheduledMaterial.url} 
+                          controls 
+                          autoPlay={true}
+                          className="w-full h-full object-contain shadow-2xl"
+                        />
+                        <div className="absolute top-8 left-8 bg-purple-600 px-5 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white shadow-2xl border-b-4 border-purple-800 flex items-center gap-2">
+                          <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
+                          Now Streaming: {scheduledMaterial.title}
+                        </div>
+                     </div>
+                   ) : (
+                     <AgoraVideoPlayer 
+                       {...agoraConfig}
+                       participants={participants}
+                       isScreenSharing={isScreenSharing}
+                       onScreenShareEnd={() => setIsScreenSharing(false)}
+                     />
+                   )}
 
                   {/* Stage Utilities */}
                   <div className="absolute bottom-6 right-6 flex gap-3 z-30 opacity-0 group-hover:opacity-100 transition-opacity">

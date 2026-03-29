@@ -244,7 +244,29 @@ router.delete('/:id', authenticateToken, authorizeRoles('FACULTY', 'SUPER_ADMIN'
 router.get('/:id/join', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
+    const { scheduledId } = req.query;
     let classSession = await prisma.class.findUnique({ where: { id: String(id) } });
+
+    // Handle Scheduled Lecture joining (even if no active Agora session)
+    if (scheduledId) {
+       const material = await prisma.material.findUnique({ 
+         where: { id: String(scheduledId) },
+         include: { course: true }
+       });
+       if (material) {
+          return res.json({
+            id: material.id,
+            type: 'scheduled',
+            videoUrl: material.url,
+            title: material.title,
+            courseName: material.course.name,
+            appId: process.env.AGORA_APP_ID, // Still provide for chat/presence
+            channel: `scheduled-${material.id}`,
+            token: generateAgoraToken(`scheduled-${material.id}`, Math.floor(Math.random() * 1000000)),
+            uid: Math.floor(Math.random() * 1000000),
+          });
+       }
+    }
 
     // Fallback: If not found by ID, maybe 'id' is a courseId? find active session for it
     if (!classSession) {

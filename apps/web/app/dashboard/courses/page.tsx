@@ -1386,14 +1386,18 @@ export default function CoursesPage() {
                                         </span>
                                      </div>
                                      {(!mat.isScheduled || new Date(mat.scheduledAt) <= new Date()) && (
-                                        <a 
-                                          href={mat.type === 'VIDEO' || mat.type === 'YOUTUBE' || mat.type === 'SCHEDULED_LECTURE' ? mat.url : `https://docs.google.com/viewer?url=${encodeURIComponent(mat.url)}&embedded=true`} 
-                                          target="_blank" 
-                                          rel="noopener noreferrer"
-                                          className="px-3 py-1 bg-slate-100 text-slate-600 text-[8px] font-black uppercase tracking-widest rounded-lg hover:bg-blue-600 hover:text-white transition-all shadow-sm"
+                                        <button 
+                                          onClick={() => {
+                                            if (mat.type === 'SCHEDULED_LECTURE') {
+                                              router.push(`/dashboard/courses/${viewingCourse.id}/live?scheduledId=${mat.id}`);
+                                            } else {
+                                              window.open(mat.type === 'VIDEO' || mat.type === 'YOUTUBE' ? mat.url : `https://docs.google.com/viewer?url=${encodeURIComponent(mat.url)}&embedded=true`, '_blank');
+                                            }
+                                          }}
+                                          className="px-3 py-1 bg-slate-100 text-slate-600 text-[8px] font-black uppercase tracking-widest rounded-lg hover:bg-blue-600 hover:text-white transition-all shadow-sm cursor-pointer"
                                         >
                                            {mat.type === 'VIDEO' || mat.type === 'YOUTUBE' || mat.type === 'SCHEDULED_LECTURE' ? 'Join Now' : 'View / Download'}
-                                        </a>
+                                        </button>
                                      )}
                                   </div>
                                 </div>

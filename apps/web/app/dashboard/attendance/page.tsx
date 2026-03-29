@@ -163,8 +163,8 @@ export default function AttendancePage() {
 
         {/* Stats Summary Section */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div className="p-6 bg-white rounded-[2rem] border border-slate-100 shadow-sm flex items-center gap-4">
-             <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center">
+          <div className="p-6 bg-white rounded-[2rem] border-2 border-slate-50 shadow-sm hover:shadow-lg transition-all flex items-center gap-4 group">
+             <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-all">
                 <User className="w-6 h-6" />
              </div>
              <div>
@@ -172,8 +172,8 @@ export default function AttendancePage() {
                 <h4 className="text-xl font-black text-slate-800">{stats.total}</h4>
              </div>
           </div>
-          <div className="p-6 bg-white rounded-[2rem] border border-slate-100 shadow-sm flex items-center gap-4">
-             <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center">
+          <div className="p-6 bg-white rounded-[2rem] border-2 border-slate-50 shadow-sm hover:shadow-lg transition-all flex items-center gap-4 group">
+             <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-all">
                 <CheckCircle2 className="w-6 h-6" />
              </div>
              <div>
@@ -181,8 +181,8 @@ export default function AttendancePage() {
                 <h4 className="text-xl font-black text-slate-800">{stats.present}</h4>
              </div>
           </div>
-          <div className="p-6 bg-white rounded-[2rem] border border-slate-100 shadow-sm flex items-center gap-4">
-             <div className="w-12 h-12 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center">
+          <div className="p-6 bg-white rounded-[2rem] border-2 border-slate-50 shadow-sm hover:shadow-lg transition-all flex items-center gap-4 group">
+             <div className="w-12 h-12 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center group-hover:bg-red-600 group-hover:text-white transition-all">
                 <XCircle className="w-6 h-6" />
              </div>
              <div>
@@ -190,8 +190,8 @@ export default function AttendancePage() {
                 <h4 className="text-xl font-black text-slate-800">{stats.absent}</h4>
              </div>
           </div>
-          <div className="p-6 bg-blue-600 rounded-[2rem] shadow-xl shadow-blue-200 flex items-center gap-4 text-white">
-             <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center">
+          <div className="p-6 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-[2rem] shadow-xl shadow-blue-200 flex items-center gap-4 text-white transform hover:scale-[1.02] transition-all">
+             <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center">
                 <Clock className="w-6 h-6" />
              </div>
              <div>
@@ -202,7 +202,7 @@ export default function AttendancePage() {
         </div>
 
         {/* Filter Bar */}
-        <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm space-y-4">
+        <div className="bg-white p-6 rounded-[2rem] border-2 border-slate-50 shadow-sm space-y-4">
           <div className="flex items-center gap-3 mb-2 px-2">
              <Filter className="w-4 h-4 text-blue-600" />
              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Advanced Filters</span>
@@ -210,70 +210,70 @@ export default function AttendancePage() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {(user?.role === 'MAIN_ADMIN' || user?.role === 'SUPER_ADMIN') && (
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Department</label>
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 text-slate-500">Department</label>
                 <div className="relative">
                   <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                   <select 
                     value={filters.departmentId}
                     onChange={(e) => handleDepartmentChange(e.target.value)}
-                    className="w-full pl-11 pr-4 py-3 bg-slate-50 border-transparent rounded-xl text-sm font-bold focus:bg-white focus:ring-4 focus:ring-blue-50 focus:border-blue-400 outline-none transition-all appearance-none"
+                    className="w-full pl-11 pr-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl text-sm font-bold text-slate-800 focus:bg-white focus:ring-4 focus:ring-blue-50 focus:border-blue-400 outline-none transition-all"
                   >
-                    <option value="">All Departments</option>
-                    {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                    <option value="" className="text-slate-900">All Departments</option>
+                    {departments.map(d => <option key={d.id} value={d.id} className="text-slate-900">{d.name}</option>)}
                   </select>
                 </div>
               </div>
             )}
 
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Course</label>
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 text-slate-500">Course</label>
               <div className="relative">
                 <BookOpen className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <select 
                   value={filters.courseId}
                     onChange={(e) => handleCourseChange(e.target.value)}
-                  className="w-full pl-11 pr-4 py-3 bg-slate-50 border-transparent rounded-xl text-sm font-bold focus:bg-white focus:ring-4 focus:ring-blue-50 focus:border-blue-400 outline-none transition-all appearance-none"
+                  className="w-full pl-11 pr-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl text-sm font-bold text-slate-800 focus:bg-white focus:ring-4 focus:ring-blue-50 focus:border-blue-400 outline-none transition-all"
                 >
-                  <option value="">All Courses</option>
-                  {filteredCourses.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  <option value="" className="text-slate-900">All Courses</option>
+                  {filteredCourses.map(c => <option key={c.id} value={c.id} className="text-slate-900">{c.name}</option>)}
                 </select>
               </div>
             </div>
 
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Session / Class</label>
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 text-slate-500">Session / Class</label>
               <div className="relative">
                 <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <select 
                   value={filters.classId}
                   onChange={(e) => setFilters({...filters, classId: e.target.value})}
-                  className="w-full pl-11 pr-4 py-3 bg-slate-50 border-transparent rounded-xl text-sm font-bold focus:bg-white focus:ring-4 focus:ring-blue-50 focus:border-blue-400 outline-none transition-all appearance-none"
+                  className="w-full pl-11 pr-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl text-sm font-bold text-slate-800 focus:bg-white focus:ring-4 focus:ring-blue-50 focus:border-blue-400 outline-none transition-all"
                   disabled={!filters.courseId}
                 >
-                  <option value="">All Sessions</option>
-                  {classes.map(cl => <option key={cl.id} value={cl.id}>{cl.title}</option>)}
+                  <option value="" className="text-slate-900">All Sessions</option>
+                  {classes.map(cl => <option key={cl.id} value={cl.id} className="text-slate-900">{cl.title}</option>)}
                 </select>
               </div>
             </div>
 
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Status</label>
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 text-slate-500">Status</label>
               <select 
                 value={filters.status}
                 onChange={(e) => setFilters({...filters, status: e.target.value})}
-                className="w-full px-4 py-3 bg-slate-50 border-transparent rounded-xl text-sm font-bold focus:bg-white focus:ring-4 focus:ring-blue-50 focus:border-blue-400 outline-none transition-all"
+                className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl text-sm font-bold text-slate-800 focus:bg-white focus:ring-4 focus:ring-blue-50 focus:border-blue-400 outline-none transition-all"
               >
-                <option value="">All Statuses</option>
-                <option value="PRESENT">Present</option>
-                <option value="ABSENT">Absent</option>
-                <option value="LATE">Late</option>
+                <option value="" className="text-slate-900">All Statuses</option>
+                <option value="PRESENT" className="text-slate-900">Present</option>
+                <option value="ABSENT" className="text-slate-900">Absent</option>
+                <option value="LATE" className="text-slate-900">Late</option>
               </select>
             </div>
           </div>
         </div>
 
         {/* Attendance Table */}
-        <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden min-h-[400px]">
+        <div className="bg-white rounded-[2.5rem] border-2 border-slate-50 shadow-sm overflow-hidden min-h-[400px]">
           {fetchingRecords ? (
              <div className="flex flex-col items-center justify-center py-20">
                 <Loader2 className="w-10 h-10 text-blue-600 animate-spin mb-4" />
@@ -281,36 +281,36 @@ export default function AttendancePage() {
              </div>
           ) : attendance.length === 0 ? (
              <div className="flex flex-col items-center justify-center py-24 text-center px-6">
-                <div className="w-20 h-20 bg-slate-50 border border-slate-100 rounded-3xl flex items-center justify-center mb-6">
+                <div className="w-20 h-20 bg-slate-50 border-2 border-slate-100 rounded-3xl flex items-center justify-center mb-6">
                    <CheckCircle2 className="w-10 h-10 text-slate-300" />
                 </div>
-                <h3 className="text-xl font-black text-slate-800 tracking-tight mb-2">No Attendance Records Found</h3>
+                <h3 className="text-xl font-black text-slate-800 tracking-tight mb-2 uppercase">No Presence Logs</h3>
                 <p className="text-sm text-slate-500 max-w-sm mb-8 font-medium italic">Adjust your filters or select a specific course to view detailed presence logs.</p>
              </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-slate-50 border-b border-slate-100">
-                    <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Student / Identity</th>
-                    <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Department & Course</th>
-                    <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Session Title</th>
-                    <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Date / Time</th>
-                    <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</th>
+                  <tr className="bg-slate-50/50 border-b-2 border-slate-100">
+                    <th className="px-8 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Student / Identity</th>
+                    <th className="px-8 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Department & Course</th>
+                    <th className="px-8 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Session Title</th>
+                    <th className="px-8 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Date / Time</th>
+                    <th className="px-8 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Status</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-50">
+                <tbody className="divide-y divide-slate-100">
                   {attendance.map((record, idx) => (
                     <motion.tr 
                       key={record.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: idx * 0.05 }}
-                      className="hover:bg-slate-50/50 transition-colors group"
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: idx * 0.03 }}
+                      className="hover:bg-blue-50/30 transition-colors group"
                     >
-                      <td className="px-8 py-6">
+                      <td className="px-8 py-4">
                         <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold border-2 border-white shadow-sm shrink-0">
+                          <div className="w-10 h-10 bg-gradient-to-br from-blue-50 to-indigo-50 text-blue-600 rounded-2xl flex items-center justify-center font-black border-2 border-white shadow-sm shrink-0">
                             {record.user.name.charAt(0)}
                           </div>
                           <div>
@@ -319,29 +319,29 @@ export default function AttendancePage() {
                           </div>
                         </div>
                       </td>
-                      <td className="px-8 py-6">
+                      <td className="px-8 py-4">
                          <div className="flex flex-col">
-                            <span className="text-xs font-bold text-slate-700">{record.class.course.name}</span>
+                            <span className="text-xs font-black text-slate-800">{record.class.course.name}</span>
                             <span className="text-[9px] font-black text-blue-600 uppercase tracking-widest mt-1">{record.class.course.department.name}</span>
                          </div>
                       </td>
-                      <td className="px-8 py-6">
+                      <td className="px-8 py-4">
                          <div className="flex items-center gap-2 group-hover:translate-x-1 transition-transform">
-                            <span className="text-xs font-black text-slate-800 uppercase tracking-tight italic">{record.class.title}</span>
+                            <span className="text-xs font-black text-slate-700 uppercase tracking-tighter italic">{record.class.title}</span>
                          </div>
                       </td>
-                      <td className="px-8 py-6">
+                      <td className="px-8 py-4">
                         <div className="space-y-1">
-                          <p className="text-xs font-bold text-slate-700">
+                          <p className="text-xs font-bold text-slate-800">
                              {new Date(record.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
                           </p>
                           <div className="flex items-center gap-1.5 text-[9px] font-black text-slate-400 uppercase tracking-widest">
-                             <Clock className="w-3 h-3" />
+                             <Clock className="w-3 h-3 text-blue-400" />
                              {new Date(record.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </div>
                         </div>
                       </td>
-                      <td className="px-8 py-6">
+                      <td className="px-8 py-4">
                         <div className={`
                           inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest
                           ${record.status === 'PRESENT' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 

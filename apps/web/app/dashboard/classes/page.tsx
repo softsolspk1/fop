@@ -111,6 +111,17 @@ export default function LiveClassesPage() {
     return matchDept && matchSem;
   });
 
+  const handleDeleteMaterial = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this scheduled lecture?')) return;
+    try {
+      await api.delete(`/courses/materials/${id}`);
+      fetchClasses();
+    } catch (err) {
+      console.error(err);
+      alert('Failed to delete scheduled lecture');
+    }
+  };
+
   const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
   return (
@@ -178,12 +189,24 @@ export default function LiveClassesPage() {
                            </div>
                            <span className="text-[10px] font-black text-slate-500 uppercase">{lecture.course?.teacher?.name || 'Faculty'}</span>
                         </div>
-                        <button 
-                          onClick={() => router.push(`/dashboard/courses/${lecture.courseId}`)}
-                          className="px-4 py-2 bg-purple-600 text-white font-black rounded-xl text-[10px] uppercase tracking-widest hover:bg-purple-700 transition-all shadow-lg shadow-purple-200"
-                        >
-                          View Course
-                        </button>
+                        <div className="flex items-center gap-2">
+                          {(['MAIN_ADMIN', 'SUPER_ADMIN'].includes(user?.role || '') || (user?.role === 'FACULTY' && lecture.uploadedById === user?.id)) && (
+                            <button 
+                              onClick={() => handleDeleteMaterial(lecture.id)}
+                              className="p-2 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition-all shadow-sm shadow-red-100"
+                              title="Delete Scheduled Lecture"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )}
+                          <button 
+                            onClick={() => router.push(`/dashboard/courses/${lecture.courseId}/live?scheduledId=${lecture.id}`)}
+                            className="px-4 py-2 bg-purple-600 text-white font-black rounded-xl text-[10px] uppercase tracking-widest hover:bg-purple-700 transition-all shadow-lg shadow-purple-200 flex items-center gap-2"
+                          >
+                            <Play size={10} className="fill-current" />
+                            Join Session
+                          </button>
+                        </div>
                       </div>
                     </motion.div>
                   ))}
