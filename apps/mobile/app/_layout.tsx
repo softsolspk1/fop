@@ -55,6 +55,10 @@ function InitialLayout() {
       <Stack.Screen name="(tabs)" />
       <Stack.Screen name="login" options={{ title: 'Login' }} />
       <Stack.Screen name="signup" options={{ title: 'Signup' }} />
+      <Stack.Screen name="history" options={{ title: 'Activity History' }} />
+      <Stack.Screen name="approvals" options={{ title: 'Approvals' }} />
+      <Stack.Screen name="reports" options={{ title: 'Reports' }} />
+      <Stack.Screen name="submit-assignment" options={{ title: 'Submit Assignment' }} />
     </Stack>
   );
 }

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, RefreshControl, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { FileText, ClipboardList, Zap, Clock, ChevronLeft, Filter, CheckCircle2 } from 'lucide-react-native';
+import { FileText, ClipboardList, Zap, Clock, ChevronLeft, Filter, CheckCircle } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import api from '../lib/api';
 import { useAuth } from '../context/AuthContext';
@@ -51,7 +51,7 @@ export default function HistoryScreen() {
         <Card key={item.id} style={styles.itemCard}>
            <View style={styles.itemHeader}>
               <View style={[styles.iconBox, { backgroundColor: Colors.success + '10' }]}>
-                 <CheckCircle2 size={20} color={Colors.success} />
+                 <CheckCircle size={20} color={Colors.success} />
               </View>
               <View style={styles.itemInfo}>
                  <Text style={styles.itemTitle}>{item.assignment?.title}</Text>

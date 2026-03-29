@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Alert, RefreshControl } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { ChevronLeft, FileText, Download, CheckCircle2, Clock, ChevronRight } from 'lucide-react-native';
+import { ChevronLeft, FileText, Download, CheckCircle, Clock, ChevronRight } from 'lucide-react-native';
 import * as Linking from 'expo-linking';
 import api from '../lib/api';
 import { Colors, Card, Button } from '../components/UI';
@@ -59,7 +59,7 @@ export default function AssignmentsScreen() {
         <Text style={styles.assTitle}>{item.title}</Text>
         {item.submissions?.length > 0 && (
           <View style={styles.submittedBadge}>
-             <CheckCircle2 size={12} color={Colors.success} />
+             <CheckCircle size={12} color={Colors.success} />
              <Text style={styles.submittedText}>Submitted</Text>
           </View>
         )}
@@ -76,7 +76,7 @@ export default function AssignmentsScreen() {
         />
         <Button 
           title={item.submissions?.length > 0 ? "Submitted" : "Submit"} 
-          icon={CheckCircle2} 
+          icon={CheckCircle} 
           onPress={() => router.push({ pathname: '/submit-assignment', params: { id: item.id, title: item.title } })}
           style={styles.actionBtn}
           disabled={item.submissions?.length > 0}
