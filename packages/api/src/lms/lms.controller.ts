@@ -37,7 +37,22 @@ router.get('/courses/:courseId/materials', authenticateToken, async (req: AuthRe
       orderBy: { createdAt: 'desc' }
     });
 
-    res.json(materials);
+    // Sign URLs for private Cloudinary assets
+    const signedMaterials = materials.map(mat => {
+      if (mat.publicId) {
+        // Simple heuristic: if it's not a video/youtube, try raw first if it's a doc
+        const isVideo = mat.url?.includes('/video/') || mat.type === 'VIDEO';
+        const resourceType = isVideo ? 'video' : (mat.type === 'DOCUMENT' || mat.url?.includes('/raw/') ? 'raw' : 'image');
+        
+        const signedUrl = cloudinaryService.getSignedUrl(mat.publicId, resourceType);
+        if (signedUrl) {
+          return { ...mat, url: signedUrl };
+        }
+      }
+      return mat;
+    });
+
+    res.json(signedMaterials);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching materials', error });
   }

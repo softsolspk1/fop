@@ -26,7 +26,24 @@ router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
       },
       orderBy: { createdAt: 'desc' }
     });
-    res.json(assignments);
+
+    const signCloudinary = (url: string | null, publicId: string | null) => {
+      if (!url || !publicId) return url;
+      const isVideo = url.includes('/video/');
+      const resourceType = isVideo ? 'video' : (url.includes('/raw/') ? 'raw' : 'image');
+      return (cloudinaryService as any).getSignedUrl(publicId, resourceType) || url;
+    };
+
+    const signedAssignments = assignments.map(asgn => ({
+      ...asgn,
+      fileUrl: signCloudinary(asgn.fileUrl, asgn.publicId),
+      submissions: Array.isArray(asgn.submissions) ? (asgn.submissions as any[]).map(sub => ({
+        ...sub,
+        fileUrl: signCloudinary(sub.fileUrl, sub.publicId)
+      })) : asgn.submissions
+    }));
+
+    res.json(signedAssignments);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching global assignments', error });
   }
@@ -50,7 +67,25 @@ router.get('/course/:courseId', authenticateToken, async (req: AuthRequest, res:
       },
       orderBy: { createdAt: 'desc' }
     });
-    res.json(assignments);
+
+    // Helper to sign Cloudinary URLs for private assets
+    const signCloudinary = (url: string | null, publicId: string | null) => {
+      if (!url || !publicId) return url;
+      const isVideo = url.includes('/video/');
+      const resourceType = isVideo ? 'video' : (url.includes('/raw/') ? 'raw' : 'image');
+      return (cloudinaryService as any).getSignedUrl(publicId, resourceType) || url;
+    };
+
+    const signedAssignments = assignments.map(asgn => ({
+      ...asgn,
+      fileUrl: signCloudinary(asgn.fileUrl, asgn.publicId),
+      submissions: Array.isArray(asgn.submissions) ? (asgn.submissions as any[]).map(sub => ({
+        ...sub,
+        fileUrl: signCloudinary(sub.fileUrl, sub.publicId)
+      })) : asgn.submissions
+    }));
+
+    res.json(signedAssignments);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching assignments', error });
   }
@@ -128,7 +163,13 @@ router.get('/submissions/my', authenticateToken, authorizeRoles('STUDENT'), asyn
       include: { assignment: { select: { title: true, course: { select: { name: true } } } }, grade: true },
       orderBy: { createdAt: 'desc' }
     });
-    res.json(submissions);
+
+    const signedSubmissions = submissions.map(sub => ({
+      ...sub,
+      fileUrl: (cloudinaryService as any).getSignedUrl(sub.publicId, 'image') || sub.fileUrl
+    }));
+
+    res.json(signedSubmissions);
   } catch (error) {
     res.status(500).json({ message: 'Internal server error', error });
   }
@@ -213,7 +254,13 @@ router.get('/:assignmentId/submissions', authenticateToken, authorizeRoles('FACU
       where: { assignmentId: String(assignmentId) },
       include: { student: { select: { name: true, rollNumber: true } }, grade: true },
     });
-    res.json(submissions);
+
+    const signedSubmissions = submissions.map(sub => ({
+      ...sub,
+      fileUrl: (cloudinaryService as any).getSignedUrl(sub.publicId, 'image') || sub.fileUrl
+    }));
+
+    res.json(signedSubmissions);
   } catch (error) {
     res.status(500).json({ message: 'Internal server error', error });
   }

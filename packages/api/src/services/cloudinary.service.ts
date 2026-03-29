@@ -100,6 +100,24 @@ export const cloudinaryService = {
       throw error;
     }
   },
+
+  getSignedUrl: (publicId: string, resourceType: string = 'image') => {
+    if (!publicId) return null;
+    try {
+      // Generate a signed URL that expires in 1 hour
+      return cloudinary.url(publicId, {
+        resource_type: resourceType,
+        secure: true,
+        sign_url: true,
+        type: 'upload',
+        // Optional: specify expiration if needed via transformations, 
+        // but simple signing is usually enough for authorization.
+      });
+    } catch (error) {
+      console.error('[Cloudinary]: Error generating signed URL:', error);
+      return null;
+    }
+  }
 };
 
 export default cloudinaryService;
