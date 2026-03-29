@@ -226,7 +226,7 @@ router.post('/:id/materials', authenticateToken, authorizeRoles('FACULTY', 'HOD'
     res.status(201).json(material);
     
     // Trigger notification
-    const course = await prisma.course.findUnique({ where: { id: courseId }, select: { name: true } });
+    const course = await prisma.course.findUnique({ where: { id: String(courseId) }, select: { name: true } });
     await sendNotification({
       title: `New Material: ${material.title}`,
       content: `A new ${type || 'resource'} has been added to your course: ${course?.name}`,
