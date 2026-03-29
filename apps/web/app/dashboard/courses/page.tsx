@@ -816,8 +816,15 @@ export default function CoursesPage() {
                                          <div className="flex items-center gap-3">
                                             <button 
                                               onClick={() => {
-                                                const fileUrl = sub.fileUrl;
+                                                let fileUrl = sub.fileUrl;
+                                                const isCloudinary = fileUrl.includes('res.cloudinary.com');
                                                 const isOfficeFile = fileUrl.match(/\.(docx|pptx|xlsx|doc|ppt|xls)/i);
+
+                                                if (isCloudinary && !isOfficeFile) {
+                                                   // Force download for Cloudinary PDFs/Images to bypass browser view restrictions
+                                                   fileUrl = fileUrl.replace('/upload/', '/upload/fl_attachment/');
+                                                }
+
                                                 if (isOfficeFile) {
                                                    window.open(`https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(fileUrl)}`, '_blank');
                                                 } else {
@@ -1400,7 +1407,10 @@ export default function CoursesPage() {
                                             if (mat.type === 'SCHEDULED_LECTURE') {
                                               router.push(`/dashboard/courses/${viewingCourse.id}/live?scheduledId=${mat.id}`);
                                             } else {
-                                              const fileUrl = mat.url;
+                                              let fileUrl = mat.url;
+                                              if (fileUrl.includes('res.cloudinary.com')) {
+                                                fileUrl = fileUrl.replace('/upload/', '/upload/fl_attachment/');
+                                              }
                                               const isOfficeFile = fileUrl.match(/\.(docx|pptx|xlsx|doc|ppt|xls)/i);
                                               if (isOfficeFile) {
                                                  window.open(`https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(fileUrl)}`, '_blank');
@@ -1458,7 +1468,10 @@ export default function CoursesPage() {
                                         {asgn.fileUrl && (
                                            <button 
                                               onClick={() => {
-                                                const fileUrl = asgn.fileUrl;
+                                                let fileUrl = asgn.fileUrl;
+                                                if (fileUrl.includes('res.cloudinary.com')) {
+                                                  fileUrl = fileUrl.replace('/upload/', '/upload/fl_attachment/');
+                                                }
                                                 const isOfficeFile = fileUrl.match(/\.(docx|pptx|xlsx|doc|ppt|xls)/i);
                                                 if (isOfficeFile) {
                                                    window.open(`https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(fileUrl)}`, '_blank');
