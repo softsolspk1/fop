@@ -57,10 +57,10 @@ export default function CourseDetailsScreen() {
   const handleFileOpen = (url: string, title: string) => {
     if (!url) return Alert.alert('Error', 'No file URL available');
     
-    // For documents, use Google Docs Viewer for better mobile compatibility
-    const isDoc = url.match(/\.(docx|pptx|xlsx|pdf|doc|ppt|xls)$/i);
-    const finalUrl = isDoc 
-      ? `https://docs.google.com/viewer?url=${encodeURIComponent(url)}`
+    // For documents, use MS Office Online Viewer for better mobile compatibility
+    const isOffice = url.match(/\.(docx|pptx|xlsx|doc|ppt|xls)$/i);
+    const finalUrl = isOffice 
+      ? `https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(url)}`
       : url;
       
     Linking.openURL(finalUrl).catch(() => {

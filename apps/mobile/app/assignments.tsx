@@ -38,8 +38,8 @@ export default function AssignmentsScreen() {
 
   const handleFileOpen = (url: string) => {
     if (!url) return Alert.alert('Error', 'No file URL available');
-    const isDoc = url.match(/\.(docx|pptx|xlsx|pdf|doc|ppt|xls)$/i);
-    const finalUrl = isDoc ? `https://docs.google.com/viewer?url=${encodeURIComponent(url)}` : url;
+    const isOffice = url.match(/\.(docx|pptx|xlsx|doc|ppt|xls)$/i);
+    const finalUrl = isOffice ? `https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(url)}` : url;
     Linking.openURL(finalUrl).catch(() => Alert.alert('Error', 'Could not open file'));
   };
 

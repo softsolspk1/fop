@@ -1456,14 +1456,20 @@ export default function CoursesPage() {
                                   ) : (
                                      <>
                                         {asgn.fileUrl && (
-                                          <a 
-                                            href={`https://docs.google.com/viewer?url=${encodeURIComponent(asgn.fileUrl)}&embedded=true`} 
-                                            target="_blank" 
-                                            rel="noopener noreferrer" 
-                                            className="p-2 text-slate-400 hover:text-blue-600 transition-colors"
-                                          >
-                                             <FileText className="w-5 h-5" />
-                                          </a>
+                                           <button 
+                                              onClick={() => {
+                                                const fileUrl = asgn.fileUrl;
+                                                const isOfficeFile = fileUrl.match(/\.(docx|pptx|xlsx|doc|ppt|xls)/i);
+                                                if (isOfficeFile) {
+                                                   window.open(`https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(fileUrl)}`, '_blank');
+                                                } else {
+                                                   window.open(fileUrl, '_blank');
+                                                }
+                                              }} 
+                                              className="p-2 text-slate-400 hover:text-blue-600 transition-colors cursor-pointer"
+                                           >
+                                              <FileText className="w-5 h-5" />
+                                           </button>
                                         )}
                                         <button onClick={() => setSubmittingAssignment(asgn)} className="px-5 py-2 bg-blue-600 text-white font-black text-[10px] uppercase tracking-widest rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-100">Submit Now</button>
                                      </>
