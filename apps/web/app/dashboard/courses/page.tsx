@@ -13,9 +13,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../../lib/api';
 import { useAuth } from '../../../context/AuthContext';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 
 export default function CoursesPage() {
+  const router = useRouter();
   const { user: currentUser } = useAuth();
   const [courses, setCourses] = useState<any[]>([]);
   const [departments, setDepartments] = useState<any[]>([]);
