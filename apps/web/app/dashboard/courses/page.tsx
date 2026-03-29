@@ -822,7 +822,7 @@ export default function CoursesPage() {
 
                                                 if (isCloudinary && !isOfficeFile) {
                                                    // Force download for Cloudinary PDFs/Images to bypass browser view restrictions
-                                                   fileUrl = fileUrl.replace('/upload/', '/upload/fl_attachment/');
+                                                   if (fileUrl.includes('/image/upload/') || fileUrl.includes('/video/upload/')) { fileUrl = fileUrl.replace('/upload/', '/upload/fl_attachment/'); }
                                                 }
 
                                                 if (isOfficeFile) {
@@ -1409,7 +1409,7 @@ export default function CoursesPage() {
                                             } else {
                                               let fileUrl = mat.url;
                                               if (fileUrl.includes('res.cloudinary.com')) {
-                                                fileUrl = fileUrl.replace('/upload/', '/upload/fl_attachment/');
+                                                if (fileUrl.includes('/image/upload/') || fileUrl.includes('/video/upload/')) { fileUrl = fileUrl.replace('/upload/', '/upload/fl_attachment/'); }
                                               }
                                               const isOfficeFile = fileUrl.match(/\.(docx|pptx|xlsx|doc|ppt|xls)/i);
                                               if (isOfficeFile) {
@@ -1470,7 +1470,7 @@ export default function CoursesPage() {
                                               onClick={() => {
                                                 let fileUrl = asgn.fileUrl;
                                                 if (fileUrl.includes('res.cloudinary.com')) {
-                                                  fileUrl = fileUrl.replace('/upload/', '/upload/fl_attachment/');
+                                                  if (fileUrl.includes('/image/upload/') || fileUrl.includes('/video/upload/')) { fileUrl = fileUrl.replace('/upload/', '/upload/fl_attachment/'); }
                                                 }
                                                 const isOfficeFile = fileUrl.match(/\.(docx|pptx|xlsx|doc|ppt|xls)/i);
                                                 if (isOfficeFile) {

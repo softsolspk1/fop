@@ -29,16 +29,30 @@ export const cloudinaryService = {
       const fileExtension = path.extname(originalName);
       const fileNameWithoutExt = path.basename(originalName, fileExtension);
       
+      // Categorize resource type based on extension
+      const isImage = /\.(jpg|jpeg|png|gif|webp|svg|bmp|tiff)$/i.test(originalName);
+      const isVideo = /\.(mp4|mov|avi|wmv|flv|mkv|webm)$/i.test(originalName);
+      const isDocument = /\.(pdf|doc|docx|ppt|pptx|xls|xlsx|txt|rtf)$/i.test(originalName);
+      
+      let resourceType: 'image' | 'video' | 'raw' | 'auto' = 'auto';
+      if (isImage) resourceType = 'image';
+      else if (isVideo) resourceType = 'video';
+      else if (isDocument) resourceType = 'raw';
+
       // Sanitize filename to avoid Cloudinary issues
       const sanitizedName = fileNameWithoutExt.replace(/[^a-zA-Z0-9]/g, '_');
-      // For Cloudinary 'raw' resources (like PDF/DOCX), the extension MUST be in the public_id to be preserved in the URL.
-      const publicId = `${sanitizedName}_${Date.now()}${fileExtension}`;
+      
+      // For 'raw' (PDF/DOC) publicId MUST have extension to work properly.
+      // For 'image/video' publicId should NOT have extension (Cloudinary adds it for format conversion).
+      const publicId = resourceType === 'raw' 
+        ? `${sanitizedName}_${Date.now()}${fileExtension}`
+        : `${sanitizedName}_${Date.now()}`;
 
       return new Promise((resolve, reject) => {
         const uploadStream = cloudinary.uploader.upload_stream(
           { 
             folder, 
-            resource_type: 'auto',
+            resource_type: resourceType,
             access_mode: 'public',
             public_id: publicId,
             use_filename: true,
