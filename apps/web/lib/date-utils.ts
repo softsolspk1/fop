@@ -59,8 +59,8 @@ export const toPKTInputString = (date: Date | string | number = new Date()) => {
  * Ensures an incoming local date string from an input is treated as PKT
  * before sending to the backend (appending +05:00)
  */
-export const parsePKTToUTC = (localString: string) => {
-  if (!localString) return null;
+export const parsePKTToUTC = (localString: string): string => {
+  if (!localString) return "";
   // If it already has a timezone, leave it
   if (localString.includes('Z') || localString.match(/[+-]\d{2}:\d{2}$/)) return localString;
   
