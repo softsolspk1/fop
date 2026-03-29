@@ -189,6 +189,24 @@ export default function LiveClassPage() {
        router.push(`/dashboard/courses`);
     }
   };
+  
+  const getVideoEmbedUrl = (url: string) => {
+    if (!url) return null;
+    
+    // Google Drive: /file/d/ID/view -> /file/d/ID/preview
+    if (url.includes('drive.google.com')) {
+       const fileId = url.match(/\/d\/([a-zA-Z0-9_-]+)/)?.[1];
+       if (fileId) return `https://drive.google.com/file/d/${fileId}/preview`;
+    }
+    
+    // YouTube: watch?v=ID or youtu.be/ID -> /embed/ID
+    if (url.includes('youtube.com') || url.includes('youtu.be')) {
+       const videoId = url.match(/(?:v=|v\/|vi=|vi\/|youtu.be\/)([a-zA-Z0-9_-]+)/)?.[1];
+       if (videoId) return `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`;
+    }
+    
+    return url; // Fallback to original for direct MP4 links
+  };
 
   return (
     <div className="flex h-screen bg-slate-950 overflow-hidden text-white font-sans">
@@ -349,12 +367,21 @@ export default function LiveClassPage() {
                <div className="flex-1 rounded-[32px] bg-slate-900 border border-white/5 shadow-2xl overflow-hidden relative group">
                    {scheduledMaterial ? (
                      <div className="w-full h-full bg-black flex flex-col items-center justify-center relative overflow-hidden group/video">
-                        <video 
-                          src={scheduledMaterial.url} 
-                          controls 
-                          autoPlay={true}
-                          className="w-full h-full object-contain shadow-2xl"
-                        />
+                        {scheduledMaterial.url?.match(/\.(mp4|webm|ogg)$/i) || scheduledMaterial.url?.includes('cloudinary.com') ? (
+                          <video 
+                            src={scheduledMaterial.url} 
+                            controls 
+                            autoPlay={true}
+                            className="w-full h-full object-contain shadow-2xl"
+                          />
+                        ) : (
+                          <iframe 
+                            src={getVideoEmbedUrl(scheduledMaterial.url)} 
+                            className="w-full h-full border-0 shadow-2xl"
+                            allow="autoplay; encrypted-media; fullscreen"
+                            allowFullScreen
+                          />
+                        )}
                         <div className="absolute top-8 left-8 bg-purple-600 px-5 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white shadow-2xl border-b-4 border-purple-800 flex items-center gap-2">
                           <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
                           Now Streaming: {scheduledMaterial.title}

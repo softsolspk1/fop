@@ -39,6 +39,7 @@ export const cloudinaryService = {
           { 
             folder, 
             resource_type: 'auto',
+            access_mode: 'public',
             public_id: publicId,
             use_filename: true,
             unique_filename: true
