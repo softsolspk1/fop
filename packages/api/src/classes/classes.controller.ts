@@ -5,6 +5,7 @@ import { generateAgoraToken } from './agora.service';
 import { transcribeAudio } from './ai-transcription.service';
 import { normalizeYear } from '../lib/utils';
 import { createWhiteboardRoom, generateRoomToken } from './whiteboard.service';
+import { sendNotification } from '../lib/notifications';
 
 const router = Router();
 
@@ -153,6 +154,15 @@ router.post('/', authenticateToken, authorizeRoles('FACULTY', 'SUPER_ADMIN'), as
     });
 
     res.status(201).json(newClass);
+
+    // Trigger notification
+    const course = await prisma.course.findUnique({ where: { id: courseId }, select: { name: true } });
+    await sendNotification({
+      title: `Scheduled: ${newClass.title}`,
+      content: `A new ${newClass.classType} session has been scheduled for ${course?.name} at ${newClass.startTime.toLocaleString()}.`,
+      courseId: String(courseId),
+      senderId: req.user?.userId || ''
+    });
   } catch (error) {
     res.status(500).json({ message: 'Error creating class', error });
   }
@@ -179,6 +189,15 @@ router.put('/:id/start', authenticateToken, authorizeRoles('FACULTY', 'SUPER_ADM
       }
     });
     res.json({ message: 'Session started successfully', session });
+
+    // Trigger notification
+    const fullSession = await prisma.class.findUnique({ where: { id: String(id) }, include: { course: true } });
+    await sendNotification({
+      title: `LIVE: ${fullSession?.title}`,
+      content: `The live session for ${fullSession?.course?.name} has started. Join now!`,
+      courseId: fullSession?.courseId || '',
+      senderId: req.user?.userId || ''
+    });
   } catch (error) {
     res.status(500).json({ message: 'Error starting session', error });
   }

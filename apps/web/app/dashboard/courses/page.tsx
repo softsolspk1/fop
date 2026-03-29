@@ -26,7 +26,7 @@ export default function CoursesPage() {
   const [editingCourse, setEditingCourse] = useState<any>(null);
   const [viewingCourse, setViewingCourse] = useState<any>(null);
   const [managingMaterials, setManagingMaterials] = useState<any>(null);
-  const [activeManagementTab, setActiveManagementTab] = useState<'MATERIALS' | 'ASSIGNMENTS' | 'QUIZZES'>('MATERIALS');
+  const [activeManagementTab, setActiveManagementTab] = useState<'MATERIALS' | 'ASSIGNMENTS' | 'QUIZZES' | 'HISTORY'>('MATERIALS');
   const [newQuizQuestions, setNewQuizQuestions] = useState<any[]>([]);
   const [viewingCourseTab, setViewingCourseTab] = useState<'DETAILS' | 'LIVE' | 'MATERIALS' | 'ASSIGNMENTS' | 'QUIZZES'>('DETAILS');
   const [submittingAssignment, setSubmittingAssignment] = useState<any>(null);
@@ -37,6 +37,8 @@ export default function CoursesPage() {
   const [activeClasses, setActiveClasses] = useState<any[]>([]);
   const [quizTimer, setQuizTimer] = useState(0);
   const [selectedMaterialType, setSelectedMaterialType] = useState('DOCUMENT');
+  const [viewingSubmissions, setViewingSubmissions] = useState<any>(null);
+  const [submissions, setSubmissions] = useState<any[]>([]);
 
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -505,13 +507,19 @@ export default function CoursesPage() {
                   >
                     Assignments
                   </button>
-                  <button 
-                    onClick={() => setActiveManagementTab('QUIZZES')}
-                    className={`flex-1 py-4 text-[10px] font-black uppercase tracking-widest transition-all ${activeManagementTab === 'QUIZZES' ? 'bg-white text-blue-600 border-b-2 border-blue-600' : 'text-slate-400 hover:text-slate-600'}`}
-                  >
-                    Quizzes & Exams
-                  </button>
-                </div>
+                   <button 
+                     onClick={() => setActiveManagementTab('QUIZZES')}
+                     className={`flex-1 py-4 text-[10px] font-black uppercase tracking-widest transition-all ${activeManagementTab === 'QUIZZES' ? 'bg-white text-blue-600 border-b-2 border-blue-600' : 'text-slate-400 hover:text-slate-600'}`}
+                   >
+                     Quizzes & Exams
+                   </button>
+                   <button 
+                     onClick={() => setActiveManagementTab('HISTORY')}
+                     className={`flex-1 py-4 text-[10px] font-black uppercase tracking-widest transition-all ${activeManagementTab === 'HISTORY' ? 'bg-white text-blue-600 border-b-2 border-blue-600' : 'text-slate-400 hover:text-slate-600'}`}
+                   >
+                     History
+                   </button>
+                 </div>
 
                 <div className="flex-1 overflow-y-auto p-8 space-y-6">
                   {activeManagementTab === 'MATERIALS' && (
@@ -629,7 +637,7 @@ export default function CoursesPage() {
                                 headers: { 'Content-Type': 'multipart/form-data' }
                               });
 
-                              alert('SUCCESS: Resource submitted for HOD approval! You will see it once it is verified.');
+                              alert('SUCCESS: Resource submitted.');
                               (document.getElementById('mat-title') as HTMLInputElement).value = '';
                               (document.getElementById('mat-url') as HTMLInputElement).value = '';
                               (document.getElementById('mat-expiresAt') as HTMLInputElement).value = '';
@@ -768,6 +776,80 @@ export default function CoursesPage() {
                         </button>
                       </div>
 
+                      {/* Submissions Viewer Modal (Teacher/Admin) */}
+                      <AnimatePresence>
+                        {viewingSubmissions && (
+                          <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
+                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setViewingSubmissions(null)} className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" />
+                            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="relative bg-white w-full max-w-2xl rounded-[3rem] shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
+                               <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-white">
+                                  <div>
+                                    <h3 className="text-xl font-black text-slate-800 tracking-tight">Submissions</h3>
+                                    <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest mt-1">{viewingSubmissions.title}</p>
+                                  </div>
+                                  <button onClick={() => setViewingSubmissions(null)} className="p-2 hover:bg-slate-50 rounded-xl transition-colors"><X className="w-5 h-5" /></button>
+                               </div>
+                               
+                               <div className="flex-1 overflow-y-auto p-8 space-y-4 custom-scrollbar">
+                                  {submissions.length === 0 ? (
+                                    <div className="py-20 text-center">
+                                       <div className="w-20 h-20 bg-slate-50 rounded-[2rem] flex items-center justify-center mx-auto mb-4 text-slate-300">
+                                          <ClipboardList className="w-10 h-10" />
+                                       </div>
+                                       <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">No submissions yet.</p>
+                                    </div>
+                                  ) : (
+                                    submissions.map((sub: any) => (
+                                      <div key={sub.id} className="p-5 bg-slate-50 rounded-3xl border border-slate-100 flex items-center justify-between group">
+                                         <div className="flex items-center gap-4">
+                                            <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-blue-600 shadow-sm font-black">
+                                               {sub.student?.name?.charAt(0)}
+                                            </div>
+                                            <div>
+                                               <p className="font-black text-slate-800 text-sm">{sub.student?.name}</p>
+                                               <p className="text-[9px] font-black text-slate-400 uppercase tracking-tighter">{sub.student?.rollNumber}</p>
+                                            </div>
+                                         </div>
+                                         <div className="flex items-center gap-3">
+                                            <a 
+                                              href={`https://docs.google.com/viewer?url=${encodeURIComponent(sub.fileUrl)}&embedded=true`} 
+                                              target="_blank" 
+                                              rel="noopener noreferrer" 
+                                              className="px-4 py-2 bg-blue-600 text-white text-[10px] font-black rounded-xl hover:bg-blue-700 transition-all shadow-md shadow-blue-100 uppercase tracking-widest"
+                                            >
+                                              View File
+                                            </a>
+                                            {sub.grade ? (
+                                              <div className="px-4 py-2 bg-green-50 text-green-600 rounded-xl text-[10px] font-black uppercase tracking-widest">
+                                                 Score: {sub.grade.score}
+                                              </div>
+                                            ) : (
+                                              <button 
+                                                onClick={() => {
+                                                  const score = prompt('Enter score for ' + sub.student?.name);
+                                                  if(score) {
+                                                    api.post(`/assignments/submissions/${sub.id}/grade`, { score: parseFloat(score), feedback: 'Graded via portal' })
+                                                      .then(() => {
+                                                        alert('Graded!');
+                                                        setViewingSubmissions(null);
+                                                      });
+                                                  }
+                                                }}
+                                                className="px-4 py-2 bg-white border border-slate-200 text-slate-600 text-[10px] font-black rounded-xl hover:bg-slate-800 hover:text-white transition-all uppercase tracking-widest"
+                                              >
+                                                 Grade
+                                              </button>
+                                            )}
+                                         </div>
+                                      </div>
+                                    ))
+                                  )}
+                               </div>
+                            </motion.div>
+                          </div>
+                        )}
+                      </AnimatePresence>
+
                       {/* Assignment List */}
                       <div className="space-y-3">
                          <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest">Active Assignments</h4>
@@ -790,7 +872,20 @@ export default function CoursesPage() {
                                    </div>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                   <button className="px-4 py-2 bg-slate-50 text-slate-600 rounded-xl text-[10px] font-black uppercase hover:bg-blue-50 hover:text-blue-600 transition-all">View Submissions</button>
+                                   <button 
+                                     onClick={async () => {
+                                       try {
+                                         const res = await api.get(`/assignments/${asgn.id}/submissions`);
+                                         setSubmissions(res.data);
+                                         setViewingSubmissions(asgn);
+                                       } catch (err) {
+                                         alert('Error fetching submissions');
+                                       }
+                                     }}
+                                     className="px-4 py-2 bg-slate-50 text-slate-600 rounded-xl text-[10px] font-black uppercase hover:bg-blue-50 hover:text-blue-600 transition-all"
+                                   >
+                                     View Submissions
+                                   </button>
                                    <button onClick={async () => {
                                       if(!confirm('Delete this assignment?')) return;
                                       await api.delete(`/assignments/${asgn.id}`);
@@ -1292,12 +1387,12 @@ export default function CoursesPage() {
                                      </div>
                                      {(!mat.isScheduled || new Date(mat.scheduledAt) <= new Date()) && (
                                         <a 
-                                          href={mat.url} 
+                                          href={mat.type === 'VIDEO' || mat.type === 'YOUTUBE' || mat.type === 'SCHEDULED_LECTURE' ? mat.url : `https://docs.google.com/viewer?url=${encodeURIComponent(mat.url)}&embedded=true`} 
                                           target="_blank" 
                                           rel="noopener noreferrer"
                                           className="px-3 py-1 bg-slate-100 text-slate-600 text-[8px] font-black uppercase tracking-widest rounded-lg hover:bg-blue-600 hover:text-white transition-all shadow-sm"
                                         >
-                                           Join Now
+                                           {mat.type === 'VIDEO' || mat.type === 'YOUTUBE' || mat.type === 'SCHEDULED_LECTURE' ? 'Join Now' : 'View / Download'}
                                         </a>
                                      )}
                                   </div>
@@ -1342,7 +1437,12 @@ export default function CoursesPage() {
                                   ) : (
                                      <>
                                         {asgn.fileUrl && (
-                                          <a href={asgn.fileUrl} target="_blank" rel="noopener noreferrer" className="p-2 text-slate-400 hover:text-blue-600 transition-colors">
+                                          <a 
+                                            href={`https://docs.google.com/viewer?url=${encodeURIComponent(asgn.fileUrl)}&embedded=true`} 
+                                            target="_blank" 
+                                            rel="noopener noreferrer" 
+                                            className="p-2 text-slate-400 hover:text-blue-600 transition-colors"
+                                          >
                                              <FileText className="w-5 h-5" />
                                           </a>
                                         )}
@@ -1393,6 +1493,50 @@ export default function CoursesPage() {
                             </div>
                           ))
                         )}
+                     </div>
+                   )}
+                   
+                   {activeManagementTab === 'HISTORY' && (
+                     <div className="space-y-6">
+                       <h4 className="text-sm font-black text-slate-800 uppercase tracking-widest mb-4">Course Resource History</h4>
+                       <div className="space-y-4">
+                         {[
+                           ...((managingMaterials.materials || []).map((m: any) => ({ ...m, category: 'RESOURCE' }))),
+                           ...((managingMaterials.assignments || []).map((a: any) => ({ ...a, category: 'ASSIGNMENT' }))),
+                           ...((managingMaterials.quizzes || []).map((q: any) => ({ ...q, category: 'QUIZ' })))
+                         ].sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).map((item: any) => (
+                           <div key={item.id} className="p-4 bg-white border border-slate-100 rounded-2xl flex items-center justify-between group hover:border-blue-200 transition-all shadow-sm">
+                             <div className="flex items-center gap-4">
+                               <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                                 item.category === 'RESOURCE' ? 'bg-blue-50 text-blue-600' : 
+                                 item.category === 'ASSIGNMENT' ? 'bg-green-50 text-green-600' : 
+                                 'bg-purple-50 text-purple-600'
+                               }`}>
+                                 {item.category === 'RESOURCE' ? <FileText className="w-5 h-5" /> : 
+                                  item.category === 'ASSIGNMENT' ? <ClipboardList className="w-5 h-5" /> : 
+                                  <Zap className="w-5 h-5" />}
+                               </div>
+                               <div>
+                                 <div className="flex items-center gap-2">
+                                   <p className="font-bold text-slate-800 text-sm">{item.title}</p>
+                                   <span className="px-2 py-0.5 bg-slate-100 text-slate-500 text-[8px] font-black rounded uppercase tracking-widest">{item.category}</span>
+                                 </div>
+                                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter mt-0.5">Posted on {new Date(item.createdAt).toLocaleDateString()}</p>
+                               </div>
+                             </div>
+                             <div className="flex items-center gap-2">
+                                <span className={`text-[9px] font-black uppercase tracking-tighter ${item.status === 'APPROVED' ? 'text-green-600' : 'text-orange-500'}`}>{item.status || 'ACTIVE'}</span>
+                             </div>
+                           </div>
+                         ))}
+                         {[
+                           ...(managingMaterials.materials || []),
+                           ...(managingMaterials.assignments || []),
+                           ...(managingMaterials.quizzes || [])
+                         ].length === 0 && (
+                           <p className="text-center py-10 text-slate-400 font-bold italic">No history found for this course.</p>
+                         )}
+                       </div>
                      </div>
                    )}
                 </div>

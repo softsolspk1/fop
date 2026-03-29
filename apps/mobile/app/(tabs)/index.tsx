@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, RefreshControl, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { BookOpen, Video, Users, FlaskConical, Bell, Calendar, ChevronRight, Award, CreditCard, FileText, Megaphone } from 'lucide-react-native';
+import { BookOpen, Video, Users, FlaskConical, Bell, Calendar, ChevronRight, Award, CreditCard, FileText, Megaphone, Plus } from 'lucide-react-native';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../lib/api';
 import { Colors, Card, Button } from '../../components/UI';
@@ -104,10 +104,10 @@ export default function DashboardScreen() {
       <View style={styles.content}>
         {/* GPA / Stats Overview */}
         <View style={styles.statsSection}>
-           <Card style={styles.gpaCard}>
+           <Card style={[styles.gpaCard, user?.role !== 'STUDENT' && { backgroundColor: Colors.primary }]}>
               <View>
-                 <Text style={styles.gpaLabel}>Current GPA</Text>
-                 <Text style={styles.gpaValue}>{stats?.gpa || '0.00'}</Text>
+                 <Text style={styles.gpaLabel}>{user?.role === 'STUDENT' ? 'Current GPA' : 'Dept Performance'}</Text>
+                 <Text style={styles.gpaValue}>{user?.role === 'STUDENT' ? stats?.gpa || '0.00' : '94%'}</Text>
               </View>
               <View style={styles.gpaCircle}>
                  <Award size={32} color={Colors.white} />
@@ -119,8 +119,8 @@ export default function DashboardScreen() {
                  <Text style={styles.miniStatLabel}>Courses</Text>
               </Card>
               <Card style={styles.miniStatCard}>
-                 <Text style={styles.miniStatVal}>{stats?.attendance || 0}%</Text>
-                 <Text style={styles.miniStatLabel}>Attendance</Text>
+                 <Text style={styles.miniStatVal}>{user?.role === 'STUDENT' ? (stats?.attendance || 0) + '%' : stats?.students || 0}</Text>
+                 <Text style={styles.miniStatLabel}>{user?.role === 'STUDENT' ? 'Attendance' : 'Students'}</Text>
               </Card>
            </View>
         </View>
@@ -129,10 +129,21 @@ export default function DashboardScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Quick Actions</Text>
           <View style={styles.actionsGrid}>
-            <QuickAction icon={Calendar} label="Timetable" color="#2563eb" onPress={() => router.push('/timetable')} />
-            <QuickAction icon={Video} label="Live Class" color="#7c3aed" onPress={() => router.push('/(tabs)/courses')} />
-            <QuickAction icon={CreditCard} label="Fee Slip" color="#059669" onPress={() => router.push('/fees')} />
-            <QuickAction icon={FileText} label="Exams" color="#ea580c" onPress={() => router.push('/exams')} />
+            {user?.role === 'STUDENT' ? (
+              <>
+                <QuickAction icon={Calendar} label="Timetable" color="#2563eb" onPress={() => router.push('/timetable')} />
+                <QuickAction icon={Video} label="Live Class" color="#7c3aed" onPress={() => router.push('/(tabs)/courses')} />
+                <QuickAction icon={FileText} label="Submissions" color="#059669" onPress={() => router.push('/history')} />
+                <QuickAction icon={CreditCard} label="Fee Slip" color="#ea580c" onPress={() => router.push('/fees')} />
+              </>
+            ) : (
+              <>
+                <QuickAction icon={Award} label="Approvals" color="#7c3aed" onPress={() => router.push('/approvals')} />
+                <QuickAction icon={FileText} label="History" color="#2563eb" onPress={() => router.push('/history')} />
+                <QuickAction icon={Users} label="Reports" color="#059669" onPress={() => router.push('/reports')} />
+                <QuickAction icon={Plus} label="New Notice" color="#ea580c" onPress={() => router.push('/(tabs)/announcements')} />
+              </>
+            )}
           </View>
         </View>
 

@@ -5,6 +5,7 @@ import { checkPlagiarism } from './plagiarism.service';
 import { upload } from '../middleware/storage.middleware';
 import cloudinaryService from '../services/cloudinary.service';
 import fs from 'fs';
+import { sendNotification } from '../lib/notifications';
 
 const router = Router();
 
@@ -34,10 +35,17 @@ router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
 router.get('/course/:courseId', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     const { courseId } = req.params;
+    const userRole = req.user?.role;
+    const userId = req.user?.userId;
+
     const assignments = await prisma.assignment.findMany({
       where: { courseId: String(courseId) },
       include: {
-        _count: { select: { submissions: true } }
+        _count: { select: { submissions: true } },
+        submissions: userRole === 'STUDENT' ? {
+          where: { studentId: userId },
+          include: { grade: true }
+        } : false
       },
       orderBy: { createdAt: 'desc' }
     });
@@ -91,6 +99,15 @@ router.post('/', authenticateToken, authorizeRoles('FACULTY', 'HOD', 'SUPER_ADMI
     });
 
     res.status(201).json(assignment);
+    
+    // Trigger notification
+    const course = await prisma.course.findUnique({ where: { id: courseId }, select: { name: true } });
+    await sendNotification({
+      title: `Assignment: ${assignment.title}`,
+      content: `A new assignment has been posted for ${course?.name}. Due: ${assignment.dueDate?.toLocaleDateString()}`,
+      courseId: String(courseId),
+      senderId: req.user?.userId || ''
+    });
   } catch (error: any) {
     if (filePath && fs.existsSync(filePath)) fs.unlinkSync(filePath);
     console.error(`[Assignments]: Error creating assignment for course ${req.body.courseId}:`, error);
@@ -102,6 +119,20 @@ router.post('/', authenticateToken, authorizeRoles('FACULTY', 'HOD', 'SUPER_ADMI
     });
   }
 });
+// Get submissions for current student
+router.get('/submissions/my', authenticateToken, authorizeRoles('STUDENT'), async (req: AuthRequest, res: Response) => {
+  try {
+    const submissions = await prisma.submission.findMany({
+      where: { studentId: String(req.user?.userId) },
+      include: { assignment: { select: { title: true, course: { select: { name: true } } } }, grade: true },
+      orderBy: { createdAt: 'desc' }
+    });
+    res.json(submissions);
+  } catch (error) {
+    res.status(500).json({ message: 'Internal server error', error });
+  }
+});
+
 // Submit an assignment (Student)
 router.post('/:assignmentId/submit', authenticateToken, authorizeRoles('STUDENT'), upload.single('file'), async (req: any, res) => {
   const filePath = req.file?.path;

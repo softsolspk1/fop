@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Image, Share } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Image, Share, Alert } from 'react-native';
+import * as Linking from 'expo-linking';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { 
   BookOpen, 
@@ -14,7 +15,8 @@ import {
   Play,
   Download,
   Calendar,
-  Zap
+  Zap,
+  ChevronRight
 } from 'lucide-react-native';
 import api from '../lib/api';
 import { Colors, Card, Button } from '../components/UI';
@@ -51,6 +53,20 @@ export default function CourseDetailsScreen() {
     };
     fetchDetails();
   }, [id]);
+
+  const handleFileOpen = (url: string, title: string) => {
+    if (!url) return Alert.alert('Error', 'No file URL available');
+    
+    // For documents, use Google Docs Viewer for better mobile compatibility
+    const isDoc = url.match(/\.(docx|pptx|xlsx|pdf|doc|ppt|xls)$/i);
+    const finalUrl = isDoc 
+      ? `https://docs.google.com/viewer?url=${encodeURIComponent(url)}`
+      : url;
+      
+    Linking.openURL(finalUrl).catch(() => {
+      Alert.alert('Error', 'Could not open file');
+    });
+  };
 
   if (loading) return (
      <View style={[styles.container, styles.center]}>
@@ -145,7 +161,10 @@ export default function CourseDetailsScreen() {
                            <Text style={styles.itemTitle}>{m.title}</Text>
                            <Text style={styles.itemDate}>{new Date(m.createdAt).toLocaleDateString()}</Text>
                         </View>
-                        <TouchableOpacity style={styles.downloadBtn}>
+                        <TouchableOpacity 
+                          style={styles.downloadBtn}
+                          onPress={() => handleFileOpen(m.url, m.title)}
+                        >
                            <Download size={20} color={Colors.secondary} />
                         </TouchableOpacity>
                      </Card>

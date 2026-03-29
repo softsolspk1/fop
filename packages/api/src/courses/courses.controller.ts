@@ -5,8 +5,23 @@ import { upload } from '../middleware/storage.middleware';
 import { normalizeYear } from '../lib/utils';
 import cloudinaryService from '../services/cloudinary.service';
 import fs from 'fs';
+import { sendNotification } from '../lib/notifications';
 
 const router = Router();
+
+// Get materials uploaded by current user (Teacher/Admin)
+router.get('/materials/my', authenticateToken, authorizeRoles('FACULTY', 'HOD', 'SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
+  try {
+    const materials = await prisma.material.findMany({
+      where: { uploadedById: req.user?.userId },
+      include: { course: { select: { name: true, code: true } } },
+      orderBy: { createdAt: 'desc' }
+    });
+    res.json(materials);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching materials', error });
+  }
+});
 
 // Update all courses visibility by semester (Admin only)
 router.put('/visibility/bulk', authenticateToken, authorizeRoles('MAIN_ADMIN', 'SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
@@ -209,6 +224,15 @@ router.post('/:id/materials', authenticateToken, authorizeRoles('FACULTY', 'HOD'
       },
     });
     res.status(201).json(material);
+    
+    // Trigger notification
+    const course = await prisma.course.findUnique({ where: { id: courseId }, select: { name: true } });
+    await sendNotification({
+      title: `New Material: ${material.title}`,
+      content: `A new ${type || 'resource'} has been added to your course: ${course?.name}`,
+      courseId: String(courseId),
+      senderId: req.user?.userId || ''
+    });
   } catch (error) {
     if (filePath && fs.existsSync(filePath)) {
       fs.unlinkSync(filePath);

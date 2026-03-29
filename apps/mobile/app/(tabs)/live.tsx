@@ -9,12 +9,17 @@ export default function LiveScreen() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [activeClasses, setActiveClasses] = useState<any[]>([]);
+  const [scheduledLectures, setScheduledLectures] = useState<any[]>([]);
   const [refreshing, setRefreshing] = useState(false);
 
   const fetchClasses = async () => {
     try {
-      const { data } = await api.get('/classes');
-      setActiveClasses(Array.isArray(data) ? data : []);
+      const [{ data: classesData }, { data: materialsData }] = await Promise.all([
+        api.get('/classes/active'),
+        api.get('/materials?type=SCHEDULED_LECTURE')
+      ]);
+      setActiveClasses(Array.isArray(classesData) ? classesData : []);
+      setScheduledLectures(Array.isArray(materialsData) ? materialsData : []);
     } catch (error) {
       console.error('[Live Fetch Error]:', error);
       setActiveClasses([]);
@@ -92,18 +97,32 @@ export default function LiveScreen() {
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Upcoming Today</Text>
-        {[1, 2].map((i) => (
-          <Card key={i} style={styles.upcomingCard}>
-            <View style={styles.upcomingIcon}>
-              <Clock size={20} color={Colors.secondary} />
-            </View>
-            <View style={styles.upcomingInfo}>
-              <Text style={styles.upcomingTitle}>Pharmacology Seminar</Text>
-              <Text style={styles.upcomingDate}>Tomorrow, 10:00 AM</Text>
-            </View>
-          </Card>
-        ))}
+        <Text style={styles.sectionTitle}>Upcoming Scheduled Lectures</Text>
+        {scheduledLectures.length > 0 ? (
+          scheduledLectures.map((lec) => (
+            <Card key={lec.id} style={styles.upcomingCard}>
+              <View style={styles.upcomingIcon}>
+                <Clock size={20} color={Colors.primary} />
+              </View>
+              <View style={styles.upcomingInfo}>
+                <Text style={styles.upcomingTitle}>{lec.title}</Text>
+                <Text style={styles.upcomingDate}>
+                   {lec.scheduledAt ? new Date(lec.scheduledAt).toLocaleString() : 'Scheduled'}
+                </Text>
+              </View>
+              {new Date(lec.scheduledAt) <= new Date() && (
+                <TouchableOpacity 
+                  onPress={() => router.push({ pathname: '/video-player', params: { url: lec.url, title: lec.title } })}
+                  style={styles.playBtn}
+                >
+                  <Play size={14} color={Colors.white} />
+                </TouchableOpacity>
+              )}
+            </Card>
+          ))
+        ) : (
+          <Text style={styles.emptySmall}>No scheduled lectures found.</Text>
+        )}
       </View>
     </ScrollView>
   );
@@ -132,4 +151,6 @@ const styles = StyleSheet.create({
   upcomingInfo: { flex: 1, marginLeft: 16 },
   upcomingTitle: { fontSize: 15, fontWeight: 'bold', color: Colors.text },
   upcomingDate: { fontSize: 12, color: Colors.textSecondary, marginTop: 2 },
+  emptySmall: { color: Colors.textSecondary, fontSize: 12, fontStyle: 'italic', marginLeft: 4 },
+  playBtn: { width: 32, height: 32, backgroundColor: Colors.primary, borderRadius: 16, justifyContent: 'center', alignItems: 'center' },
 });

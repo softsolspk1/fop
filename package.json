@@ -12,7 +12,8 @@
     "dev": "npm run dev --workspaces --if-present",
     "build:all": "npm run build --workspaces --if-present",
     "build:web": "cd apps/web && npx next build",
-    "postinstall": "npx prisma generate --schema=packages/database/prisma/schema.prisma && npx prisma db push --schema=packages/database/prisma/schema.prisma --accept-data-loss --skip-generate && node build-scripts/patch-metro.js",
+    "db:push": "npx prisma db push --schema=packages/database/prisma/schema.prisma --accept-data-loss --skip-generate",
+    "postinstall": "npx prisma generate --schema=packages/database/prisma/schema.prisma && node build-scripts/patch-metro.js",
     "test": "npm run test --workspaces --if-present"
   },
   "devDependencies": {

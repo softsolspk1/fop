@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Alert, RefreshControl } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { ChevronLeft, FileText, Download, CheckCircle2, Clock } from 'lucide-react-native';
+import { ChevronLeft, FileText, Download, CheckCircle2, Clock, ChevronRight } from 'lucide-react-native';
+import * as Linking from 'expo-linking';
 import api from '../lib/api';
 import { Colors, Card, Button } from '../components/UI';
 
@@ -35,6 +36,13 @@ export default function AssignmentsScreen() {
     fetchAssignments();
   };
 
+  const handleFileOpen = (url: string) => {
+    if (!url) return Alert.alert('Error', 'No file URL available');
+    const isDoc = url.match(/\.(docx|pptx|xlsx|pdf|doc|ppt|xls)$/i);
+    const finalUrl = isDoc ? `https://docs.google.com/viewer?url=${encodeURIComponent(url)}` : url;
+    Linking.openURL(finalUrl).catch(() => Alert.alert('Error', 'Could not open file'));
+  };
+
   const renderAssignment = ({ item }: { item: any }) => (
     <Card style={styles.card}>
       <View style={styles.cardHeader}>
@@ -47,7 +55,15 @@ export default function AssignmentsScreen() {
         </View>
       </View>
 
-      <Text style={styles.assTitle}>{item.title}</Text>
+      <View style={styles.titleRow}>
+        <Text style={styles.assTitle}>{item.title}</Text>
+        {item.submissions?.length > 0 && (
+          <View style={styles.submittedBadge}>
+             <CheckCircle2 size={12} color={Colors.success} />
+             <Text style={styles.submittedText}>Submitted</Text>
+          </View>
+        )}
+      </View>
       <Text style={styles.assDesc} numberOfLines={2}>{item.description}</Text>
 
       <View style={styles.footer}>
@@ -55,14 +71,15 @@ export default function AssignmentsScreen() {
           title="Resources" 
           icon={Download} 
           variant="surface" 
-          onPress={() => Alert.alert('Download', 'Resource download started...')}
+          onPress={() => item.fileUrl ? handleFileOpen(item.fileUrl) : Alert.alert('Notice', 'No resource file attached')}
           style={styles.actionBtn}
         />
         <Button 
-          title="Submit" 
+          title={item.submissions?.length > 0 ? "Submitted" : "Submit"} 
           icon={CheckCircle2} 
-          onPress={() => Alert.alert('Submit', 'Submission portal opening...')}
+          onPress={() => router.push({ pathname: '/submit-assignment', params: { id: item.id, title: item.title } })}
           style={styles.actionBtn}
+          disabled={item.submissions?.length > 0}
         />
       </View>
     </Card>
@@ -115,7 +132,10 @@ const styles = StyleSheet.create({
   courseText: { fontSize: 10, fontWeight: '900', color: Colors.primary, textTransform: 'uppercase', letterSpacing: 0.5 },
   deadlineRow: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#fef2f2', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 10 },
   deadlineText: { fontSize: 11, color: '#ef4444', fontWeight: '900' },
-  assTitle: { fontSize: 18, fontWeight: '800', color: Colors.text, letterSpacing: -0.3 },
+  assTitle: { fontSize: 18, fontWeight: '800', color: Colors.text, letterSpacing: -0.3, flex: 1 },
+  titleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
+  submittedBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: Colors.success + '15', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
+  submittedText: { fontSize: 10, fontWeight: '900', color: Colors.success, textTransform: 'uppercase' },
   assDesc: { fontSize: 14, color: Colors.textSecondary, marginTop: 10, lineHeight: 20, fontWeight: '600' },
   footer: { flexDirection: 'row', gap: 12, marginTop: 24, paddingTop: 20, borderTopWidth: 1, borderTopColor: Colors.slate50 },
   actionBtn: { flex: 1, height: 52, borderRadius: 14 },

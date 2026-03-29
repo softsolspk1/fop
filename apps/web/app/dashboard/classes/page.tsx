@@ -12,6 +12,7 @@ export default function LiveClassesPage() {
   const router = useRouter();
   const { user } = useAuth();
   const [classes, setClasses] = useState<any[]>([]);
+  const [scheduledLectures, setScheduledLectures] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [courses, setCourses] = useState<any[]>([]);
@@ -36,15 +37,19 @@ export default function LiveClassesPage() {
 
   const fetchClasses = async () => {
     try {
-      const [classesRes, coursesRes, deptsRes] = await Promise.all([
+      const [classesRes, coursesRes, deptsRes, materialsRes] = await Promise.all([
         api.get('/classes'),
         api.get('/courses'),
-        api.get('/departments')
+        api.get('/departments'),
+        api.get('/materials') // We need to filter for SCHEDULED_LECTURE
       ]);
       
       setClasses(classesRes.data || []);
       setCourses(coursesRes.data || []);
       setDepartments(deptsRes.data || []);
+      
+      const scheduled = (materialsRes.data || []).filter((m: any) => m.type === 'SCHEDULED_LECTURE' && new Date(m.scheduledAt || m.createdAt) > new Date());
+      setScheduledLectures(scheduled);
     } catch (err) {
       console.error(err);
     } finally {
@@ -123,8 +128,64 @@ export default function LiveClassesPage() {
              <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-6" />
              <p className="font-black text-slate-400 uppercase tracking-[0.4em] text-xs">Synchronizing Global Sessions...</p>
           </div>
-        ) : classes.length > 0 ? (
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+        ) : (
+          <div className="space-y-12">
+            {scheduledLectures.length > 0 && (
+              <div className="space-y-6">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-purple-600 rounded-lg text-white">
+                    <Calendar className="w-4 h-4" />
+                  </div>
+                  <h3 className="text-xl font-black text-slate-800 uppercase tracking-widest">Upcoming Scheduled Lectures</h3>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {scheduledLectures.map((lecture, idx) => (
+                    <motion.div 
+                      key={lecture.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: idx * 0.1 }}
+                      className="bg-white p-6 rounded-[2rem] border-2 border-purple-50 shadow-sm hover:shadow-xl hover:border-purple-200 transition-all group"
+                    >
+                      <div className="flex items-center justify-between mb-4">
+                        <span className="px-3 py-1 bg-purple-50 text-purple-600 rounded-full text-[10px] font-black uppercase tracking-widest">Auto-Playback</span>
+                        <div className="text-right">
+                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Scheduled At</p>
+                          <p className="text-xs font-bold text-slate-800">{new Date(lecture.scheduledAt || lecture.createdAt).toLocaleString()}</p>
+                        </div>
+                      </div>
+                      <h4 className="font-black text-slate-800 text-lg group-hover:text-purple-600 transition-colors">{lecture.title}</h4>
+                      <p className="text-xs font-bold text-slate-500 mt-1 uppercase tracking-widest">{lecture.course?.name}</p>
+                      
+                      <div className="mt-6 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                           <div className="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center text-slate-400">
+                              <User className="w-4 h-4" />
+                           </div>
+                           <span className="text-[10px] font-black text-slate-500 uppercase">{lecture.course?.teacher?.name || 'Faculty'}</span>
+                        </div>
+                        <button 
+                          onClick={() => router.push(`/dashboard/courses/${lecture.courseId}`)}
+                          className="px-4 py-2 bg-purple-600 text-white font-black rounded-xl text-[10px] uppercase tracking-widest hover:bg-purple-700 transition-all shadow-lg shadow-purple-200"
+                        >
+                          View Course
+                        </button>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-6">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-600 rounded-lg text-white">
+                  <Video className="w-4 h-4" />
+                </div>
+                <h3 className="text-xl font-black text-slate-800 uppercase tracking-widest">Live Now / Manual Sessions</h3>
+              </div>
+              {classes.length > 0 ? (
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
             {classes.map((cls, idx) => (
               <motion.div 
                 key={cls.id}
@@ -269,6 +330,9 @@ export default function LiveClassesPage() {
              <p className="text-slate-500 font-medium italic max-w-sm mx-auto">
                There are no live classes ongoing at this moment. Please check your Time Table for upcoming sessions.
              </p>
+          </div>
+        )}
+            </div>
           </div>
         )}
       </div>

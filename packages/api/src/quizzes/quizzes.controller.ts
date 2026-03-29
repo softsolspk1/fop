@@ -1,8 +1,23 @@
 import { Router, Response } from 'express';
 import prisma from '../lib/prisma';
 import { authenticateToken, authorizeRoles, AuthRequest } from '../auth/auth.middleware';
+import { sendNotification } from '../lib/notifications';
 
 const router = Router();
+
+// Get quizzes created by current user
+router.get('/my', authenticateToken, authorizeRoles('FACULTY', 'HOD', 'SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
+  try {
+    const quizzes = await prisma.quiz.findMany({
+      where: { course: { teacherId: req.user?.userId } },
+      include: { course: { select: { name: true, code: true } } },
+      orderBy: { createdAt: 'desc' }
+    });
+    res.json(quizzes);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching history', error });
+  }
+});
 
 // Shuffle utility
 function shuffleArray(array: any[]) {
@@ -94,6 +109,15 @@ router.post('/', authenticateToken, authorizeRoles('FACULTY', 'HOD', 'SUPER_ADMI
     });
     
     res.status(201).json(quiz);
+
+    // Trigger notification
+    const course = await prisma.course.findUnique({ where: { id: courseId }, select: { name: true } });
+    await sendNotification({
+      title: `${isExam ? 'Exam' : 'Quiz'}: ${quiz.title}`,
+      content: `A new assessment has been posted for ${course?.name}. Start: ${quiz.startTime?.toLocaleString()}`,
+      courseId: String(courseId),
+      senderId: req.user?.userId || ''
+    });
   } catch (error: any) {
     console.error(`[Quizzes]: Error creating quiz for course ${req.body.courseId}:`, error);
     res.status(500).json({ 
@@ -219,6 +243,16 @@ router.put('/:id/status', authenticateToken, authorizeRoles('HOD', 'SUPER_ADMIN'
       where: { id: String(id) },
       data: { status }
     });
+    if (status === 'APPROVED') {
+       const fullQuiz = await prisma.quiz.findUnique({ where: { id: String(id) }, include: { course: true } });
+       await sendNotification({
+         title: `Approved: ${fullQuiz?.title}`,
+         content: `The ${fullQuiz?.isExam ? 'exam' : 'quiz'} for ${fullQuiz?.course?.name} is now active.`,
+         courseId: fullQuiz?.courseId || '',
+         senderId: req.user?.userId || ''
+       });
+    }
+
     res.json({ message: `Quiz ${status.toLowerCase()} successfully`, quiz });
   } catch (error) {
     res.status(500).json({ message: 'Error updating quiz status', error });

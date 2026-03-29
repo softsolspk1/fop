@@ -19,6 +19,7 @@ export default function SignupScreen() {
     rollNumber: '',
     enrollmentNumber: '',
     phoneNumber: '',
+    program: 'Pharm-D', // Default
   });
 
   const handleSignup = async () => {
@@ -82,20 +83,28 @@ export default function SignupScreen() {
                    ))}
                 </View>
              </View>
-             <View style={{ flex: 1, marginLeft: 8 }}>
-                <Text style={styles.miniLabel}>Academic Year</Text>
-                <View style={styles.selector}>
-                   {['1st', '2nd', '3rd', '4th', '5th'].map((y) => (
-                      <TouchableOpacity 
-                        key={y} 
-                        style={[styles.selBtn, form.year.includes(y) && styles.selActive]}
-                        onPress={() => setForm({...form, year: `${y} Year`})}
-                      >
-                         <Text style={[styles.selText, form.year.includes(y) && styles.selTextActive]}>{y[0]}</Text>
-                      </TouchableOpacity>
-                   ))}
-                </View>
-             </View>
+              <View style={{ flex: 1.5, marginLeft: 8 }}>
+                 <Text style={styles.miniLabel}>Program / Year</Text>
+                 <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.selectorScroll}>
+                   <View style={styles.selector}>
+                      {['1st', '2nd', '3rd', '4th', '5th', 'M.Phil', 'PhD'].map((y) => (
+                         <TouchableOpacity 
+                           key={y} 
+                           style={[styles.selBtn, (form.year.includes(y) || (y === 'M.Phil' && form.program === 'M.Phil') || (y === 'PhD' && form.program === 'PhD')) && styles.selActive]}
+                           onPress={() => {
+                             if (y === 'M.Phil' || y === 'PhD') {
+                               setForm({...form, year: y, program: y});
+                             } else {
+                               setForm({...form, year: `${y} Year`, program: 'Pharm-D'});
+                             }
+                           }}
+                         >
+                            <Text style={[styles.selText, (form.year.includes(y) || (y === 'M.Phil' && form.program === 'M.Phil') || (y === 'PhD' && form.program === 'PhD')) && styles.selTextActive]}>{y}</Text>
+                         </TouchableOpacity>
+                      ))}
+                   </View>
+                 </ScrollView>
+              </View>
           </View>
           
           <Input 
@@ -166,9 +175,10 @@ const styles = StyleSheet.create({
   tabRow: { flexDirection: 'row', marginBottom: 24 },
   miniLabel: { fontSize: 10, fontWeight: '900', color: Colors.textSecondary, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8, marginLeft: 4 },
   selector: { flexDirection: 'row', backgroundColor: Colors.slate50, borderRadius: 16, padding: 4, gap: 4 },
-  selBtn: { flex: 1, height: 44, borderRadius: 12, justifyContent: 'center', alignItems: 'center', backgroundColor: 'transparent' },
+  selectorScroll: { backgroundColor: Colors.slate50, borderRadius: 16 },
+  selBtn: { paddingHorizontal: 12, height: 44, borderRadius: 12, justifyContent: 'center', alignItems: 'center', backgroundColor: 'transparent' },
   selActive: { backgroundColor: Colors.white, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 5, elevation: 2 },
-  selText: { fontSize: 12, fontWeight: '800', color: Colors.textSecondary },
+  selText: { fontSize: 10, fontWeight: '800', color: Colors.textSecondary },
   selTextActive: { color: Colors.primary },
   submitBtn: { marginTop: 12, height: 60, borderRadius: 20, shadowColor: Colors.primary, shadowOffset: { width: 0, height: 15 }, shadowOpacity: 0.2, shadowRadius: 20 },
   footer: { flexDirection: 'row', justifyContent: 'center', marginTop: 32, paddingBottom: 40 },
