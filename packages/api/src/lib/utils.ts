@@ -6,5 +6,15 @@ export const normalizeYear = (year: string | null | undefined): string | undefin
   if (y.includes('3rd') || y.includes('third')) return 'Third';
   if (y.includes('4th') || y.includes('fourth')) return 'Fourth';
   if (y.includes('5th') || y.includes('fifth') || y.includes('final')) return 'Fifth';
-  return year; // Fallback to original if no match
+};
+
+export const parseAsPKT = (dateString: string | null | undefined): Date => {
+  if (!dateString) return new Date();
+  // If it's already a Date string with TZ, parse normally
+  if (dateString.includes('Z') || dateString.match(/[+-]\d{2}:\d{2}$/)) {
+    return new Date(dateString);
+  }
+  
+  // Assume it's a local PKT string (like from datetime-local)
+  return new Date(`${dateString}:00+05:00`);
 };

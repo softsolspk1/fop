@@ -6,6 +6,8 @@ import DashboardLayout from '../../../components/dashboard/DashboardLayout';
 import { Video, Calendar, Clock, User, AlertCircle, Play, Users, MapPin, Trash2 } from 'lucide-react';
 import api from '../../../lib/api';
 import { useAuth } from '../../../context/AuthContext';
+import { formatPKT, formatDatePKT, formatTimePKT } from '../../../lib/date-utils';
+import { toast } from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function LiveClassesPage() {
@@ -74,7 +76,11 @@ export default function LiveClassesPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await api.post('/classes', formData);
+      await api.post('/classes', {
+        ...formData,
+        startTime: parsePKTToUTC(formData.startTime),
+        endTime: parsePKTToUTC(formData.endTime)
+      });
       setIsModalOpen(false);
       fetchClasses();
       setFormData({
@@ -174,9 +180,9 @@ export default function LiveClassesPage() {
                     >
                       <div className="flex items-center justify-between mb-4">
                         <span className="px-3 py-1 bg-purple-50 text-purple-600 rounded-full text-[10px] font-black uppercase tracking-widest">Auto-Playback</span>
-                        <div className="text-right">
-                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Scheduled At</p>
-                          <p className="text-xs font-bold text-slate-800">{new Date(lecture.scheduledAt || lecture.createdAt).toLocaleString()}</p>
+                        <div className="p-4 bg-slate-50/50 rounded-2xl border border-slate-100/50">
+                          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 leading-none">Class Schedule</p>
+                          <p className="text-xs font-bold text-slate-800">{formatPKT(lecture.scheduledAt || lecture.createdAt, { dateStyle: 'medium', timeStyle: 'short' })}</p>
                         </div>
                       </div>
                       <h4 className="font-black text-slate-800 text-lg group-hover:text-purple-600 transition-colors">{lecture.title}</h4>

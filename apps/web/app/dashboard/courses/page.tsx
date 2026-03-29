@@ -15,6 +15,7 @@ import { useAuth } from '../../../context/AuthContext';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
+import { formatPKT, toPKTInputString, parsePKTToUTC, formatDatePKT, formatTimePKT } from '../../../lib/date-utils';
 
 export default function CoursesPage() {
   const router = useRouter();
@@ -258,7 +259,7 @@ export default function CoursesPage() {
           const diff = now.getTime() - scheduledDate.getTime();
           if (diff >= 0 && diff < 10000) {
             toast.success(`Lecture Starting: ${mat.title}`, { duration: 10000 });
-            window.open(mat.url, '_blank');
+            router.push(`/dashboard/courses/${viewingCourse.id}/live?scheduledId=${mat.id}`);
           }
         }
       });
@@ -628,10 +629,10 @@ export default function CoursesPage() {
                               if (url) formData.append('url', url);
                               if (expiresAt) {
                                 if (type === 'SCHEDULED_LECTURE') {
-                                  formData.append('scheduledAt', expiresAt);
+                                  formData.append('scheduledAt', parsePKTToUTC(expiresAt) || expiresAt);
                                   formData.append('isScheduled', 'true');
                                 } else {
-                                  formData.append('expiresAt', expiresAt);
+                                  formData.append('expiresAt', parsePKTToUTC(expiresAt) || expiresAt);
                                 }
                               }
 
@@ -752,8 +753,8 @@ export default function CoursesPage() {
                               const fd = new FormData();
                               fd.append('title', title);
                               fd.append('description', desc || '');
-                              fd.append('startTime', start || new Date().toISOString());
-                              fd.append('dueDate', due);
+                              fd.append('startTime', start ? parsePKTToUTC(start) : new Date().toISOString());
+                              fd.append('dueDate', parsePKTToUTC(due) || due);
                               fd.append('totalMarks', marks || '100');
                               fd.append('courseId', managingMaterials.id);
                               if (file) fd.append('file', file);
@@ -1069,8 +1070,8 @@ export default function CoursesPage() {
                                btn.disabled = true; btn.innerHTML = 'Creating Quiz...';
                                await api.post('/quizzes', {
                                   title: (document.getElementById('quiz-title') as HTMLInputElement).value,
-                                  startTime: (document.getElementById('quiz-start') as HTMLInputElement).value,
-                                  endTime: (document.getElementById('quiz-end') as HTMLInputElement).value,
+                                  startTime: parsePKTToUTC((document.getElementById('quiz-start') as HTMLInputElement).value),
+                                  endTime: parsePKTToUTC((document.getElementById('quiz-end') as HTMLInputElement).value),
                                   timeLimit: parseInt((document.getElementById('quiz-limit') as HTMLInputElement).value),
                                   passingPercentage: parseInt((document.getElementById('quiz-pass') as HTMLInputElement).value),
                                   isExam: (document.getElementById('quiz-exam') as HTMLInputElement).checked,
@@ -1393,7 +1394,13 @@ export default function CoursesPage() {
                                             if (mat.type === 'SCHEDULED_LECTURE') {
                                               router.push(`/dashboard/courses/${viewingCourse.id}/live?scheduledId=${mat.id}`);
                                             } else {
-                                              window.open(mat.type === 'VIDEO' || mat.type === 'YOUTUBE' ? mat.url : `https://docs.google.com/viewer?url=${encodeURIComponent(mat.url)}&embedded=true`, '_blank');
+                                              const fileUrl = mat.url;
+                                              const isOfficeFile = fileUrl.match(/\.(docx|pptx|xlsx|doc|ppt|xls)/i);
+                                              if (isOfficeFile) {
+                                                 window.open(`https://docs.google.com/viewer?url=${encodeURIComponent(fileUrl)}&embedded=true`, '_blank');
+                                              } else {
+                                                 window.open(fileUrl, '_blank');
+                                              }
                                             }
                                           }}
                                           className="px-3 py-1 bg-slate-100 text-slate-600 text-[8px] font-black uppercase tracking-widest rounded-lg hover:bg-blue-600 hover:text-white transition-all shadow-sm cursor-pointer"
@@ -1427,7 +1434,7 @@ export default function CoursesPage() {
                                   </div>
                                   <div>
                                      <p className="font-black text-slate-800 text-base">{asgn.title}</p>
-                                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter mt-1">Due: {new Date(asgn.dueDate).toLocaleDateString()}</p>
+                                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter mt-1">Due: {formatDatePKT(asgn.dueDate)}</p>
                                   </div>
                                </div>
                                <div className="flex items-center gap-2">

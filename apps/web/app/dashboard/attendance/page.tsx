@@ -20,6 +20,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../../lib/api';
 import { useAuth } from '../../../context/AuthContext';
+import { formatDatePKT, formatTimePKT } from '../../../lib/date-utils';
 
 export default function AttendancePage() {
   const { user } = useAuth();
@@ -333,11 +334,11 @@ export default function AttendancePage() {
                       <td className="px-8 py-4">
                         <div className="space-y-1">
                           <p className="text-xs font-bold text-slate-800">
-                             {new Date(record.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                             {formatDatePKT(record.createdAt)}
                           </p>
                           <div className="flex items-center gap-1.5 text-[9px] font-black text-slate-400 uppercase tracking-widest">
                              <Clock className="w-3 h-3 text-blue-400" />
-                             {new Date(record.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                             {formatTimePKT(record.createdAt)}
                           </div>
                         </div>
                       </td>
