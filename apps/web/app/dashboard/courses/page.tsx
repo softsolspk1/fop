@@ -814,14 +814,20 @@ export default function CoursesPage() {
                                             </div>
                                          </div>
                                          <div className="flex items-center gap-3">
-                                            <a 
-                                              href={`https://docs.google.com/viewer?url=${encodeURIComponent(sub.fileUrl)}&embedded=true`} 
-                                              target="_blank" 
-                                              rel="noopener noreferrer" 
+                                            <button 
+                                              onClick={() => {
+                                                const fileUrl = sub.fileUrl;
+                                                const isOfficeFile = fileUrl.match(/\.(docx|pptx|xlsx|doc|ppt|xls)/i);
+                                                if (isOfficeFile) {
+                                                   window.open(`https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(fileUrl)}`, '_blank');
+                                                } else {
+                                                   window.open(fileUrl, '_blank');
+                                                }
+                                              }}
                                               className="px-4 py-2 bg-blue-600 text-white text-[10px] font-black rounded-xl hover:bg-blue-700 transition-all shadow-md shadow-blue-100 uppercase tracking-widest"
                                             >
                                               View File
-                                            </a>
+                                            </button>
                                             {sub.grade ? (
                                               <div className="px-4 py-2 bg-green-50 text-green-600 rounded-xl text-[10px] font-black uppercase tracking-widest">
                                                  Score: {sub.grade.score}
@@ -1397,7 +1403,7 @@ export default function CoursesPage() {
                                               const fileUrl = mat.url;
                                               const isOfficeFile = fileUrl.match(/\.(docx|pptx|xlsx|doc|ppt|xls)/i);
                                               if (isOfficeFile) {
-                                                 window.open(`https://docs.google.com/viewer?url=${encodeURIComponent(fileUrl)}&embedded=true`, '_blank');
+                                                 window.open(`https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(fileUrl)}`, '_blank');
                                               } else {
                                                  window.open(fileUrl, '_blank');
                                               }
