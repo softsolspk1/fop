@@ -554,7 +554,7 @@ export default function CoursesPage() {
                           onChange={(e) => setSelectedMaterialType(e.target.value)}
                           className="w-full px-5 py-3.5 bg-white border-2 border-slate-100 rounded-2xl font-bold text-slate-900 outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-400 transition-all shadow-sm"
                         >
-                          <option value="DOCUMENT">Document (PDF)</option>
+                          <option value="DOCUMENT">Document (Google Drive Link)</option>
                           <option value="WORD">Word Document (DOC/DOCX)</option>
                           <option value="PPT">PowerPoint (PPTX)</option>
                           <option value="IMAGE">Image / Diagram</option>
@@ -563,7 +563,7 @@ export default function CoursesPage() {
                           <option value="YOUTUBE">YouTube Link</option>
                         </select>
                       </div>
-                      <div className={`md:col-span-2 space-y-1.5 px-1 ${['VIDEO', 'SCHEDULED_LECTURE', 'YOUTUBE'].includes(selectedMaterialType) ? 'hidden' : ''}`}>
+                      <div className={`md:col-span-2 space-y-1.5 px-1 ${['DOCUMENT', 'VIDEO', 'SCHEDULED_LECTURE', 'YOUTUBE'].includes(selectedMaterialType) ? 'hidden' : ''}`}>
                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Direct File Upload (Cloudinary)</label>
                         <input 
                           type="file" 
@@ -573,7 +573,7 @@ export default function CoursesPage() {
                         />
                       </div>
                       <div className="md:col-span-2 space-y-1.5 px-1">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{['VIDEO', 'SCHEDULED_LECTURE', 'YOUTUBE'].includes(selectedMaterialType) ? 'Google Drive Link / Video URL' : 'OR URL / Resource Link'}</label>
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{['DOCUMENT', 'VIDEO', 'SCHEDULED_LECTURE', 'YOUTUBE'].includes(selectedMaterialType) ? 'Google Drive Link / Video URL' : 'OR URL / Resource Link'}</label>
                         <input 
                           type="text" 
                           placeholder="https://..."
@@ -615,6 +615,7 @@ export default function CoursesPage() {
                             const expiresAt = (document.getElementById('mat-expiresAt') as HTMLInputElement).value;
                             const isDownloadable = (document.getElementById('mat-isDownloadable') as HTMLInputElement).checked;
 
+                            if (type === 'DOCUMENT' && !url) return alert('Google Drive Link is required for PDF Documents');
                             if (!title || (!url && !file)) return alert('Please provide a title and either a file or a URL');
                             
                             try {
