@@ -190,8 +190,8 @@ export default function LiveClassPage() {
     }
   };
   
-  const getVideoEmbedUrl = (url: string) => {
-    if (!url) return null;
+  const getVideoEmbedUrl = (url: string): string | undefined => {
+    if (!url) return undefined;
     
     // Google Drive: /file/d/ID/view -> /file/d/ID/preview
     if (url.includes('drive.google.com')) {
