@@ -9,6 +9,43 @@ import { sendNotification } from '../lib/notifications';
 
 const router = Router();
 
+// Get all materials across all courses (for Live Sessions page)
+router.get('/materials', authenticateToken, async (req: AuthRequest, res: Response) => {
+  try {
+    const { type } = req.query;
+    const where: any = {};
+    if (type) where.type = String(type);
+    
+    // Students only see materials for their courses or global scheduled sessions
+    if (req.user?.role === 'STUDENT') {
+      const student = await prisma.user.findUnique({
+        where: { id: req.user.userId },
+        select: { studentCourses: { select: { id: true } } }
+      });
+      const studentCourseIds = student?.studentCourses.map(c => c.id) || [];
+      where.OR = [
+        { courseId: { in: studentCourseIds } },
+        { type: 'SCHEDULED_LECTURE' }
+      ];
+    }
+
+    const materials = await prisma.material.findMany({
+      where,
+      include: { 
+        course: { 
+          include: { 
+            teacher: { select: { name: true, designation: true } } 
+          } 
+        } 
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+    res.json(materials);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching materials', error });
+  }
+});
+
 // Get materials uploaded by current user (Teacher/Admin)
 router.get('/materials/my', authenticateToken, authorizeRoles('FACULTY', 'HOD', 'SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
   try {

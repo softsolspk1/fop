@@ -37,21 +37,35 @@ export default function LiveClassesPage() {
 
   const fetchClasses = async () => {
     try {
-      const [classesRes, coursesRes, deptsRes, materialsRes] = await Promise.all([
+      const results = await Promise.allSettled([
         api.get('/classes'),
         api.get('/courses'),
         api.get('/departments'),
-        api.get('/materials') // We need to filter for SCHEDULED_LECTURE
+        api.get('/courses/materials?type=SCHEDULED_LECTURE')
       ]);
       
-      setClasses(classesRes.data || []);
-      setCourses(coursesRes.data || []);
-      setDepartments(deptsRes.data || []);
+      if (results[0].status === 'fulfilled') setClasses(results[0].value.data || []);
+      if (results[1].status === 'fulfilled') setCourses(results[1].value.data || []);
+      if (results[2].status === 'fulfilled') {
+        const depts = results[2].value.data || [];
+        setDepartments(depts);
+        
+        // Auto-select department for HOD or Faculty if they belong to one
+        if (user?.departmentId && !selectedDept) {
+          setSelectedDept(user.departmentId);
+        }
+      }
       
-      const scheduled = (materialsRes.data || []).filter((m: any) => m.type === 'SCHEDULED_LECTURE' && new Date(m.scheduledAt || m.createdAt) > new Date());
-      setScheduledLectures(scheduled);
+      if (results[3].status === 'fulfilled') {
+        const materials = results[3].value.data || [];
+        // Filtering for lectures that haven't passed yet
+        const scheduled = materials.filter((m: any) => 
+          new Date(m.scheduledAt || m.createdAt).getTime() > Date.now() - (1000 * 60 * 60 * 2) // Within last 2 hours to now/future
+        );
+        setScheduledLectures(scheduled);
+      }
     } catch (err) {
-      console.error(err);
+      console.error('[Live Classes Fetch Error]:', err);
     } finally {
       setLoading(false);
     }
