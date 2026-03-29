@@ -1,6 +1,7 @@
 import { Router, Response } from 'express';
 import prisma from '../lib/prisma';
 import { authenticateToken, authorizeRoles, AuthRequest } from '../auth/auth.middleware';
+import { parseAsPKT } from '../lib/utils';
 import { generateAgoraToken } from './agora.service';
 import { transcribeAudio } from './ai-transcription.service';
 import { normalizeYear } from '../lib/utils';
@@ -142,8 +143,8 @@ router.post('/', authenticateToken, authorizeRoles('FACULTY', 'SUPER_ADMIN'), as
       data: {
         title,
         dayOfWeek: dayOfWeek || 'Monday',
-        startTime: new Date(startTime),
-        endTime: new Date(endTime),
+        startTime: parseAsPKT(startTime),
+        endTime: parseAsPKT(endTime),
         location: location || 'Lecture Hall 1',
         courseId,
         agoraChannel,

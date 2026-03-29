@@ -5,6 +5,7 @@ import { upload } from '../middleware/storage.middleware';
 import cloudinaryService from '../services/cloudinary.service';
 import fs from 'fs';
 import path from 'path';
+import { parseAsPKT } from '../lib/utils';
 
 const router = Router();
 
@@ -125,10 +126,10 @@ router.post('/materials', authenticateToken, authorizeRoles('FACULTY', 'SUPER_AD
         courseId,
         uploadedById: userId,
         status: 'APPROVED',
-        expiresAt: expiresAt ? new Date(expiresAt) : null,
+        expiresAt: expiresAt ? parseAsPKT(expiresAt) : null,
         isDownloadable: isDownloadable === 'true' || isDownloadable === true,
         isScheduled: isScheduled === 'true' || isScheduled === true,
-        scheduledAt: scheduledAt ? new Date(scheduledAt) : null
+        scheduledAt: scheduledAt ? parseAsPKT(scheduledAt) : null
       }
     });
 

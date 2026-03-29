@@ -1,6 +1,7 @@
 import { Router, Response } from 'express';
 import prisma from '../lib/prisma';
 import { authenticateToken, authorizeRoles, AuthRequest } from '../auth/auth.middleware';
+import { parseAsPKT } from '../lib/utils';
 import { checkPlagiarism } from './plagiarism.service';
 import { upload } from '../middleware/storage.middleware';
 import cloudinaryService from '../services/cloudinary.service';
@@ -89,8 +90,8 @@ router.post('/', authenticateToken, authorizeRoles('FACULTY', 'HOD', 'SUPER_ADMI
       data: {
         title: title || 'New Assignment',
         description: description || '',
-        startTime: startTime ? new Date(startTime) : new Date(),
-        dueDate: dueDate ? new Date(dueDate) : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // Default 1 week
+        startTime: startTime ? parseAsPKT(startTime) : new Date(),
+        dueDate: parseAsPKT(dueDate),
         totalMarks: parseFloat(totalMarks) || 100,
         fileUrl,
         publicId,

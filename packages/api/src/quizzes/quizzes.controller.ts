@@ -1,6 +1,7 @@
 import { Router, Response } from 'express';
 import prisma from '../lib/prisma';
 import { authenticateToken, authorizeRoles, AuthRequest } from '../auth/auth.middleware';
+import { parseAsPKT } from '../lib/utils';
 import { sendNotification } from '../lib/notifications';
 
 const router = Router();
@@ -90,8 +91,8 @@ router.post('/', authenticateToken, authorizeRoles('FACULTY', 'HOD', 'SUPER_ADMI
         title: title || 'Untitled Quiz',
         description: description || '',
         timeLimit: parseInt(timeLimit) || 30,
-        startTime: startTime ? new Date(startTime) : new Date(),
-        endTime: endTime ? new Date(endTime) : new Date(Date.now() + 3600000),
+        startTime: parseAsPKT(startTime),
+        endTime: parseAsPKT(endTime),
         totalMarks: parseFloat(totalMarks) || questions.length,
         passingPercentage: parseFloat(passingPercentage) || 40,
         courseId,
